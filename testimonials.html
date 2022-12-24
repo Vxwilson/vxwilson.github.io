@@ -7,7 +7,7 @@
 
     <link rel="canonical" href="">
 
-    <meta name="description" content="">
+    <meta name="description" content="Resolute offers addiction and behavioral health services and can see our patients within days of contacting us. Our dedicated providers are ready to assist your recovery and long term goals.">
     <meta name="keywords" content="">
 
     <!--Social Media Display-->
@@ -28,11 +28,11 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="/css/root.css">
-    <link rel="stylesheet" href="/css/local.css">
+    <link rel="stylesheet" href="/css/testimonials.css">
     <link rel="stylesheet" href="/css/dark.css">
     <link rel="stylesheet" href="/css/dark-root-styles.css">
 
-    <title>Title | Business | Location, WA</title>
+    <title></title>
 </head>
 <body>
 
@@ -43,9 +43,11 @@
         <!-- Mobile Nav Strip -->
         <div class="mobile-wrapper">
             <div class="mobile-nav container mobile-nav-container">
-                <img class="light" id="mobile-logo" src="/images/logo.svg" alt="mobile_company_logo" width="110" height="32">
 
-                <img class="dark" id="mobile-logo" src="/images/logo-white.svg" alt="mobile_company_logo" width="110" height="32">
+                <!--Light mode logo-->
+                <img class="light" id="mobile-logo" src="/images/logo.svg" alt="mobile_company_logo" height="60">
+                <!--Dark mode logo-->
+                <img class="dark" id="mobile-logo" src="/images/logo-white.svg" alt="mobile_company_logo" height="60">
 
                 <!-- Hamburger Menu -->
                 <button aria-label="open the menu" id="menu-button" class="hamburger hamburger--spring" onclick="toggleNav()" type="button">
@@ -64,15 +66,17 @@
             <div class="navbar-menu">
                 <div id="side-menu" class=" side-nav">
                     <a class="nav-logo" href="/index.html">
+                        <!--Light mode logo-->
                         <img class="light" aria-hidden="true" decoding="async" src="images/logo.svg" alt="compnay logo" height="80">
+                        <!--Dark mode logo-->
                         <img class="dark" aria-hidden="true" decoding="async" src="images/logo-white.svg" alt="compnay logo" height="80">
                     </a>
                     <ul id="on-top" class="navbar-links">
-                        <li class="nav-li"><a id="active-menu" href="index.html">Home</a></li>
+                        <li class="nav-li"><a class="link" href="/index.html">Home</a></li>
                         <li class="nav-li"><a class="link" href="/about.html">About</a></li>
-                        <li class="nav-li"><a class="link" href="index.html#services">Services</a></li>
+                        <li class="nav-li"><a class="link" href="/index.html#services">Services</a></li>
                         <!-- <li class="nav-li"><a class="link" href="html/portfolio.html">Portfolio</a></li> -->
-                        <li class="nav-li"><a class="link" href="/testimonials.html">Testimonials</a></li>
+                        <li class="nav-li"><a id="active-menu" class="link" href="/testimonials.html">Testimonials</a></li>
                         <li class="nav-li"><a class="link" href="/contact.html">Contact</a></li>
                     </ul>
                 </div>
@@ -87,67 +91,74 @@
     <main id="main">
     
         <!-- ============================================ -->
-        <!--                    LANDING                   -->
+        <!--                    Landing                   -->
         <!-- ============================================ -->
     
-        <section id="hero">
-            <div class="hero-content">
-                <div class="heroText">
-                    <h1 id="home-h">Main headline, put top keyword here</h2>
-                    <p>
-                        Expand on the keyword with more keywords and add a list of related services that you do and include the city, state of your service area.  
-                    </p>
-                    <div class="buttons">
-                        <a class="button-solid" href="/about.html" >
-                            About Us
-                        </a>
-                        <a class="call-now" href="tel:555-213-9120">
-                            <img class="light" decoding="async" src="/images/phone.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <img class="dark" decoding="async" src="/images/phone-dark.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <div class="group">
-                                <span class="text">Call Now</span>
-                                <span class="number">(555) 213-9120</span>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-                <img decoding="async" src="/images/ryan-caselli.png" alt="" class="business-casual" width="" height="">
-            </div>
+        <section id="int-hero">
+            <h1 id="home-h">Testimonials</h2>
         </section>
 
         <!-- ============================================ -->
-        <!--                  Services                    -->
+        <!--                 TESTOMONIES                  -->
         <!-- ============================================ -->
-
-        <section id="services" class="section">
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is THE main<span> service you do</span></h2>
-                <p>
-                    Notice how this one is bigger and darker, this is your main service you provide.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue .
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!--                   About                      -->
-        <!-- ============================================ -->
-
         
+        <section id="reviews" class="review-wrapper">
+            <div class="stars">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+            </div>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero officiis assumenda voluptatum dolor quaerat labore quis commodi impedit quod inventore reiciendis beatae, ab molestias veniam quam sequi magnam natus aut?
+            </p>
+            <span class="name">Leah M</span>
+            <div class="stars">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+            </div>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero officiis assumenda voluptatum dolor quaerat labore quis commodi impedit quod inventore reiciendis beatae, ab molestias veniam quam sequi magnam natus aut?
+            </p>
+            <span class="name">Chad K.</span>
+            <div class="stars">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+            </div>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero officiis assumenda voluptatum dolor quaerat labore quis commodi impedit quod inventore reiciendis beatae, ab molestias veniam quam sequi magnam natus aut?
+            </p>
+            <span class="name">Kaytlyn Wallin</span>
+            <div class="stars">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+            </div>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero officiis assumenda voluptatum dolor quaerat labore quis commodi impedit quod inventore reiciendis beatae, ab molestias veniam quam sequi magnam natus aut?
+            </p>
+            <span class="name">Ryan P</span>
+            <div class="stars">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+                <img loading="lazy" decoding="async" src="/images/star.svg" alt="" height="30" width="30">
+            </div>
+            <p>
+                Lorem ipsum dolor sit amet consectetur adipisicing elit. Vero officiis assumenda voluptatum dolor quaerat labore quis commodi impedit quod inventore reiciendis beatae, ab molestias veniam quam sequi magnam natus aut?
+            </p>
+            <span class="name">Marco P.</span>
+        </section>
         
     </main>
 
@@ -158,9 +169,9 @@
     <footer id="footer">
         <div class="container">
             <div class="left-section">
-                <a class="logo" href="/index.html"><img loading="lazy" decoding="async" src="/images/logo-white.svg" alt="logo" width="293" height="91"></a>
+                <a class="logo" href=""><img loading="lazy" decoding="async" src="/images/logo-white.svg" alt="logo" width="293" height="91"></a>
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus mollitia sequi placeat dignissimos adipisci explicabo excepturi a beatae architecto autem.  
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Error, aut. Molestias delectus rem nihil distinctio nemo assumenda laudantium. Veritatis, natus.
                 </p>
             </div>
             <div class="right-section">

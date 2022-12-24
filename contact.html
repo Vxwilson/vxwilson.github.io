@@ -28,11 +28,11 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="/css/root.css">
-    <link rel="stylesheet" href="/css/local.css">
+    <link rel="stylesheet" href="/css/contact.css">
     <link rel="stylesheet" href="/css/dark.css">
     <link rel="stylesheet" href="/css/dark-root-styles.css">
 
-    <title>Title | Business | Location, WA</title>
+    <title></title>
 </head>
 <body>
 
@@ -68,12 +68,12 @@
                         <img class="dark" aria-hidden="true" decoding="async" src="images/logo-white.svg" alt="compnay logo" height="80">
                     </a>
                     <ul id="on-top" class="navbar-links">
-                        <li class="nav-li"><a id="active-menu" href="index.html">Home</a></li>
+                        <li class="nav-li"><a class="link" href="/index.html">Home</a></li>
                         <li class="nav-li"><a class="link" href="/about.html">About</a></li>
-                        <li class="nav-li"><a class="link" href="index.html#services">Services</a></li>
+                        <li class="nav-li"><a class="link" href="/index.html#services">Services</a></li>
                         <!-- <li class="nav-li"><a class="link" href="html/portfolio.html">Portfolio</a></li> -->
                         <li class="nav-li"><a class="link" href="/testimonials.html">Testimonials</a></li>
-                        <li class="nav-li"><a class="link" href="/contact.html">Contact</a></li>
+                        <li class="nav-li"><a id="active-menu" class="link" href="/contact.html">Contact</a></li>
                     </ul>
                 </div>
                 <button class="dark-mode-button top-dark-mode-button" aria-label="dark mode toggle">
@@ -87,67 +87,79 @@
     <main id="main">
     
         <!-- ============================================ -->
-        <!--                    LANDING                   -->
+        <!--                    Landing                   -->
         <!-- ============================================ -->
     
-        <section id="hero">
-            <div class="hero-content">
-                <div class="heroText">
-                    <h1 id="home-h">Main headline, put top keyword here</h2>
-                    <p>
-                        Expand on the keyword with more keywords and add a list of related services that you do and include the city, state of your service area.  
+        <section id="int-hero">
+            <h1 id="home-h">Contact Business</h2>
+        </section>
+
+        <!-- ============================================ -->
+        <!--                    FORM                      -->
+        <!-- ============================================ -->
+
+        <section id="form">
+            <div class="left-section">
+                <span class="topper">Business Name</span>
+                <h2>Send a Message</h2>
+                <p>If you have any questions or concerns please feel free to reach out to us.  we respond to every call and email.</p>
+                <form id="contact" name="Contact Form" method="post" data-netlify-recaptcha="true" data-netlify="true">
+                        <div class="input-group">
+                            <label for="name">Full Name</label>
+                            <input id="name" aria-label="name" class="input1" name="name" placeholder="Full Name" type="text" tabindex="1" required>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="email">Email</label>
+                            <input id="email" aria-label="email" class="input1 right" name="email" placeholder="Email Address" type="email" tabindex="2" required>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="phone">Phone</label>
+                            <input id="phone" aria-label="phone number" class="input1" name="phone" placeholder="Phone Number" type="tel" tabindex="3" required>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+                        <div class="input-group">
+                            <label for="location">Location</label>
+                            <input id="location" aria-label="location" class="input1 right" name="location" placeholder="Your Location" type="text" tabindex="4" required>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+                        <div class="input-group">
+                            <label for="how">How did you hear about us</label>
+                            <input id="how" aria-label="how did you hear about us" name="hear" placeholder="How Did You Hear About Us" type="text" tabindex="5" required>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+                        <div class="input-group textarea">
+                            <label for="message">Message</label>
+                            <textarea id="message" aria-label="write your message" name="message" placeholder="Tell us about what you need help with" tabindex="6" required></textarea>
+                            <div aria-hidden="true" class="hover-box"></div>
+                        </div>
+                    <p class="form-submit">
+                        <button name="submit" type="submit" id="contact-submit" class="button-solid" data-submit="...Sending">Submit</button>
                     </p>
-                    <div class="buttons">
-                        <a class="button-solid" href="/about.html" >
-                            About Us
-                        </a>
-                        <a class="call-now" href="tel:555-213-9120">
-                            <img class="light" decoding="async" src="/images/phone.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <img class="dark" decoding="async" src="/images/phone-dark.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <div class="group">
-                                <span class="text">Call Now</span>
-                                <span class="number">(555) 213-9120</span>
-                            </div>
-                        </a>
-                    </div>
+                </form>
+            </div>
+            <div class="contact-right">
+                <div class="info-group">
+                    <span class="heading">Location</span>
+                    <span class="info">Somewhere, TX</span>
                 </div>
-                <img decoding="async" src="/images/ryan-caselli.png" alt="" class="business-casual" width="" height="">
+                <div class="info-group">
+                    <span class="heading">Phone</span>
+                    <a class="info" href="tel:555-213-9120">(555) 213-9120</a>
+                </div>
+                <div class="info-group">
+                    <span class="heading">Email</span>
+                    <a class="info" href="mailto:info@email.com">info@email.com</a>
+                </div>
+                <div class="info-group">
+                    <span class="heading">Hours</span>
+                    <span class="info last">Mon to Sat: 9am to 7pm</span>
+                </div>
             </div>
         </section>
-
-        <!-- ============================================ -->
-        <!--                  Services                    -->
-        <!-- ============================================ -->
-
-        <section id="services" class="section">
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is THE main<span> service you do</span></h2>
-                <p>
-                    Notice how this one is bigger and darker, this is your main service you provide.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue .
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!--                   About                      -->
-        <!-- ============================================ -->
-
-        
         
     </main>
 
@@ -158,9 +170,9 @@
     <footer id="footer">
         <div class="container">
             <div class="left-section">
-                <a class="logo" href="/index.html"><img loading="lazy" decoding="async" src="/images/logo-white.svg" alt="logo" width="293" height="91"></a>
+                <a class="logo" href=""><img loading="lazy" decoding="async" src="/images/logo-white.svg" alt="logo" width="293" height="91"></a>
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus mollitia sequi placeat dignissimos adipisci explicabo excepturi a beatae architecto autem.  
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Error, aut. Molestias delectus rem nihil distinctio nemo assumenda laudantium. Veritatis, natus.
                 </p>
             </div>
             <div class="right-section">

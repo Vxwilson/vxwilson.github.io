@@ -28,24 +28,24 @@
 
     <!-- CSS -->
     <link rel="stylesheet" href="/css/root.css">
-    <link rel="stylesheet" href="/css/local.css">
+    <link rel="stylesheet" href="/css/about.css">
     <link rel="stylesheet" href="/css/dark.css">
     <link rel="stylesheet" href="/css/dark-root-styles.css">
 
-    <title>Title | Business | Location, WA</title>
+    <title></title>
 </head>
 <body>
 
-    <a class="skip" aria-label="skip to main content" href="#main">Click To Skip To Main</a>
+    <a class="skip" aria-label="skip to main content" href="index.html#main">Click To Skip To Main</a>
 
     <header>
 
         <!-- Mobile Nav Strip -->
         <div class="mobile-wrapper">
             <div class="mobile-nav container mobile-nav-container">
-                <img class="light" id="mobile-logo" src="/images/logo.svg" alt="mobile_company_logo" width="110" height="32">
+                <img class="light" id="mobile-logo" src="/images/logo.svg" alt="mobile_company_logo" height="60">
 
-                <img class="dark" id="mobile-logo" src="/images/logo-white.svg" alt="mobile_company_logo" width="110" height="32">
+                <img class="dark" id="mobile-logo" src="/images/logo-white.svg" alt="mobile_company_logo" height="60">
 
                 <!-- Hamburger Menu -->
                 <button aria-label="open the menu" id="menu-button" class="hamburger hamburger--spring" onclick="toggleNav()" type="button">
@@ -68,8 +68,8 @@
                         <img class="dark" aria-hidden="true" decoding="async" src="images/logo-white.svg" alt="compnay logo" height="80">
                     </a>
                     <ul id="on-top" class="navbar-links">
-                        <li class="nav-li"><a id="active-menu" href="index.html">Home</a></li>
-                        <li class="nav-li"><a class="link" href="/about.html">About</a></li>
+                        <li class="nav-li"><a class="link" href="/index.html">Home</a></li>
+                        <li class="nav-li"><a id="active-menu" class="link" href="/about.html">About</a></li>
                         <li class="nav-li"><a class="link" href="index.html#services">Services</a></li>
                         <!-- <li class="nav-li"><a class="link" href="html/portfolio.html">Portfolio</a></li> -->
                         <li class="nav-li"><a class="link" href="/testimonials.html">Testimonials</a></li>
@@ -90,64 +90,101 @@
         <!--                    LANDING                   -->
         <!-- ============================================ -->
     
-        <section id="hero">
-            <div class="hero-content">
-                <div class="heroText">
-                    <h1 id="home-h">Main headline, put top keyword here</h2>
+        <section id="int-hero">
+            <h1 id="home-h">About Company</h2>
+        </section>
+
+        <!-- ============================================ -->
+        <!--                     About                    -->
+        <!-- ============================================ -->
+    
+        <section id="about-content" class="section">
+            <div class="container">
+                <div class="image">
+                    <img decoding="async" src="/images/about-image.jpg" alt="" width="" height="">
+                </div>
+                <div class="content">
+                    <span class="topper">Who We Are</span>
+                    <h2>Headline that describes your business.  Make it two lines</h2>
+                    <div aria-hidden="true" class="decoration">
+                        <img src="/images/leaf.svg" alt="">
+                        <div class="line"></div>
+                    </div>
                     <p>
-                        Expand on the keyword with more keywords and add a list of related services that you do and include the city, state of your service area.  
+                        Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nam laborum impedit assumenda ut doloremque, culpa dignissimos quaerat tenetur suscipit mollitia quod nobis cupiditate hic ducimus repudiandae ipsum similique iste voluptatem! Omnis velit dolorum fugit assumenda maiores tempora et molestias numquam. Dolorum, quas quisquam iure maiores a ipsam sequi quam laborum.   
                     </p>
-                    <div class="buttons">
-                        <a class="button-solid" href="/about.html" >
-                            About Us
-                        </a>
-                        <a class="call-now" href="tel:555-213-9120">
-                            <img class="light" decoding="async" src="/images/phone.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <img class="dark" decoding="async" src="/images/phone-dark.svg" alt="" aria-hidden="true" width="21" height="21">
-                            <div class="group">
-                                <span class="text">Call Now</span>
-                                <span class="number">(555) 213-9120</span>
-                            </div>
-                        </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!--                     Staff                    -->
+        <!-- ============================================ -->
+    
+        <section id="staff">
+            <span class="topper">Our Team</span>
+            <h2>Meet Our Staff</h2>
+            <p class="main-p">
+                Lorem ipsum, dolor sit amet consectetur adipisicing elit. Nihil, eum voluptates. Provident nesciunt aspernatur iusto ea? Ipsam eos sed culpa.
+            </p>
+            <div class="container">
+                <div class="member">
+                    <div class="image">
+                        <img decoding="async" src="/images/about-image.jpg" alt="" width="" height="">
+                    </div>
+                    <div class="content">
+                        <div class="desc">
+                            <h3>Brad Pitt</h3>
+                            <span class="title">Owner/Operator</span></div>
+                        <p>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Deleniti eos asperiores, magni atque, a, necessitatibus consectetur molestiae rerum quaerat cum fugiat soluta quam voluptatum. Ut, totam debitis? Quisquam nesciunt tenetur officiis pariatur? Nostrum aspernatur officiis quos iusto nisi assumenda fugiat.
+                        </p>
                     </div>
                 </div>
-                <img decoding="async" src="/images/ryan-caselli.png" alt="" class="business-casual" width="" height="">
+                <div class="member">
+                    <div class="image">
+                        <img decoding="async" src="/images/about-image.jpg" alt="" width="" height="">
+                    </div>
+                    <div class="content">
+                        <div class="desc">
+                            <h3>Gus Chuggins</h3>
+                            <span class="title">Office Administrator/LVN</span>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Deleniti eos asperiores, magni atque, a, necessitatibus consectetur molestiae rerum quaerat cum fugiat soluta quam voluptatum. Ut, totam debitis? Quisquam nesciunt tenetur officiis pariatur? Nostrum aspernatur officiis quos iusto nisi assumenda fugiat. 
+                        </p>
+                    </div>
+                </div>
+                <div class="member">
+                    <div class="image">
+                        <img loading="lazy" decoding="async" src="/images/about-image.jpg" alt="" width="" height="">
+                    </div>
+                    <div class="content">
+                        <div class="desc">
+                            <h3>Rip Magnificant</h3>
+                            <span class="title">PMHNP-BC</span>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Deleniti eos asperiores, magni atque, a, necessitatibus consectetur molestiae rerum quaerat cum fugiat soluta quam voluptatum. Ut, totam debitis? Quisquam nesciunt tenetur officiis pariatur? Nostrum aspernatur officiis quos iusto nisi assumenda fugiat.
+                        </p>
+                    </div>
+                </div>
+                <div class="member">
+                    <div class="image">
+                        <img loading="lazy" decoding="async" src="/images/about-image.jpg" alt="" width="" height="">
+                    </div>
+                    <div class="content">
+                        <div class="desc">
+                            <h3>Armie Sledgehammer</h3>
+                            <span class="title">PMHNP-BC</span>
+                        </div>
+                        <p>
+                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Deleniti eos asperiores, magni atque, a, necessitatibus consectetur molestiae rerum quaerat cum fugiat soluta quam voluptatum. Ut, totam debitis? Quisquam nesciunt tenetur officiis pariatur? Nostrum aspernatur officiis quos iusto nisi assumenda fugiat.
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
-
-        <!-- ============================================ -->
-        <!--                  Services                    -->
-        <!-- ============================================ -->
-
-        <section id="services" class="section">
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is THE main<span> service you do</span></h2>
-                <p>
-                    Notice how this one is bigger and darker, this is your main service you provide.
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-            <div class="service">
-                <h2>This is a main<span> service you do</span></h2>
-                <p>
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi odio dui, fermentum id augue .
-                </p>
-                <a href="/contact.html" class="button-solid">Get in Touch</a>
-            </div>
-        </section>
-
-        <!-- ============================================ -->
-        <!--                   About                      -->
-        <!-- ============================================ -->
-
-        
         
     </main>
 
@@ -160,7 +197,7 @@
             <div class="left-section">
                 <a class="logo" href="/index.html"><img loading="lazy" decoding="async" src="/images/logo-white.svg" alt="logo" width="293" height="91"></a>
                 <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Voluptatibus mollitia sequi placeat dignissimos adipisci explicabo excepturi a beatae architecto autem.  
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Error, aut. Molestias delectus rem nihil distinctio nemo assumenda laudantium. Veritatis, natus.
                 </p>
             </div>
             <div class="right-section">
