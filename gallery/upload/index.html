@@ -33,39 +33,29 @@
     .w3-row-padding img {margin-bottom: 12px}
     </style>
 
-    <title>Gallery</title>
+    <title>Upload</title>
 </head>
 <body>
     
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge">gallery</h1>
-        
+        <h1 class="w3-xlarge">upload picture</h1>
         <div class="w3-padding-24">
         <div class="w3-bar w3-border">
             <a href="/" class="w3-bar-item w3-button">Home</a>
-            <a href="/gallery/upload" class="w3-bar-item w3-button w3-light-grey">Upload</a>
-            <!-- <a href="gallery/index.html" class="w3-bar-item w3-button w3-light-grey">Gallery</a> -->
-            <!-- <a href="#" class="w3-bar-item w3-button">Contact</a> -->
-            <!-- <a href="pdfs/maths-revision-1.pdf" target="_blank" class="w3-bar-item w3-button w3-hide-small">Notes</a> -->
+            <a href="/gallery" class="w3-bar-item w3-button w3-light-grey">Gallery</a>
         </div>
         </div>
     </header>
-
-    <!-- Photo Grid -->
-    <div class="w3-row-padding w3-grayscale-min" style="margin-bottom:128px">
-        <!-- <div class="w3-half">
-        <img src="../photos/IMG_1720.jpg" style="width:100%">
-        <img src="../photos/IMG_2108.jpg" style="width:100%">
-        <img src="../photos/IMG_3382.jpg" style="width:100%">
-        <img src="../photos/IMG_3477.jpg" style="width:100%">
-        </div> -->
     
-        <div id = "adder">
-            <!-- <img src="../photos/IMG_1087.jpg" style="width:100%">
-            <img src="../photos/IMG_4504.jpg" style="width:100%">
-            <img src="../photos/IMG_4227.jpg" style="width:100%"> -->
-        </div>
+    <div class = "w3-panel w3-center" style="border-radius: 5px;
+    background-color: #f2f2f2; padding:40px 16px " >
+        <form action="javascript:upload()" style='font-size: 12px; '>
+            <!-- <label for="img">Select image:</label> -->
+            <input type="file" id="image_upload" name="img" accept="image/*" required>
+            <input type="submit">
+        </form>
+        <p id=uploaded_text style = "display:none">Uploaded!</p>
     </div>
-    <script src="/js/loadgallery.js" type="module"></script>
+    <script src="/js/uploadpic.js" type="module"></script>
 </body>
 </html>
