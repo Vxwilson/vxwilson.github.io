@@ -20,6 +20,7 @@ window.upload = function(){
     // let img = document.getElementById("image_upload") 
     const pics = document.querySelector("#image_upload").files;
     
+    //multiple pics
     for (let i = 0; i < pics.length; i++) {
         const name = +new Date() + "-" + pics[i].name;
         const reff = ref(storage, 'photos/' + name);
@@ -32,15 +33,4 @@ window.upload = function(){
             },3000);
         })
     }
-    // const file = document.querySelector("#image_upload").files[0];
-    // const name = +new Date() + "-" + file.name;
-    // const reff = ref(storage, 'photos/' + name);
-
-    // uploadBytes(reff, file).then((snapshot) => {
-    //     console.log('Uploaded a blob or file!');
-    //     document.getElementById("uploaded_text").style.display = 'block';
-    //     setTimeout(function(){
-    //         document.getElementById("uploaded_text").style.display = 'none';
-    //     },3000);
-    // });
 }

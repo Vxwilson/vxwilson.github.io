@@ -47,7 +47,7 @@ function addImage(path){
     .then((url) => {
         console.log(url);
         // Or inserted into an <img> element
-        var img = htmlToElement('<img src=' + url + ' style="width:100%"></img>');
+        var img = htmlToElement('<img src=' + url + ' class="photo" style="width:100%"></img>');
         // var img = document.createElement("img");
         // img.innerHTML = '<img src=' + url + ' style="width:100%"></img>'
         // img.setAttribute('src', url);
