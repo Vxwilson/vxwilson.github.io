@@ -1,6 +1,7 @@
 .masonry{
 	margin-top: 2rem;
-	padding: 0.5rem 5vw;
+	/* padding: 0.1rem 0.1rem; */
+	/* padding: 0.5rem 5vw; */
 	column-count: 2;
 	gap: 1rem;
 	@media (max-width: 1024px) {
@@ -18,8 +19,8 @@
     grid-template-rows: masonry;
 }
 .photo{
-    width: 33.3%;
-    margin: 0.3rem;
+    width: 100%;
+    margin: 0.5rem;
     border-radius: 2px;
     flex-grow: 1; 
 }
