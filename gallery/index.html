@@ -37,10 +37,8 @@
     <title>Gallery</title>
 </head>
 <body>
-    
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge">gallery</h1>
-        
+        <h1 class="w3-xlarge">gallery</h1>  
         <div class="w3-padding-24">
         <div class="w3-bar w3-border">
             <a href="/" class="w3-bar-item w3-button">Home</a>
@@ -49,17 +47,31 @@
         </div>
     </header>
 
-    <!-- Photo Grid -->
-    <!-- <div class="w3-row-padding w3-grayscale-min" style="margin-bottom:128px"> -->
-        <!-- <div class="w3-half">
-        </div> -->
-    
-        <div id = "adder" class = "masonry3 w3-grayscale-min" >
-            <!-- <img src="../photos/IMG_1087.jpg" style="width:100%">
-            <img src="../photos/IMG_4504.jpg" style="width:100%">
-            <img src="../photos/IMG_4227.jpg" style="width:100%"> -->
+    <!-- <div id="myModal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <figure id="modal_img"><img src='' class="photo" style="object-fit: contain; max-width:70%; max-height:80%"></img></figure>
+            <p>Some text in the Modal..</p>
         </div>
-    <!-- </div> -->
+    </div> -->
+    <div class="overlay hidden"></div>
+
+    <section id="myModal" class="modal hidden">
+        <!-- <div class="flex"> -->
+          <!-- <img src="user.png" width="50px" height="50px" alt="user" /> -->
+          <p>vx</p>
+          <img id=modal_img src='' class='_img w3-grayscale-min'></img>
+          <p></p>
+        <!-- </div> -->
+        <!-- <div>
+          <h3>Stay in touch</h3>
+          
+        </div> -->
+    </section>
+
+    <!-- dynamically added by js file-->
+    <div id = "adder" class = "masonry3 w3-grayscale-min" ></div>
+
     <script src="/js/loadgallery.js" type="module"></script>
 </body>
 </html>
