@@ -18,7 +18,7 @@ body {
     margin-left: auto;
     margin-right: auto;
 	padding-bottom: 0.4rem;
-    border-radius: 2px;
+    border-radius: 10px;
     /* flex-grow: 1; */
 }
 .pf{
@@ -27,26 +27,13 @@ body {
 }
 .masonry3 {
 	margin-top: 2rem;
-	padding: 0.8rem;
+	padding: 0.7rem;
 	column-count: 3;
 	/* max-width: 95vw; */
 
 	/* gap: 0.6rem; */
   }
-  @media (max-width: 1024px) {
-	.masonry3 {
-	  column-count: 2;
-	  /* column-count: 3; */
-	  /* gap: 2.5vw; */
-	  padding: 0.7rem;
-	}
-	}
-@media screen and (max-width: 500px) {
-	.masonry3 {
-	  column-count: 1;
-	  padding: 0.55rem;
-	}
-  }
+
   .masonry3::after {
 	content: "";
 	display: block;
@@ -60,12 +47,7 @@ body {
 	position: relative;
 	}
   .masonry3 figure:not(:first-child) {
-	margin-top: 0rem;
-  }
-  @media (max-width: 1024px) {
-	.masonry3 figure:not(:first-child) {
-	  margin-top: 2.5vw;
-	}
+	margin-top: 0.8rem;
   }
   .masonry3 figure img {
 	width: 100%;
@@ -102,6 +84,33 @@ body {
   }
   .masonry3 figure:hover::after {
 	transform: translate(-50%, -50%) scale(1);
+  }
+
+  @media (max-width: 1024px) {
+	.masonry3 {
+	  column-count: 2;
+	  /* column-count: 3; */
+	  /* gap: 2.5vw; */
+	  padding: 0.7rem;
+	}
+	.masonry3 figure:not(:first-child) {
+		/* this line controls the gap between pics*/
+		  margin-top: 1vw;
+		}
+	}
+  @media screen and (max-width: 500px) {
+	.masonry3 {
+	  margin-top: 0rem;
+	  column-count: 1;
+	  padding: 1rem;
+	}
+	.masonry3 figure:not(:first-child) {
+		/* this line controls the */
+		margin-top: 4vw;
+	}
+	.photo{
+		padding-bottom: 0rem;
+	}
   }
   
 
