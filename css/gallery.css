@@ -47,7 +47,7 @@ body {
 	position: relative;
 	}
   .masonry3 figure:not(:first-child) {
-	margin-top: 0.8rem;
+	margin-top: 1rem;
   }
   .masonry3 figure img {
 	width: 100%;
