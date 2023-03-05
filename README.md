@@ -63,20 +63,12 @@
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-
-
-<!-- GETTING STARTED -->
-## Getting Started
-
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
-
 <!-- USAGE EXAMPLES -->
 ## Usage
 
 Visit the site [here](https://vxwilson.github.io).
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -96,8 +88,8 @@ See the [open issues](https://github.com/github_username/repo_name/issues) for a
 
 <!-- CONTACT -->
 ## Contact
-
-Your Name - [@veixhen](https://twitter.com/twitter_handle) - email@vxwilson@hotmail.com
+Twitter: [@veixhen](https://twitter.com/twitter_handle)  
+Mail: vxwilson@hotmail.com
 
 Project Link: [https://github.com/Vxwilson/vxwilson.github.io](https://github.com/github_username/repo_name)
 
