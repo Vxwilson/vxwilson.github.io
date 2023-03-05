@@ -67,13 +67,18 @@ window.loadmodal = function(url){
   const overlay = document.querySelector(".overlay");
 
   // When the user clicks anywhere outside of the modal, close it
-  window.onclick = function(event) {
-    if (event.target == overlay) {
-      // modal.style.display = "none";
-      modal.classList.add("hidden");
-      overlay.classList.add("hidden");
-    }
-  }
+  // window.onclick = function(event) {
+  //   if (event.target == overlay) {
+  //     // modal.style.display = "none";
+  //     modal.classList.add("hidden");
+  //     overlay.classList.add("hidden");
+  //   }
+  // }
+
+  overlay.addEventListener('click', function(){
+    modal.classList.add("hidden");
+    overlay.classList.add("hidden");
+  })
 
   modal.classList.remove("hidden");
   overlay.classList.remove("hidden");
