@@ -1,16 +1,16 @@
 //Loads the gallery.
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getStorage, ref, listAll, getDownloadURL} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
+import { getStorage, ref, listAll, getDownloadURL, getMetadata } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
-    authDomain: "test-7bbdd.firebaseapp.com",
-    projectId: "test-7bbdd",
-    storageBucket: "test-7bbdd.appspot.com",
-    messagingSenderId: "942999556834",
-    appId: "1:942999556834:web:2b980e669574da9f1284bb",
-    measurementId: "G-EDZ5NLDH3Q"
+  apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
+  authDomain: "test-7bbdd.firebaseapp.com",
+  projectId: "test-7bbdd",
+  storageBucket: "test-7bbdd.appspot.com",
+  messagingSenderId: "942999556834",
+  appId: "1:942999556834:web:2b980e669574da9f1284bb",
+  measurementId: "G-EDZ5NLDH3Q"
 };
 
 // Initialize Firebase
@@ -19,16 +19,27 @@ const storage = getStorage(app);
 
 initPhotos();
 
-function initPhotos(){
+function initPhotos() {
   const listRef = ref(storage, 'photos');
   // Find all the prefixes and items.
   listAll(listRef)
     .then((res) => {
       res.prefixes.forEach((folderRef) => {
+        listAll(folderRef);
         // All the prefixes under listRef.
         // You may call listAll() recursively on them.
       });
       res.items.forEach((itemRef) => {
+        console.log(itemRef._location.path_);
+
+        // getMetadata(itemRef)
+        //   .then((metadata) => {
+        //     // Metadata now contains the metadata for 'images/forest.jpg'
+        //     console.log(metadata.contentType === 'image/jpeg');
+        //   })
+        //   .catch((error) => {
+        //     // Uh-oh, an error occurred!
+        //   });
         _addImage(itemRef._location.path_);
       });
     }).catch((error) => {
@@ -37,30 +48,30 @@ function initPhotos(){
 }
 
 function _htmlToElement(html) {
-    var template = document.createElement('template');
-    html = html.trim(); // Never return a text node of whitespace as the result
-    template.innerHTML = html;
-    return template.content.firstChild;
+  var template = document.createElement('template');
+  html = html.trim(); // Never return a text node of whitespace as the result
+  template.innerHTML = html;
+  return template.content.firstChild;
 }
 
-function _addImage(path){
-    getDownloadURL(ref(storage, path))
+function _addImage(path) {
+  getDownloadURL(ref(storage, path))
     .then((url) => {
-        var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
+      var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
 
-        fig.addEventListener("click", function() {
-          window.loadmodal(url);
-        })
+      fig.addEventListener("click", function () {
+        window.loadmodal(url);
+      })
 
-        document.getElementById("adder").appendChild(fig);
+      document.getElementById("adder").appendChild(fig);
 
     })
     .catch((error) => {
-        // Handle any errors
+      // Handle any errors
     });
 }
 
-window.loadmodal = function(url){
+window.loadmodal = function (url) {
   //code for expanding images into modal box upon clicking
 
   const modal = document.querySelector(".modal");
@@ -75,7 +86,7 @@ window.loadmodal = function(url){
   //   }
   // }
 
-  overlay.addEventListener('click', function(){
+  overlay.addEventListener('click', function () {
     modal.classList.add("hidden");
     overlay.classList.add("hidden");
   })
@@ -89,4 +100,3 @@ window.loadmodal = function(url){
 }
 
 
-  

@@ -1,3 +1,4 @@
+<!-- For me to drop things across devices-->
 <!DOCTYPE html>
 <html lang="en">
 
@@ -27,6 +28,7 @@
 
     <link rel="stylesheet" href="/css/w3.css">
     <link rel="stylesheet" href="/css/gallery.css">
+    <link rel="stylesheet" href="/css/dropper.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
@@ -44,46 +46,41 @@
         }
     </style>
 
-    <title>Gallery</title>
+    <title>Dropper</title>
 </head>
 
 <body>
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge">gallery</h1>
+        <h1 class="w3-xlarge">dropper</h1>
         <div class="w3-padding-24">
             <div class="w3-bar w3-border">
                 <a href="/" class="w3-bar-item w3-button">Home</a>
-                <a href="/gallery/upload" class="w3-bar-item w3-button w3-light-grey">Upload</a>
             </div>
         </div>
     </header>
 
-    <!-- <div id="myModal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <figure id="modal_img"><img src='' class="photo" style="object-fit: contain; max-width:70%; max-height:80%"></img></figure>
-            <p>Some text in the Modal..</p>
-        </div>
-    </div> -->
-    <div class="overlay hidden"></div>
+    <div class="w3-panel w3-center" style="border-radius: 5px;
+      background-color: #f2f2f2; padding:40px 16px ">
+        <form action="javascript:upload_files()" style='font-size: 12px; '>
+            <input type="file" id="files_upload" name="files" accept="image/*" multiple required>
+            <input type="submit" value="drop">
+        </form>
+        <p id=uploaded_files style="display:none">Uploaded!</p>
+    </div>
 
-    <section id="myModal" class="modal hidden">
-        <!-- <div class="flex"> -->
-        <!-- <img src="user.png" width="50px" height="50px" alt="user" /> -->
-        <p>vx</p>
-        <img id=modal_img src='' class='_img w3-grayscale-min'></img>
-        <p></p>
-        <!-- </div> -->
-        <!-- <div>
-          <h3>Stay in touch</h3>
-          
-        </div> -->
-    </section>
-
+    <div class="w3-panel w3-center" style="border-radius: 5px;
+      background-color: #f2f2f2; padding:40px 16px ">
+        <form action="javascript:upload_string()" style='font-size: 12px; '>
+            <input type="text" id="sentence" name="sentence" value=""><br><br>
+            <input type="submit" value="drop">
+        </form>
+        <p id=uploaded_text style="display:none">Uploaded!</p>
+    </div>
     <!-- dynamically added by js file-->
-    <div id="adder" class="masonry3 w3-grayscale-min"></div>
+    <div id="pictures" class="masonry3 w3-grayscale-min"></div>
+    <div id="files" class="masonry3 w3-grayscale-min"></div>
 
-    <script src="/js/loadgallery.js" type="module"></script>
+    <script src="/js/dropper.js" type="module"></script>
 </body>
 
 </html>

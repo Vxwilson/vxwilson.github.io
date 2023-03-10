@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
     <meta charset="UTF-8">
@@ -9,12 +10,12 @@
     <meta name="keywords" content="">
 
     <!--Social Media Display-->
-    <meta property="og:title" content=""/>
-    <meta property="og:description" content=""/>
+    <meta property="og:title" content="" />
+    <meta property="og:description" content="" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content=""/>
-    <meta property="og:image" content=""/>
-    <meta property="og:image:secure_url" content=""/>
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="" />
+    <meta property="og:image:secure_url" content="" />
 
     <!--Favicons-->
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -28,34 +29,45 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-    body, h1 {font-family: "Raleway", Arial, sans-serif}
-    h1 {letter-spacing: 6px}
-    .w3-row-padding img {margin-bottom: 12px}
+        body,
+        h1 {
+            font-family: "Raleway", Arial, sans-serif
+        }
+
+        h1 {
+            letter-spacing: 6px
+        }
+
+        .w3-row-padding img {
+            margin-bottom: 12px
+        }
     </style>
 
     <title>Upload</title>
 </head>
+
 <body>
-    
+
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
         <h1 class="w3-xlarge">upload picture</h1>
         <div class="w3-padding-24">
-        <div class="w3-bar w3-border">
-            <a href="/" class="w3-bar-item w3-button">Home</a>
-            <a href="/gallery" class="w3-bar-item w3-button w3-light-grey">Gallery</a>
-        </div>
+            <div class="w3-bar w3-border">
+                <a href="/" class="w3-bar-item w3-button">Home</a>
+                <a href="/gallery" class="w3-bar-item w3-button w3-light-grey">Gallery</a>
+            </div>
         </div>
     </header>
-    
-    <div class = "w3-panel w3-center" style="border-radius: 5px;
-    background-color: #f2f2f2; padding:40px 16px " >
+
+    <div class="w3-panel w3-center" style="border-radius: 5px;
+    background-color: #f2f2f2; padding:40px 16px ">
         <form action="javascript:upload()" style='font-size: 12px; '>
             <!-- <label for="img">Select image:</label> -->
             <input type="file" id="image_upload" name="img" accept="image/*" multiple required>
             <input type="submit">
         </form>
-        <p id=uploaded_text style = "display:none">Uploaded!</p>
+        <p id=uploaded_text style="display:none">Uploaded!</p>
     </div>
     <script src="/js/uploadpic.js" type="module"></script>
 </body>
+
 </html>

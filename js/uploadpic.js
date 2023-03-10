@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getStorage, ref,uploadBytes } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
+import { getStorage, ref, uploadBytes } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
@@ -16,21 +16,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
 
-window.upload = function(){
+window.upload = function () {
     // let img = document.getElementById("image_upload") 
     const pics = document.querySelector("#image_upload").files;
-    
+
     //multiple pics
     for (let i = 0; i < pics.length; i++) {
         const name = +new Date() + "-" + pics[i].name;
-        const reff = ref(storage, 'photos/' + name);
+        const reff = ref(storage, 'dropper/photos/' + name);
 
         uploadBytes(reff, pics[i]).then((snapshot) => {
             console.log('Uploaded a picture!');
             document.getElementById("uploaded_text").style.display = 'block';
-            setTimeout(function(){
+            setTimeout(function () {
                 document.getElementById("uploaded_text").style.display = 'none';
-            },3000);
+            }, 3000);
         })
     }
 }
