@@ -109,6 +109,7 @@ function _htmlToElement(html) {
     return template.content.firstChild;
 }
 
+
 function _addText(path) {
     getDownloadURL(ref(storage, path))
         .then((url) => {
