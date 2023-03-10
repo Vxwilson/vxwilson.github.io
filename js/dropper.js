@@ -116,9 +116,10 @@ function _addText(path) {
             fetch(url)
                 .then( r => r.text() )
                 .then( t => {
+                    var tt = t.replace(/['"]+/g, '')
                     var fig = _htmlToElement(
                     '<figure class="pf"><p>'
-                    + t
+                    + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
                     +'</p></figure>'
                     );
                 document.getElementById("texts").appendChild(fig);
@@ -129,6 +130,15 @@ function _addText(path) {
             // Handle any errors
     });
 }
+
+const copyToClipBoard = async (t) => {
+    try {
+        await navigator.clipboard.writeText(t);
+        console.log('Content copied to clipboard');
+    } catch (err) {
+        console.error('Failed to copy: ', err);
+    }
+    }
 
 function _addImage(path) {
     getDownloadURL(ref(storage, path))
