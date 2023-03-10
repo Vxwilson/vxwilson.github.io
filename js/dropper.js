@@ -81,16 +81,16 @@ function initPhotos() {
                             case 'image/jpeg':
                             case 'image/jpg':
                             case 'image/png':
-                                console.log('adding');
                                 _addImage(itemRef._location.path_);
                                 break;
                             case 'text/plain':
-                                console.log(itemRef);
-                                _addFile(itemRef);
+                                _addText(itemRef._location.path_);
+                                // _addFile(itemRef);
+
 
                                 break;
                             default:
-                                _addFile(itemRef._location.path_);
+                                _addFile(itemRef);
 
                                 break;
                         }
@@ -107,6 +107,26 @@ function _htmlToElement(html) {
     html = html.trim(); // Never return a text node of whitespace as the result
     template.innerHTML = html;
     return template.content.firstChild;
+}
+
+function _addText(path) {
+    getDownloadURL(ref(storage, path))
+        .then((url) => {
+            fetch(url)
+                .then( r => r.text() )
+                .then( t => {
+                    var fig = _htmlToElement(
+                    '<figure class="pf"><p>'
+                    + t
+                    +'</p></figure>'
+                    );
+                document.getElementById("texts").appendChild(fig);
+            });
+            
+        })
+        .catch((error) => {
+            // Handle any errors
+    });
 }
 
 function _addImage(path) {
@@ -146,14 +166,25 @@ function _addFile(item) {
 
 
 function downloadURI(url, filename) {
-fetch(url)
+fetch(url, {
+    // mode: "no-cors"
+})
     .then(response => response.blob())
     .then(blob => {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
+    // fig.appendChild(link);
 })
 .catch(console.error);
+
+// const xhr = new XMLHttpRequest();
+// xhr.responseType = 'blob';
+// xhr.onload = (event) => {
+//   const blob = xhr.response;
+// };
+// xhr.open('GET', url);
+// xhr.send();
 }
 
