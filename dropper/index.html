@@ -54,27 +54,31 @@
         <h1 class="w3-xlarge">dropper</h1>
         <div class="w3-padding-24">
             <div class="w3-bar w3-border">
+                
                 <a href="/" class="w3-bar-item w3-button">Home</a>
             </div>
         </div>
     </header>
+    <div class="center">
+        <div class="w3-panel w3-center" style="border-radius: 5px;
+        background-color: #312d35; padding:40px 16px ">
+            <form action="javascript:upload_files()" style='font-size: 12px; '>
+                <input type="file" id="files_upload" name="files" accept="image/*" multiple required>
+                <input type="submit" value="drop">
+            </form>                                 
+            <p id=uploaded_files style="display:none">Uploaded!</p>
+        </div>
 
-    <div class="w3-panel w3-center" style="border-radius: 5px;
-      background-color: #f2f2f2; padding:40px 16px ">
-        <form action="javascript:upload_files()" style='font-size: 12px; '>
-            <input type="file" id="files_upload" name="files" accept="image/*" multiple required>
-            <input type="submit" value="drop">
-        </form>
-        <p id=uploaded_files style="display:none">Uploaded!</p>
-    </div>
-
-    <div class="w3-panel w3-center" style="border-radius: 5px;
-      background-color: #f2f2f2; padding:40px 16px ">
-        <form action="javascript:upload_string()" style='font-size: 12px; '>
-            <input type="text" id="sentence" name="sentence" value=""><br><br>
-            <input type="submit" value="drop">
-        </form>
-        <p id=uploaded_text style="display:none">Uploaded!</p>
+        <div class="w3-panel w3-center" style="border-radius: 5px;
+        background-color: #312d35; padding:40px 16px ">
+            <form action="javascript:upload_string()" style='font-size: 12px; '>
+                <textarea id="sentence" class='textfield' name="w3review" rows="4" cols="50">At w3schools.com you will learn how to make a website. They offer free tutorials in all web development technologies.</textarea>
+  <br>
+                <!-- <input type="text" id="sentence" name="sentence" value=""><br><br> -->
+                <input type="submit" value="drop">
+            </form>
+            <p id=uploaded_text style="display:none">Uploaded!</p>
+        </div>
     </div>
 
     <!-- dynamically added by js file-->
