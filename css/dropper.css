@@ -4,3 +4,113 @@
 .box__error {
     display: none;
 }
+.textblock {
+    /* display:relative; */
+}
+
+.textbutton{
+    
+}
+.textblock .close {
+    /* display:block; */
+    width:10px;
+    height:10px;
+    position:absolute;
+    top:3px;
+    right:3px;
+    background:rgb(54, 54, 54);
+    overflow:hidden;
+    text-indent:-9999px;
+    }
+
+/* CSS */
+.button-11 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  color: #3D3D3D;
+  background: #fff;
+  border: none;
+  box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-11:focus {
+  box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
+  outline: 0;
+}
+
+.content{
+
+}
+
+.textmasonry {
+	margin-top: 2rem;
+	padding: 0.7rem;
+	column-count: 1;
+	/* max-width: 95vw; */
+
+	/* gap: 0.6rem; */
+}
+
+.textmasonry::after {
+	content: "";
+	display: block;
+	clear: both;
+}
+
+.textmasonry div {
+	margin: 0;
+	display: block;
+	break-inside: avoid;
+	cursor: pointer;
+	position: relative;
+}
+
+.textmasonry div:not(:first-child) {
+	margin-top: 1rem;
+}
+
+.textmasonry div button {
+	width: 100%;
+	height: auto;
+	user-select: none;
+	vertical-align: middle;
+}
+
+@media (max-width: 1024px) {
+	.textmasonry {
+		column-count: 1;
+		/* column-count: 3; */
+		/* gap: 2.5vw; */
+		padding: 0.7rem;
+	}
+
+	.textmasonry figure:not(:first-child) {
+		/* this line controls the gap between pics*/
+		margin-top: 1vw;
+	}
+}
+
+@media screen and (max-width: 500px) {
+	.textmasonry {
+		margin-top: 0rem;
+		column-count: 1;
+		padding: 1rem;
+	}
+
+	.textmasonry figure:not(:first-child) {
+		/* this line controls the */
+		margin-top: 4vw;
+	}
+
+	.photo {
+		padding-bottom: 0rem;
+	}
+}
+

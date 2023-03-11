@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getStorage, ref, uploadBytes, listAll, getMetadata, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
+import { getStorage, ref, uploadBytes, listAll, getMetadata, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
@@ -20,19 +20,22 @@ const storage = getStorage(app);
 
 window.upload_files = function () {
     // let img = document.getElementById("image_upload") 
-    const pics = document.querySelector("#files_upload").files;
+    const files = document.querySelector("#files_upload").files;
 
     //multiple pics
-    for (let i = 0; i < pics.length; i++) {
-        const name = +new Date() + "-" + pics[i].name;
+    for (let i = 0; i < files.length; i++) {
+        const name = +new Date() + "-" + files[i].name;
         const reff = ref(storage, 'dropper/files/' + name);
 
-        uploadBytes(reff, pics[i]).then((snapshot) => {
-            console.log('Uploaded a picture!');
+        uploadBytes(reff, files[i]).then((snapshot) => {
+            console.log('Uploaded a file!');
             document.getElementById("uploaded_files").style.display = 'block';
             setTimeout(function () {
                 document.getElementById("uploaded_files").style.display = 'none';
             }, 3000);
+            initDataSingle(reff);
+            // _addImage(reff);
+            refresh();
         })
     }
 }
@@ -40,11 +43,8 @@ window.upload_files = function () {
 window.upload_string = function () {
     var sentence = document.getElementById('sentence').value
     var json_string = JSON.stringify(sentence, undefined, 2);
-    var link = document.createElement('a');
-    link.download = 'data.json';
     var blob = new Blob([json_string], { type: 'text/plain' });
-    // link.href = window.URL.createObjectURL(blob);
-    // link.click();
+   
 
     const name = +new Date() + "-string";
     const reff = ref(storage, 'dropper/files/' + name);
@@ -55,48 +55,75 @@ window.upload_string = function () {
         setTimeout(function () {
             document.getElementById("uploaded_text").style.display = 'none';
         }, 3000);
+        initDataSingle(reff);
+        refresh();
     })
 }
 
 
 ///////////////DOWNLOAD and SHOW
-initPhotos();
+initData();
 
-function initPhotos() {
+function initDataSingle(itemRef) {
+    var contentType = '';
+
+    getMetadata(itemRef)
+        .then((metadata) => {
+            contentType = metadata.contentType;
+            switch (contentType) {
+                case 'image/jpeg':
+                case 'image/jpg':
+                case 'image/png':
+                    _addImage(itemRef);
+                    break;
+                case 'text/plain':
+                    _addText(itemRef);
+                    // _addFile(itemRef);
+
+
+                    break;
+                default:
+                    _addFile(itemRef);
+
+                    break;
+            }
+        })
+        .catch((error) => {
+        });
+}
+
+function initData() {
     const listRef = ref(storage, 'dropper/files/');
     // Find all the prefixes and items.
     listAll(listRef)
         .then((res) => {
-            //   res.prefixes.forEach((folderRef) => {
-            //     // All the prefixes under listRef.
-            //     // You may call listAll() recursively on them.
-            //   });
             res.items.forEach((itemRef) => {
-                var contentType = '';
+                initDataSingle(itemRef);
+                // var contentType = '';
 
-                getMetadata(itemRef)
-                    .then((metadata) => {
-                        contentType = metadata.contentType;
-                        switch (contentType) {
-                            case 'image/jpeg':
-                            case 'image/jpg':
-                            case 'image/png':
-                                _addImage(itemRef._location.path_);
-                                break;
-                            case 'text/plain':
-                                _addText(itemRef._location.path_);
-                                // _addFile(itemRef);
+                // getMetadata(itemRef)
+                //     .then((metadata) => {
+                //         contentType = metadata.contentType;
+                //         switch (contentType) {
+                //             case 'image/jpeg':
+                //             case 'image/jpg':
+                //             case 'image/png':
+                //                 _addImage(itemRef._location.path_);
+                //                 break;
+                //             case 'text/plain':
+                //                 _addText(itemRef);
+                //                 // _addFile(itemRef);
 
 
-                                break;
-                            default:
-                                _addFile(itemRef);
+                //                 break;
+                //             default:
+                //                 _addFile(itemRef);
 
-                                break;
-                        }
-                    })
-                    .catch((error) => {
-                    });
+                //                 break;
+                //         }
+                //     })
+                //     .catch((error) => {
+                //     });
             });
         }).catch((error) => {
         });
@@ -110,19 +137,31 @@ function _htmlToElement(html) {
 }
 
 
-function _addText(path) {
-    getDownloadURL(ref(storage, path))
+function _addText(item) {
+    getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             fetch(url)
                 .then( r => r.text() )
                 .then( t => {
                     var tt = t.replace(/['"]+/g, '')
-                    var fig = _htmlToElement(
-                    '<figure class="pf"><p>'
-                    + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
-                    +'</p></figure>'
+                    var e = _htmlToElement(
+                    '<div class="textblock">'
+                    + '<button class="button-11" onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
+                    // + '<a href="' + '' + '"</a>'
+                    +'</div>'
                     );
-                document.getElementById("texts").appendChild(fig);
+                    
+                    var close = _htmlToElement('<span class="close">x</span>');
+                    // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
+                    close.addEventListener("click", function () {
+                        console.log(item);
+
+                        deleteFileAtPath(item.fullPath, e);
+                    })
+                    e.appendChild(close);
+
+
+                    document.getElementById("textdiv").appendChild(e);
             });
             
         })
@@ -132,18 +171,26 @@ function _addText(path) {
 }
 
 const copyToClipBoard = async (t) => {
-    try {
-        await navigator.clipboard.writeText(t);
-        console.log('Content copied to clipboard');
-    } catch (err) {
-        console.error('Failed to copy: ', err);
-    }
+    // try {
+    //     await navigator.clipboard.writeText(t);
+    //     console.log('Content copied to clipboard');
+    // } catch (err) {
+    //     console.error('Failed to copy: ', err);
+    // }
     }
 
-function _addImage(path) {
-    getDownloadURL(ref(storage, path))
+function _addImage(item) {
+    getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
+            var close = _htmlToElement('<span class="close">x</span>');
+                    // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
+                    close.addEventListener("click", function () {
+                        console.log(item);
+
+                        deleteFileAtPath(item.fullPath, fig);
+                    })
+                    fig.appendChild(close);
             document.getElementById("pictures").appendChild(fig);
         })
         .catch((error) => {
@@ -166,7 +213,6 @@ function _addFile(item) {
             // fig.setAttribute('src', url);
 
             fig.addEventListener("click", function () {
-                // download_file(url);
                 downloadURI(url, item.name);
             })
         })
@@ -186,16 +232,20 @@ fetch(url, {
     link.href = URL.createObjectURL(blob);
     link.download = filename;
     link.click();
-    // fig.appendChild(link);
 })
 .catch(console.error);
+}
 
-// const xhr = new XMLHttpRequest();
-// xhr.responseType = 'blob';
-// xhr.onload = (event) => {
-//   const blob = xhr.response;
-// };
-// xhr.open('GET', url);
-// xhr.send();
+function deleteFileAtPath(path, element){
+    const delRef = ref(storage, path);
+    deleteObject(delRef).then(() =>{
+        console.log('deleted');
+        element.parentNode.removeChild(element);
+        refresh();
+    })
+}
+
+function refresh(){
+    window.location = window.location;
 }
 
