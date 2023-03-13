@@ -115,7 +115,12 @@ window.upload_files = function () {
 
 window.upload_string = function () {
     var sentence = document.getElementById('sentence').value
-    // var json_string = JSON.stringify(sentence, undefined, 2);
+
+    if(sentence === ''){
+        window.alert('empty string detected.');
+        return;
+    }
+
     var json_string = JSON.stringify(sentence, undefined, 2);
     var blob = new Blob([json_string], { type: 'text/plain' });
    
