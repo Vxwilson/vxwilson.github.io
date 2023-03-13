@@ -36,7 +36,7 @@ window.checkCode = async function(){
     }else{
         code = 'gallery';
         console.log(code);
-        window.alert("bucket doesn't exist.");
+        // window.alert("bucket doesn't exist.");
     }
 
     initData();
