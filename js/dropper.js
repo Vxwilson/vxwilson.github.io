@@ -1,6 +1,9 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
 import { getStorage, ref, uploadBytes, listAll, getMetadata, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-storage.js";
+import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+
+
 
 const firebaseConfig = {
     apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
@@ -14,6 +17,76 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const storage = getStorage(app);
+const db = getFirestore(app);
+
+//////////////GET CODE to fetch bucket
+var code = '';
+
+window.getCode = function(){
+    const queryString = window.location.search;
+    console.log(queryString);
+    const urlParams = new URLSearchParams(queryString);
+    code = urlParams.get('code');
+}
+window.checkCode = async function(){
+    const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
+    const bucket_name = code;
+    if(buckets.data()[bucket_name] === true){
+        console.log("bucket exists. loading bucket.");
+    }else{
+        code = 'gallery';
+        console.log(code);
+        window.alert("bucket doesn't exist.");
+    }
+
+    initData();
+}
+
+//////////////CREATE bucket
+window.show_create = function(){
+    document.getElementById("create_form").style.display = "flex";
+    // console.log('create');
+}
+
+
+window.hide_create = function(){
+    document.getElementById("create_form").style.display = "none";
+}
+
+window.try_create = async function(){
+    const docRef = doc(db, "cred_admin", "passcode");
+
+    var passcode = '';
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        passcode = docSnap.data().code;
+        const given_code = document.getElementById("code").value;
+        if(given_code == passcode){  //password correct
+            //check if bucket name already exists
+            const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
+            const bucket_name = document.getElementById("b_name").value
+            if(buckets.data()[bucket_name] === true){
+                console.log("bucket already exists.");
+                window.alert("bucket exists.");
+            }else{
+                //create bucket
+                create_bucket(document.getElementById("b_name").value);
+            }
+        }
+    } else { 
+        console.log("No such document!");
+        //password file not found
+    }
+}
+
+window.create_bucket = async function(bucket_name){
+    console.log('creating ' + bucket_name);
+    const buckets = doc(db, "cred_admin", "buckets");
+
+    setDoc(buckets, {
+        [bucket_name]: true
+    }, { merge: true });
+}
 
 
 //////////////UPLOAD
@@ -25,13 +98,13 @@ window.upload_files = function () {
     //multiple pics
     for (let i = 0; i < files.length; i++) {
         const name = +new Date() + "-" + files[i].name;
-        const reff = ref(storage, 'dropper/files/' + name);
+        const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
 
         uploadBytes(reff, files[i]).then((snapshot) => {
             console.log('Uploaded a file!');
-            document.getElementById("uploaded_files").style.display = 'block';
+            document.getElementById("uploaded").style.display = 'block';
             setTimeout(function () {
-                document.getElementById("uploaded_files").style.display = 'none';
+                document.getElementById("uploaded").style.display = 'none';
             }, 3000);
             initDataSingle(reff);
             // _addImage(reff);
@@ -48,13 +121,13 @@ window.upload_string = function () {
    
 
     const name = +new Date() + "-string";
-    const reff = ref(storage, 'dropper/files/' + name);
+    const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
 
     uploadBytes(reff, blob).then((snapshot) => {
         console.log('Uploaded text!');
-        document.getElementById("uploaded_text").style.display = 'block';
+        document.getElementById("uploaded").style.display = 'block';
         setTimeout(function () {
-            document.getElementById("uploaded_text").style.display = 'none';
+            document.getElementById("uploaded").style.display = 'none';
         }, 3000);
         initDataSingle(reff);
         refresh();
@@ -63,7 +136,7 @@ window.upload_string = function () {
 
 
 ///////////////DOWNLOAD and SHOW
-initData();
+// initData();
 
 function initDataSingle(itemRef) {
     var contentType = '';
@@ -94,7 +167,9 @@ function initDataSingle(itemRef) {
 }
 
 function initData() {
-    const listRef = ref(storage, 'dropper/files/');
+    updateUI();
+
+    const listRef = ref(storage, 'dropper/files/'+code+'/');
     // Find all the prefixes and items.
     listAll(listRef)
         .then((res) => {
@@ -128,6 +203,11 @@ function initData() {
             });
         }).catch((error) => {
         });
+}
+
+function updateUI(){
+    console.log(code);
+    document.getElementById("bucket_title").innerText = code;
 }
 
 function _htmlToElement(html) {
@@ -249,4 +329,10 @@ function deleteFileAtPath(path, element){
 function refresh(){
     window.location = window.location;
 }
+
+window.addEventListener('load', (event) =>{
+    getCode();
+    checkCode();
+});
+
 

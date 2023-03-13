@@ -51,34 +51,48 @@
 
 <body>
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge">dropper</h1>
+        <h1 class="w3-xlarge" id="bucket_title"></h1>
         <div class="w3-padding-24">
             <div class="w3-bar w3-border">
                 
                 <a href="/" class="w3-bar-item w3-button">Home</a>
+                <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a>
             </div>
         </div>
     </header>
-    <div class="center">
-        <div class="w3-panel w3-center" style="border-radius: 5px;
-        background-color: #312d35; padding:40px 16px ">
-            <form action="javascript:upload_files()" style='font-size: 12px; '>
-                <input type="file" id="files_upload" name="files" accept="image/*" multiple required>
-                <input type="submit" value="drop">
-            </form>                                 
-            <p id=uploaded_files style="display:none">Uploaded!</p>
-        </div>
 
-        <div class="w3-panel w3-center" style="border-radius: 5px;
-        background-color: #312d35; padding:40px 16px ">
-            <form action="javascript:upload_string()" style='font-size: 12px; '>
-                <textarea id="sentence" placeholder="add something..."class='textfield' name="w3review" rows="4" cols="50"></textarea>
-  <br>
-                <!-- <input type="text" id="sentence" name="sentence" value=""><br><br> -->
-                <input type="submit" value="drop">
-            </form>
-            <p id=uploaded_text style="display:none">Uploaded!</p>
+    <div class="droparea w3-center">
+        <h5>files</h5>
+        <form>
+            <input type="file" class='field' id="files_upload" name="files" accept="image/*" multiple required>
+            <!-- <input type="submit" value="drop"> -->
+            <button type="button" class="button-11" onclick="upload_files()">upload</button>
+        </form>                                 
+        <h5>clipboard</h5>
+        <div>
+            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
+            <button type="button" class="button-11" onclick="upload_string()">upload</button>
         </div>
+        <p id=uploaded style="display:none">Uploaded!</p>
+    </div>
+
+    <div class="form-popup" id="create_form">
+        <form action="javascript:try_create()" class="form-container">
+            <h3>new</h3>
+            <div>
+                <label for="code"><b>verification:</b></label>
+                <input type="text" placeholder="Enter code" id ="code" name="code" required>
+            </div>
+            
+            <div>
+                <label for="b_name"><b>bucket:</b></label>
+                <input type="password" placeholder="Enter name" id="b_name" name="b_name" required>
+            </div>
+            <div>
+                <button type="submit" class="button-11">add</button>
+                <button type="button" class="button-11" onclick="hide_create()">return</button>
+            </div>  
+        </form>
     </div>
 
     <!-- dynamically added by js file-->

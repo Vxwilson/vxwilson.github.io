@@ -34,18 +34,18 @@ const app = initializeApp(firebaseConfig);
 //     for (const x in obj) {
 //         text += x + ": " + obj[x] + ", ";
 //     }
-// } else {
+// } else { 
 // // doc.data() will be undefined in this case
 //     console.log("No such document!");
 // }
-console.log(app);
-console.log(window.flamelink)
-const flameApp = flamelink({
-  app,
-  env: 'production', // optional, defaults to `production`
-  locale: 'en-US', // optional, defaults to `en-US`
-  dbType: 'rtdb', // optional, defaults to `rtdb` - can be 'rtdb' or 'cf' (Realtime DB vs Cloud Firestore)
-})
+// console.log(app);
+// console.log(window.flamelink)
+// const flameApp = flamelink({
+//   app,
+//   env: 'production', // optional, defaults to `production`
+//   locale: 'en-US', // optional, defaults to `en-US`
+//   dbType: 'rtdb', // optional, defaults to `rtdb` - can be 'rtdb' or 'cf' (Realtime DB vs Cloud Firestore)
+// })
 
 //   try {
 //     const products = await flameApp.content.get({ schemaKey: 'products' })

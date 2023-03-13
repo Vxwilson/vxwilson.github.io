@@ -52,19 +52,14 @@ body {
 	color: #222;
 	position: relative;
 	min-height: 100vh;
-    background-color: var(--bg-color);
-    font-family: "Lexend Deca", sans-serif;
-    color: #dcdde6;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
+  background-color: var(--bg-color);
+  font-family: "Lexend Deca", sans-serif;
+  color: #dcdde6;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
-.box__dragndrop,
-.box__uploading,
-.box__success,
-.box__error {
-    display: none;
-}
+
 .textblock {
     /* display:relative; */
 }
@@ -81,7 +76,75 @@ body {
     background:rgba(54, 54, 54, 0.384);
     overflow:hidden;
     text-indent:-9999px;
-    }
+}
+
+.droparea{
+  display: grid;
+  /* flex-direction: row; */
+  text-align: center;
+  padding: 1em;
+  border-radius: 6px;
+  gap: 0.3em;
+  background-color: #312d3525;
+}
+
+.droparea div{
+  font-size: 12px;
+  display: block;
+  text-align: center;
+  margin: auto;
+  padding-bottom: 0.5em;
+}
+
+.droparea input{
+  padding: 0.95em;
+}
+
+.droparea form{
+  font-size: 12px;
+  display: block;
+  text-align: center;
+  margin: auto;
+  padding-bottom: 0.5em;
+}
+
+.droparea button{
+  width: 100px;
+  height: 2.35em;
+  background-color: #2f2c4f;
+  margin: auto;
+  padding: 0.1em;
+}
+
+/* popup*/
+/* The popup form - hidden by default */
+.form-popup {
+  display: none;
+  position: fixed;
+  width: 50vw;
+  min-width: 50vw;
+  bottom: 50vh;
+  right: 50vw;
+  transform: translate(50%, 20%);
+  flex-direction: column;
+  background-color: #1c1c1ce2;
+  padding: 1em;
+  border-radius: 6px;
+  gap: 1em;
+  z-index: 100;
+}
+
+.form-container{
+  display: flex;
+  flex-direction: column;
+  column-count: 2; 
+}
+.form-container div{
+  display: block;
+  text-align: left;
+  margin: auto;
+  padding-bottom: 1em;
+}
 
 /* CSS */
 .button-11 {
@@ -112,17 +175,37 @@ body {
 
 }
 
-.textfield{
-    /* border-radius: 6px 6px 6px 6px;
-  border-style: none solid solid none; */
+input{
+  background-color: var(--base-01);
+  border: none;
+  padding: 0.25em;
+  border-radius: 0.5em;
+}
+
+.field{
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border: none;
+  background-color: var(--base-01);
+  width: 100%;
+  height: 5em;
+  /* flex-grow: 1; */
+  position: relative;
+  outline-offset: -0.0625rem;
+  outline-style: solid;
+  outline-width: 0.0625rem;
+  outline-color: transparent;
+  transition: outline 0.1s ease;
 }
 textarea {
-    padding: 0.75em;
+    resize: none;
+    padding: 0.25em;
     border-radius: 0.5em;
     border: none;
     background-color: var(--base-01);
     width: 100%;
-    flex-grow: 1;
+    height: 5em;
+    /* flex-grow: 1; */
     position: relative;
     caret-color: currentcolor;
     outline-offset: -0.0625rem;
@@ -152,14 +235,14 @@ textarea {
 }
 
 .textmasonry div {
-	margin: 0;
-    width: 70%;
-	vertical-align: middle;
-    margin: auto;
-	display: block;
-	break-inside: avoid;
-	cursor: pointer;
-	position: relative;
+  margin: 0;
+  width: 70%;
+  vertical-align: middle;
+  margin: auto;
+  display: block;
+  break-inside: avoid;
+  cursor: pointer;
+  position: relative;
 }
 
 .textmasonry div:not(:first-child) {
