@@ -63,6 +63,8 @@ body {
 .textblock {
   text-align: left;
   font-size: smaller;
+  
+  white-space: pre-wrap;
 }
 
 .textblock button{

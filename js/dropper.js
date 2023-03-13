@@ -115,14 +115,17 @@ window.upload_files = function () {
 
 window.upload_string = function () {
     var sentence = document.getElementById('sentence').value
+    console.log(sentence);
 
     if(sentence === ''){
         window.alert('empty string detected.');
         return;
     }
 
+    // sentence = JSON.parse(sentence);
     var json_string = JSON.stringify(sentence, undefined, 2);
-    var blob = new Blob([json_string], { type: 'text/plain' });
+    console.log(json_string);
+    var blob = new Blob([sentence], { type: 'text/plain' });
    
 
     const name = +new Date() + "-string";
@@ -156,6 +159,7 @@ function initDataSingle(itemRef) {
                     _addImage(itemRef);
                     break;
                 case 'text/plain':
+                case 'application/json':
                     _addText(itemRef);
                     // _addFile(itemRef);
 
@@ -204,7 +208,10 @@ function _addText(item) {
             fetch(url)
                 .then( r => r.text() )
                 .then( t => {
-                    var tt = t.replace(/['"]+/g, '')
+                    // var tt = t;
+                    console.log("text is "+t);
+                    // var tt = t.replace(/['"]+/g, '')
+                    var tt = t;
                     var e = _htmlToElement(
                     '<div class="textblock">'
                     + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
@@ -230,22 +237,22 @@ function _addText(item) {
 }
 
 const copyToClipBoard = async (t) => {
-    // try {
-    //     await navigator.clipboard.writeText(t);
-    //     console.log('Content copied to clipboard');
-    // } catch (err) {
-    //     console.error('Failed to copy: ', err);
-    // }
-        // var copyText = document.getElementById("myInput");
+    // // try {
+    // //     await navigator.clipboard.writeText(t);
+    // //     console.log('Content copied to clipboard');
+    // // } catch (err) {
+    // //     console.error('Failed to copy: ', err);
+    // // }
+    //     // var copyText = document.getElementById("myInput");
 
-        // // Select the text field
-        // copyText.select();
-        // copyText.setSelectionRange(0, 99999); // For mobile devices
+    //     // // Select the text field
+    //     // copyText.select();
+    //     // copyText.setSelectionRange(0, 99999); // For mobile devices
 
-        // Copy the text inside the text field
-        navigator.clipboard.writeText("testcopy").then(_ => {
-            console.log('copied successfully!')
-        })
+    //     // Copy the text inside the text field
+    //     navigator.clipboard.writeText("testcopy").then(_ => {
+    //         console.log('copied successfully!')
+    //     })
     }
 
 function _addImage(item) {
