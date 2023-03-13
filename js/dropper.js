@@ -208,16 +208,19 @@ function _addText(item) {
             fetch(url)
                 .then( r => r.text() )
                 .then( t => {
-                    // var tt = t;
-                    console.log("text is "+t);
                     // var tt = t.replace(/['"]+/g, '')
                     var tt = t;
                     var e = _htmlToElement(
                     '<div class="textblock">'
-                    + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
+                    // + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
                     // + '<a href="' + '' + '"</a>'
                     +'</div>'
                     );
+                    var button = _htmlToElement('<button>'+tt+'</button>');
+                    button.addEventListener("click", function () {
+                        copyToClipBoard(tt);
+                    })
+                    e.appendChild(button);
                     
                     var close = _htmlToElement('<span class="close">x</span>');
                     close.addEventListener("click", function () {
@@ -236,23 +239,20 @@ function _addText(item) {
     });
 }
 
-const copyToClipBoard = async (t) => {
-    // // try {
-    // //     await navigator.clipboard.writeText(t);
-    // //     console.log('Content copied to clipboard');
-    // // } catch (err) {
-    // //     console.error('Failed to copy: ', err);
-    // // }
-    //     // var copyText = document.getElementById("myInput");
+async function copyToClipBoard(t){
 
-    //     // // Select the text field
-    //     // copyText.select();
-    //     // copyText.setSelectionRange(0, 99999); // For mobile devices
-
-    //     // Copy the text inside the text field
-    //     navigator.clipboard.writeText("testcopy").then(_ => {
-    //         console.log('copied successfully!')
-    //     })
+        // if (navigator.clipboard) {
+        //     console.log('Clipboard API available');
+        // }
+        // if (navigator.clipboard.writeText) {
+        //     console.log('Can copy text to clipboard');
+        //   }
+        try {
+        await navigator.clipboard.writeText(t);
+        }
+        catch (err) {
+        console.error('Could not write to clipboard', err);
+        }
     }
 
 function _addImage(item) {

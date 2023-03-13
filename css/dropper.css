@@ -67,7 +67,7 @@ body {
   white-space: pre-wrap;
 }
 
-.textblock button{
+.textblock button {
   display: block;
   width: 50vw;
   max-width: 50vw;
@@ -83,6 +83,85 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
+  /* display: block;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: calc(50% - 20px);
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  background-color: #fff;
+  background-image: url('https://abs.twimg.com/emoji/v1/72x72/1f4cb.png');
+  background-size: 60% auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(0, 0, 0, .29);
+  border-bottom-color: rgba(0, 0, 0, .36);
+  border-radius: 3px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .12); */
+}
+.textblock button:before {
+  content: '';
+  display: none;
+  position: absolute;
+  z-index: 9998;
+  top: 35px;
+  left: 15px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid rgba(0, 0, 0, .72);
+}
+.textblock button:after {
+  content: 'Copy to Clipboard';
+  display: none;
+  position: absolute;
+  z-index: 9999;
+  top: 40px;
+  left: -37px;
+  width: 114px;
+  height: 36px;
+  color: #fff;
+  font-size: 10px;
+  line-height: 36px;
+  text-align: center;
+  background: rgba(0, 0, 0, .72);
+  border-radius: 3px;
+}
+.textblock button:hover {
+  background-color: #eee;
+}
+.textblock button:hover:before, .textblock button:hover:after {
+  display: block;
+}
+.textblock button:active, .textblock button:focus {
+  outline: none;
+}
+.textblock button:active:after, .textblock button:focus:after {
+  content: 'Copied!';
+}
+
+
+.textblock button{
+  /* display: block;
+  width: 50vw;
+  max-width: 50vw;
+  height: 100%;
+  align-items: left;
+  padding: 6px 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  color: #e2e2e2;
+  background: var(--base-01);
+  border: none;
+  box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation; */
+
+  
 }
 
 .pf .close{
