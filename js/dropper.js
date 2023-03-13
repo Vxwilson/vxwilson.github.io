@@ -325,10 +325,21 @@ function deleteFileAtPath(path, element){
         refresh();
     })
 }
+document.addEventListener("DOMContentLoaded", function(event) { 
+    var scrollpos = localStorage.getItem('scrollpos');
+    if (scrollpos) window.scrollTo(0, scrollpos);
+});
 
 function refresh(){
+    localStorage.setItem('scrollpos', window.scrollY);
     window.location = window.location;
 }
+
+window.addEventListener('load',function() {
+    console.log('load');
+    if(localStorage.getItem('scrollpos') !== null)
+       window.scrollTo(0, localStorage.getItem('scrollpos'));
+},false);
 
 window.addEventListener('load', (event) =>{
     getCode();
