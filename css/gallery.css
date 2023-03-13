@@ -114,7 +114,7 @@ body {
 @media screen and (max-width: 500px) {
 	.masonry3 {
 		margin-top: 0rem;
-		column-count: 1;
+		column-count: 2;
 		padding: 1rem;
 	}
 

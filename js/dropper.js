@@ -207,16 +207,14 @@ function _addText(item) {
                     var tt = t.replace(/['"]+/g, '')
                     var e = _htmlToElement(
                     '<div class="textblock">'
-                    + '<button class="button-11" onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
+                    + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
                     // + '<a href="' + '' + '"</a>'
                     +'</div>'
                     );
                     
                     var close = _htmlToElement('<span class="close">x</span>');
-                    // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
                     close.addEventListener("click", function () {
                         console.log(item);
-
                         deleteFileAtPath(item.fullPath, e);
                     })
                     e.appendChild(close);
@@ -238,6 +236,16 @@ const copyToClipBoard = async (t) => {
     // } catch (err) {
     //     console.error('Failed to copy: ', err);
     // }
+        // var copyText = document.getElementById("myInput");
+
+        // // Select the text field
+        // copyText.select();
+        // copyText.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        navigator.clipboard.writeText("testcopy").then(_ => {
+            console.log('copied successfully!')
+        })
     }
 
 function _addImage(item) {
