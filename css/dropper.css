@@ -64,9 +64,7 @@ body {
     /* display:relative; */
 }
 
-.textbutton{
-}
-.textblock .close {
+.pf .close{
     /* display:block; */
     width:10px;
     height:10px;
@@ -76,6 +74,18 @@ body {
     background:rgba(54, 54, 54, 0.384);
     overflow:hidden;
     text-indent:-9999px;
+}
+
+.textblock .close {
+  /* display:block; */
+  width:10px;
+  height:10px;
+  position:absolute;
+  top:3px;
+  right:3px;
+  background:rgba(54, 54, 54, 0.384);
+  overflow:hidden;
+  text-indent:-9999px;
 }
 
 .droparea{

@@ -108,9 +108,9 @@ window.upload_files = function () {
             }, 3000);
             initDataSingle(reff);
             // _addImage(reff);
-            refresh();
         })
     }
+    // refresh();
 }
 
 window.upload_string = function () {
@@ -135,7 +135,7 @@ window.upload_string = function () {
             document.getElementById("uploaded").style.display = 'none';
         }, 3000);
         initDataSingle(reff);
-        refresh();
+        // refresh();
     })
 }
 
@@ -180,31 +180,6 @@ function initData() {
         .then((res) => {
             res.items.forEach((itemRef) => {
                 initDataSingle(itemRef);
-                // var contentType = '';
-
-                // getMetadata(itemRef)
-                //     .then((metadata) => {
-                //         contentType = metadata.contentType;
-                //         switch (contentType) {
-                //             case 'image/jpeg':
-                //             case 'image/jpg':
-                //             case 'image/png':
-                //                 _addImage(itemRef._location.path_);
-                //                 break;
-                //             case 'text/plain':
-                //                 _addText(itemRef);
-                //                 // _addFile(itemRef);
-
-
-                //                 break;
-                //             default:
-                //                 _addFile(itemRef);
-
-                //                 break;
-                //         }
-                //     })
-                //     .catch((error) => {
-                //     });
             });
         }).catch((error) => {
         });
@@ -270,13 +245,13 @@ function _addImage(item) {
         .then((url) => {
             var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
             var close = _htmlToElement('<span class="close">x</span>');
-                    // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
-                    close.addEventListener("click", function () {
-                        console.log(item);
+                // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
+            close.addEventListener("click", function () {
+                console.log(item);
 
-                        deleteFileAtPath(item.fullPath, fig);
-                    })
-                    fig.appendChild(close);
+                deleteFileAtPath(item.fullPath, fig);
+            })
+            fig.appendChild(close);
             document.getElementById("pictures").appendChild(fig);
         })
         .catch((error) => {
@@ -336,15 +311,11 @@ document.addEventListener("DOMContentLoaded", function(event) {
 });
 
 function refresh(){
-    localStorage.setItem('scrollpos', window.scrollY);
+    console.log('refreshed');
     window.location = window.location;
 }
 
-window.addEventListener('load',function() {
-    console.log('load');
-    if(localStorage.getItem('scrollpos') !== null)
-       window.scrollTo(0, localStorage.getItem('scrollpos'));
-},false);
+
 
 window.addEventListener('load', (event) =>{
     getCode();
