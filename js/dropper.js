@@ -60,6 +60,7 @@ window.try_create = async function(){
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         passcode = docSnap.data().code;
+        window.alert(passcode);
         const given_code = document.getElementById("code").value;
         if(given_code == passcode){  //password correct
             //check if bucket name already exists

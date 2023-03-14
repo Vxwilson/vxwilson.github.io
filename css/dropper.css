@@ -396,3 +396,8 @@ textarea {
 	}
 }
 
+.w3-greyscale-mmin,
+.w3-grayscale-mmin {
+    filter: grayscale(25%)
+}
+
