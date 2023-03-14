@@ -56,7 +56,7 @@
             <div class="w3-bar w3-border">
                 <a href="/" class="w3-bar-item w3-button">Home</a>
                 <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a>
-                <a href="#" onclick="show_create()" class="w3-bar-item w3-button">Goto</a>
+                <a href="#" onclick="show_goto()" class="w3-bar-item w3-button">Goto</a>
             </div>
         </div>
     </header>
@@ -75,17 +75,32 @@
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>
 
+    <div class="form-popup" id="goto_form">
+        <form class="form-container">
+            <h3>goto</h3>
+            <div>
+                <label for="code"><b>code:</b></label>
+                <input type="text" placeholder="Enter code" id ="input_code" name="input_code" required>
+            </div>
+            <div>
+                <button type="button" class="button-11" onclick="go_bucket()">go</button>
+                <button type="button" class="button-11" onclick="hide_goto()">return</button>
+
+            </div>  
+        </form>
+    </div>
+
     <div class="form-popup" id="create_form">
         <form action="javascript:try_create()" class="form-container">
             <h3>new</h3>
             <div>
                 <label for="code"><b>verification:</b></label>
-                <input type="text" placeholder="Enter code" id ="code" name="code" required>
+                <input type="password" placeholder="Enter code" id ="code" name="code" required>
             </div>
             
             <div>
                 <label for="b_name"><b>bucket:</b></label>
-                <input type="password" placeholder="Enter name" id="b_name" name="b_name" required>
+                <input type="text" placeholder="Enter name" id="b_name" name="b_name" required>
             </div>
             <div>
                 <button type="submit" class="button-11">add</button>

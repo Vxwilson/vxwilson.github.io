@@ -239,13 +239,13 @@ body {
 .form-popup {
   display: none;
   position: fixed;
-  width: 50vw;
-  min-width: 50vw;
-  bottom: 50vh;
+  width: 40vw;
+  min-width: 40vw;
+  bottom: 40vh;
   right: 50vw;
   transform: translate(50%, 20%);
   flex-direction: column;
-  background-color: #1c1c1ce2;
+  background-color: #1c1c1ce8;
   padding: 1em;
   border-radius: 6px;
   gap: 1em;
@@ -262,6 +262,13 @@ body {
   text-align: left;
   margin: auto;
   padding-bottom: 1em;
+}
+.form-container input{
+  max-width: 80%;
+}
+
+.form-container button{
+  margin-bottom: 0.5em;
 }
 
 /* CSS */
@@ -333,12 +340,12 @@ textarea {
 
 .textmasonry {
   border-radius: 10px;
-  background: #29282947;
+  background: #29282951;
   margin-top: 1rem;
   padding: 0.7rem;
   margin-bottom: 1rem;
   column-count: 1;
-  width: 95vw;
+  width: 90vw;
   /* margin: auto; */
   /* max-width: 95vw; */
   /* gap: 0.6rem; */
@@ -346,12 +353,12 @@ textarea {
 
 .masonry3{
   border-radius: 10px;
-  background: #29282947;
+  background: #28282947;
 
 	/* margin-top: 3rem; */
 	/* padding: 0.7rem; */
 	/* column-count: 1; */
-  width: 95vw;
+  width: 90vw;
   gap: 2em;
   margin-top: 1rem;
   padding: 0.7rem;
@@ -370,7 +377,7 @@ textarea {
   max-width: 40%;
   vertical-align: middle;
   margin: auto;
-  display: block;
+  /* display: block; */
   break-inside: avoid;
   cursor: pointer;
   position: relative;
@@ -393,15 +400,11 @@ textarea {
 @media (max-width: 1024px) {
 	.textmasonry {
 		column-count: 1;
-		/* column-count: 3; */
-		/* gap: 2.5vw; */
 		padding: 0.7rem;
 	}
-
-	.textmasonry figure:not(:first-child) {
-		/* this line controls the gap between pics*/
-		margin-top: 1vw;
-	}
+  .textmasonry div {
+    max-width: 50%;
+  }
 }
 
 @media screen and (max-width: 500px) {
@@ -413,12 +416,25 @@ textarea {
 
 	.textmasonry figure:not(:first-child) {
 		/* this line controls the */
-		margin-top: 4vw;
+		margin-top: 3vw;
 	}
 
 	.photo {
 		padding-bottom: 0rem;
 	}
+
+  .textmasonry div {
+    max-width: 60%;
+  }
+
+  .form-popup {
+    display: none;
+    position: fixed;
+    width: 65vw;
+    min-width: 65vw;
+    bottom: 40vh;
+    right: 50vw;
+  }
 }
 
 .w3-greyscale-mmin,

@@ -32,17 +32,42 @@ window.checkCode = async function(){
     const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
     const bucket_name = code;
     if(buckets.data()[bucket_name] === true){
-        console.log("bucket exists. loading bucket.");
+        console.log("bucket exists.");
+        return true;
     }else{
         code = 'gallery';
-        console.log(code);
-        // window.alert("bucket doesn't exist.");
+        return false;
     }
-
-    initData();
 }
 
 //////////////CREATE bucket
+window.show_goto = function(){
+    document.getElementById("goto_form").style.display = "flex";
+    // console.log('create');
+}
+
+
+window.hide_goto = function(){
+    // element.style.display = "none";
+    document.getElementById("goto_form").style.display = "none";
+}
+
+window.go_bucket = function(input=''){
+    if(input === ''){
+        input = document.getElementById("input_code").value
+    }
+    if(input ===''){
+        console.log('no bucket exists');
+        hide_goto();
+        return;
+    }
+
+    code = input;
+    if(checkCode()){
+        window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + code);
+    }
+}
+
 window.show_create = function(){
     document.getElementById("create_form").style.display = "flex";
     // console.log('create');
@@ -50,6 +75,7 @@ window.show_create = function(){
 
 
 window.hide_create = function(){
+    // element.style.display = "none";
     document.getElementById("create_form").style.display = "none";
 }
 
@@ -197,7 +223,8 @@ function initData() {
                 initDataSingle(itemRef);
             });
         }).catch((error) => {
-        });
+    });
+
 }
 
 function updateUI(){
@@ -344,6 +371,7 @@ function refresh(){
 window.addEventListener('load', (event) =>{
     getCode();
     checkCode();
+    initData();
 });
 
 
