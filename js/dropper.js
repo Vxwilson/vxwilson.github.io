@@ -28,14 +28,27 @@ window.getCode = function(){
     const urlParams = new URLSearchParams(queryString);
     code = urlParams.get('code');
 }
-window.checkCode = async function(){
+window.checkCode = async function(){ //check then init, called when load
+    const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
+    const bucket_name = code;
+    if(buckets.data()[bucket_name] === true){
+        console.log("bucket exists.");
+    }else{
+        code = 'gallery';
+    }
+
+    initData();
+}
+
+window.checkCodeOnly = async function(){  // check only
     const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
     const bucket_name = code;
     if(buckets.data()[bucket_name] === true){
         console.log("bucket exists.");
         return true;
     }else{
-        code = 'gallery';
+        console.log('gall');
+        // code = 'gallery';
         return false;
     }
 }
@@ -52,7 +65,7 @@ window.hide_goto = function(){
     document.getElementById("goto_form").style.display = "none";
 }
 
-window.go_bucket = function(input=''){
+window.try_go_bucket = function(input=''){
     if(input === ''){
         input = document.getElementById("input_code").value
     }
@@ -62,9 +75,12 @@ window.go_bucket = function(input=''){
         return;
     }
 
+    var temp = code;
     code = input;
-    if(checkCode()){
+    if(checkCodeOnly()){
         window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + code);
+    }else{
+        code = temp;
     }
 }
 
@@ -214,7 +230,6 @@ function initDataSingle(itemRef) {
 
 function initData() {
     updateUI();
-
     const listRef = ref(storage, 'dropper/files/'+code+'/');
     // Find all the prefixes and items.
     listAll(listRef)
@@ -371,7 +386,6 @@ function refresh(){
 window.addEventListener('load', (event) =>{
     getCode();
     checkCode();
-    initData();
 });
 
 
