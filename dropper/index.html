@@ -61,18 +61,17 @@
         </div>
     </header>
 
-    <div class="droparea w3-center">
-        <h5>files</h5>
+    <div class="droparea">
+        <h5 style="color:#626178">files</h5>
         <form>
             <input type="file" class='field' id="files_upload" name="files" accept="" multiple required>
             <!-- <input type="submit" value="drop"> -->
-            <button type="button" class="button-11" onclick="upload_files()">upload</button>
-        </form>                                 
-        <h5>clipboard</h5>
-        <div>
+            <!-- <button type="button" class="button-11" onclick="upload_files()">upload</button> -->
+            <h6 style="color:#626178">or</h6>
             <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
-            <button type="button" class="button-11" onclick="upload_string()">upload</button>
-        </div>
+            <button type="button" class="button-11" onclick="try_upload()">upload</button>
+            <!-- <button type="button" class="button-11" onclick="upload_string()">upload</button> -->
+        </form>                                 
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>
 
@@ -96,9 +95,14 @@
     </div>
 
     <!-- dynamically added by js file-->
-    <div id="textdiv" class="textmasonry content"></div>
-    <div id="pictures" class="masonry3 w3-grayscale-mmin content"></div>
-    <div id="files" class="masonry3 content" ></div>
+    <div class = 'displayer'>
+        
+        <div id="textdiv" class="textmasonry content"> <h5>clipboard</h5> </div>
+        
+        <div id="pictures" class="masonry3 w3-grayscale-mmin content"><h5>pics</h5></div>
+        
+        <div id="files" class="masonry3 content" ><h5>files</h5></div>
+    </div>
 
     <script src="/js/dropper.js" type="module"></script>
 </body>

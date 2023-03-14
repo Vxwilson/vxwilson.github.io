@@ -164,6 +164,13 @@ body {
   
 }
 
+.displayer{
+}
+.displayer h5{
+  /* color:#52495b; */
+  color:#626178
+}
+
 .pf .close{
     /* display:block; */
     width:10px;
@@ -189,25 +196,22 @@ body {
 }
 
 .droparea{
-  display: grid;
+  /* display: flex; */
   /* flex-direction: row; */
   text-align: center;
-  padding: 1em;
+  padding-top: 0.5em;
+  padding-bottom: 1em;
   border-radius: 6px;
-  gap: 0.3em;
-  background-color: #312d3525;
+  /* gap: 0.3em; */
+  background-color: #27242a52;
 }
 
-.droparea div{
-  font-size: 12px;
-  display: block;
-  text-align: center;
-  margin: auto;
-  padding-bottom: 0.5em;
+.droparea h5{
+  text-align: left;
 }
 
 .droparea input{
-  padding: 0.95em;
+  /* padding: 0.95em; */
 }
 
 .droparea form{
@@ -215,15 +219,19 @@ body {
   display: block;
   text-align: center;
   margin: auto;
-  padding-bottom: 0.5em;
+  /* gap:1em */
+  /* padding-bottom: 0.5em; */
 }
 
 .droparea button{
   width: 100px;
   height: 2.35em;
-  background-color: #2f2c4f;
-  margin: auto;
+  background-color: #3b3a4d;
+  /* margin: auto; */
+  /* right:0px; */
+  float:right;
   padding: 0.1em;
+  text-align: center;
 }
 
 /* popup*/
@@ -295,7 +303,7 @@ input{
   border-radius: 0.5em;
   border: none;
   background-color: var(--base-01);
-  width: 100%;
+  width:100%;
   height: 5em;
   /* flex-grow: 1; */
   position: relative;
@@ -312,7 +320,7 @@ textarea {
     border: none;
     background-color: var(--base-01);
     width: 100%;
-    height: 5em;
+    height: 3em;
     /* flex-grow: 1; */
     position: relative;
     caret-color: currentcolor;
@@ -324,16 +332,31 @@ textarea {
   }
 
 .textmasonry {
-    border-radius: 6px;
-    background: #00000015;
+  border-radius: 10px;
+  background: #29282947;
+  margin-top: 1rem;
+  padding: 0.7rem;
+  margin-bottom: 1rem;
+  column-count: 1;
+  width: 95vw;
+  /* margin: auto; */
+  /* max-width: 95vw; */
+  /* gap: 0.6rem; */
+}
 
-	margin-top: 2rem;
-	padding: 0.7rem;
-	column-count: 1;
-    min-width: 50%;
-	/* max-width: 95vw; */
+.masonry3{
+  border-radius: 10px;
+  background: #29282947;
 
-	/* gap: 0.6rem; */
+	/* margin-top: 3rem; */
+	/* padding: 0.7rem; */
+	/* column-count: 1; */
+  width: 95vw;
+  gap: 2em;
+  margin-top: 1rem;
+  padding: 0.7rem;
+  margin-bottom: 1rem;
+  /* margin: auto; */
 }
 
 .textmasonry::after {
@@ -344,7 +367,7 @@ textarea {
 
 .textmasonry div {
   margin: 0;
-  width: 70%;
+  max-width: 40%;
   vertical-align: middle;
   margin: auto;
   display: block;
@@ -363,6 +386,8 @@ textarea {
 	height: auto;
 	user-select: none;
 	vertical-align: middle;
+  /* white-space: normal; */
+  word-wrap: break-word;
 }
 
 @media (max-width: 1024px) {

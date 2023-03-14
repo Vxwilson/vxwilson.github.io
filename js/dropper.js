@@ -91,6 +91,14 @@ window.create_bucket = async function(bucket_name){
 
 
 //////////////UPLOAD
+window.try_upload = function(){
+    const files = document.querySelector("#files_upload").files;
+    if(files.length === 0){
+        upload_string();
+    }else{
+        upload_files();
+    }
+}
 
 window.upload_files = function () {
     // let img = document.getElementById("image_upload") 
@@ -111,6 +119,7 @@ window.upload_files = function () {
             // _addImage(reff);
         })
     }
+    document.querySelector("#files_upload").value = null;
     // refresh();
 }
 
@@ -133,7 +142,8 @@ window.upload_string = function () {
     const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
 
     uploadBytes(reff, blob).then((snapshot) => {
-        console.log('Uploaded text!');
+        document.getElementById('sentence').value = ''; //empties element
+        // console.log('Uploaded text!');
         document.getElementById("uploaded").style.display = 'block';
         setTimeout(function () {
             document.getElementById("uploaded").style.display = 'none';
@@ -330,8 +340,6 @@ function refresh(){
     console.log('refreshed');
     window.location = window.location;
 }
-
-
 
 window.addEventListener('load', (event) =>{
     getCode();
