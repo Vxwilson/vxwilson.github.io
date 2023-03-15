@@ -60,6 +60,19 @@ body {
   margin: 0;
 }
 
+body,
+h1 {
+    font-family: "Raleway", Arial, sans-serif
+}
+
+h1 {
+    letter-spacing: 6px
+}
+
+.w3-row-padding img {
+    margin-bottom: 12px
+}
+
 .textblock {
   text-align: left;
   font-size: smaller;
@@ -199,8 +212,9 @@ body {
   /* display: flex; */
   /* flex-direction: row; */
   text-align: center;
-  padding-top: 0.5em;
-  padding-bottom: 1em;
+  padding: 0.5em;
+  /* padding-top: 0.5em;
+  padding-bottom: 1em; */
   border-radius: 6px;
   /* gap: 0.3em; */
   background-color: #27242a52;
