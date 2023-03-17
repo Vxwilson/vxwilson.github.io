@@ -296,13 +296,6 @@ function _addText(item) {
 }
 
 async function copyToClipBoard(t){
-
-        // if (navigator.clipboard) {
-        //     console.log('Clipboard API available');
-        // }
-        // if (navigator.clipboard.writeText) {
-        //     console.log('Can copy text to clipboard');
-        //   }
         try {
         await navigator.clipboard.writeText(t);
         }
@@ -383,6 +376,21 @@ function deleteFileAtPath(path, element){
 document.addEventListener("DOMContentLoaded", function(event) { 
     var scrollpos = localStorage.getItem('scrollpos');
     if (scrollpos) window.scrollTo(0, scrollpos);
+});
+
+//goto on enter key press
+// Get the input field
+var input = document.getElementById("input_code");
+
+// Execute a function when the user presses a key on the keyboard
+input.addEventListener("keypress", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter") {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    document.getElementById("goto_button").click();
+  }
 });
 
 function refresh(){
