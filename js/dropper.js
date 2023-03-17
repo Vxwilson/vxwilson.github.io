@@ -56,6 +56,7 @@ window.checkCodeOnly = async function(){  // check only
 //////////////CREATE bucket
 window.show_goto = function(){
     document.getElementById("goto_form").style.display = "flex";
+    document.getElementById("input_code").focus();
     // console.log('create');
 }
 
@@ -86,6 +87,7 @@ window.try_go_bucket = function(input=''){
 
 window.show_create = function(){
     document.getElementById("create_form").style.display = "flex";
+    document.getElementById("code").focus();
     // console.log('create');
 }
 
@@ -276,14 +278,18 @@ function _addText(item) {
                     button.addEventListener("click", function () {
                         copyToClipBoard(tt);
                     })
+
                     e.appendChild(button);
+
                     
                     var close = _htmlToElement('<span class="close">x</span>');
                     close.addEventListener("click", function () {
                         console.log(item);
                         deleteFileAtPath(item.fullPath, e);
                     })
-                    e.appendChild(close);
+                    e.insertBefore(close, e.childNodes[0]);
+
+
 
 
                     document.getElementById("textdiv").appendChild(e);
@@ -315,8 +321,12 @@ function _addImage(item) {
 
                 deleteFileAtPath(item.fullPath, fig);
             })
-            fig.appendChild(close);
+            fig.insertBefore(close, fig.childNodes[0]);
             document.getElementById("pictures").appendChild(fig);
+
+            fig.childNodes[1].addEventListener("click", function () {
+                window.loadmodal(url);
+              })
         })
         .catch((error) => {
             // Handle any errors
@@ -337,9 +347,11 @@ function _addFile(item) {
             var close = _htmlToElement('<span class="close">x</span>');
                     close.addEventListener("click", function () {
                         console.log(item);
-                        deleteFileAtPath(item.fullPath, e);
+                        deleteFileAtPath(item.fullPath, fig);
                     })
-                    e.appendChild(close);
+            // fig.appendChild(close);
+            fig.insertBefore(close, fig.childNodes[0]);
+
 
             fig.addEventListener("click", function () {
                 downloadURI(url, item.name);
@@ -349,6 +361,25 @@ function _addFile(item) {
             // Handle any errors
     });
 }
+
+window.loadmodal = function (url) {
+    //code for expanding images into modal box upon clicking
+  
+    const modal = document.querySelector(".modal");
+    const overlay = document.querySelector(".overlay");
+  
+    overlay.addEventListener('click', function () {
+      modal.classList.add("hidden");
+      overlay.classList.add("hidden");
+    })
+  
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+  
+    var fig = document.getElementById("modal_img");
+  
+    fig.src = url;
+  }
 
 
 function downloadURI(url, filename) {
@@ -397,6 +428,10 @@ function refresh(){
     console.log('refreshed');
     window.location = window.location;
 }
+
+// window.addEventListener('keydown', (event) =>{
+//     document.getElementById('sentence').focus();
+// })
 
 window.addEventListener('load', (event) =>{
     getCode();

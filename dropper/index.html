@@ -54,7 +54,7 @@
             <!-- <input type="submit" value="drop"> -->
             <!-- <button type="button" class="button-11" onclick="upload_files()">upload</button> -->
             <h6 style="color:#626178">or</h6>
-            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
+            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40" autofocus></textarea>
             <button type="button" class="button-11" onclick="try_upload()">upload</button>
             <!-- <button type="button" class="button-11" onclick="upload_string()">upload</button> -->
         </form>                                 
@@ -94,6 +94,16 @@
             </div>  
         </form>
     </div>
+
+    <div class="overlay hidden"></div>
+
+    <section id="myModal" class="modal hidden">
+        <!-- <div class="flex"> -->
+        <!-- <img src="user.png" width="50px" height="50px" alt="user" /> -->
+        <!-- <p>vx</p> -->
+        <img id=modal_img src='' class='_img w3-grayscale-min'></img>
+        <p></p>
+    </section>
 
     <!-- dynamically added by js file-->
     <div class = 'displayer'>
