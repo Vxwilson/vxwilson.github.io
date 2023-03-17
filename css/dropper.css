@@ -76,17 +76,19 @@ h1 {
 .textblock {
   text-align: left;
   font-size: smaller;
-  
   white-space: pre-wrap;
 }
 
 .textblock button {
+  text-align: left;
+
   display: block;
   width: 50vw;
   max-width: 50vw;
   height: 100%;
-  align-items: left;
-  padding: 6px 14px;
+  /* align-items: left; */
+  /* padding: 6px 14px; */
+  padding: 2em 2em;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
   color: #e2e2e2;
@@ -144,7 +146,8 @@ h1 {
   border-radius: 3px;
 }
 .textblock button:hover {
-  background-color: #eee;
+  /* background-color: #eee; */
+  background-color: #49454d;
 }
 .textblock button:hover:before, .textblock button:hover:after {
   display: block;
@@ -177,11 +180,23 @@ h1 {
   
 }
 
+
+.content{
+  background: #29282951;
+}
+
 .displayer{
 }
+
 .displayer h5{
   /* color:#52495b; */
   color:#626178
+}
+
+.displayer span{
+  display: fixed;
+  left: 5vw;
+
 }
 
 .pf .close{
@@ -308,9 +323,6 @@ h1 {
   outline: 0;
 }
 
-.content{
-
-}
 
 input{
   background-color: var(--base-01);
@@ -354,7 +366,7 @@ textarea {
 
 .textmasonry {
   border-radius: 10px;
-  background: #29282951;
+  background: #28282947;
   margin-top: 1rem;
   padding: 0.7rem;
   margin-bottom: 1rem;

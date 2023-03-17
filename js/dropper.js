@@ -105,7 +105,7 @@ window.try_create = async function(){
         window.alert(passcode);
         const given_code = document.getElementById("code").value;
         if(given_code == passcode){  //password correct
-            //check if bucket name already exists
+                //check if bucket name already exists
             const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
             const bucket_name = document.getElementById("b_name").value
             if(buckets.data()[bucket_name] === true){
@@ -209,6 +209,8 @@ function initDataSingle(itemRef) {
                 case 'image/jpeg':
                 case 'image/jpg':
                 case 'image/png':
+                case 'image/heif':
+                case 'image/heic':
                     _addImage(itemRef);
                     break;
                 case 'text/plain':
@@ -219,6 +221,7 @@ function initDataSingle(itemRef) {
 
                     break;
                 default:
+                    console.log('adding type ' + contentType);
                     _addFile(itemRef);
 
                     break;
@@ -332,14 +335,18 @@ function _addFile(item) {
         .then((url) => {
             var fig = _htmlToElement(
             '<figure class="pf">'
-            // +'<a href='+url+'>'
             +'<img src=/photos/barcode.png class="photo"></img>'
-            // +'</a>'
             +'<figcaption> ' +item.name+' </figcaption>'
             +'</figure>'
             );
             document.getElementById("files").appendChild(fig);
             // fig.setAttribute('src', url);
+            var close = _htmlToElement('<span class="close">x</span>');
+                    close.addEventListener("click", function () {
+                        console.log(item);
+                        deleteFileAtPath(item.fullPath, e);
+                    })
+                    e.appendChild(close);
 
             fig.addEventListener("click", function () {
                 downloadURI(url, item.name);
