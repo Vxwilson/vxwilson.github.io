@@ -150,7 +150,8 @@ window.upload_files = function () {
 
     //multiple pics
     for (let i = 0; i < files.length; i++) {
-        const name = +new Date() + "-" + files[i].name;
+        const name = files[i].name;
+        // const name = +new Date() + "-" + files[i].name;
         const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
 
         uploadBytes(reff, files[i]).then((snapshot) => {
