@@ -11,6 +11,7 @@ body {
 	align-items: center;
 	justify-content: center;
 	color: #222;
+	background-color: #f9f5ef;
 	position: relative;
 	min-height: 100vh;
 }
@@ -31,7 +32,7 @@ body {
 
 .masonry3 {
 	margin-top: 2rem;
-	padding: 0.7rem;
+	padding: 3rem;
 	column-count: 3;
 	/* max-width: 95vw; */
 
@@ -90,7 +91,7 @@ body {
 }
 
 .masonry3 figure:hover::before {
-	background: rgba(0, 0, 0, 0.1);
+	/* background: rgba(0, 0, 0, 0.026); */
 }
 
 .masonry3 figure:hover::after {

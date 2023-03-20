@@ -23,10 +23,10 @@ window.upload = function () {
     //multiple pics
     for (let i = 0; i < pics.length; i++) {
         const name = +new Date() + "-" + pics[i].name;
-        const reff = ref(storage, 'dropper/photos/' + name);
+        const reff = ref(storage, 'photos/' + name);
 
         uploadBytes(reff, pics[i]).then((snapshot) => {
-            console.log('Uploaded a picture!');
+            // console.log('Uploaded a picture!');
             document.getElementById("uploaded_text").style.display = 'block';
             setTimeout(function () {
                 document.getElementById("uploaded_text").style.display = 'none';
