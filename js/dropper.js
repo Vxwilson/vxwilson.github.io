@@ -338,10 +338,11 @@ function _addImage(item) {
             makeDownloadButton(item, fig, url);
             makeCloseButton(item, fig);
             document.getElementById("pictures").appendChild(fig);
-
-            fig.childNodes[1].addEventListener("click", function () {
+            
+            //todo not brute force the index
+            fig.childNodes[2].addEventListener("click", function () {
                 window.loadmodal(url);
-              })
+            })
         })
         .catch((error) => {
             // Handle any errors

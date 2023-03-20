@@ -90,7 +90,7 @@ body {
 }
 
 .masonry3 figure:hover::before {
-	background: rgba(0, 0, 0, 0.3);
+	background: rgba(0, 0, 0, 0.1);
 }
 
 .masonry3 figure:hover::after {

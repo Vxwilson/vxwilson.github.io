@@ -209,7 +209,7 @@ h1 {
   /* width: 15px; */
   /* height: 15px; */
   border-radius: 5px;
-  /* position:absolute; */
+  position: inherit;
   top: 3px;
   /* right: 2px; */
   float:right;
@@ -217,6 +217,7 @@ h1 {
   /* background:rgba(54, 54, 54, 0.584); */
   overflow:hidden;
   /* text-indent:-9999px; */
+  /* z-index: -10; */
 }
 
 
