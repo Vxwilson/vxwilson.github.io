@@ -208,7 +208,6 @@ h1 {
   margin: auto;
   /* width: 15px; */
   /* height: 15px; */
-  border-radius: 5px;
   position: inherit;
   top: 3px;
   /* right: 2px; */
@@ -504,6 +503,14 @@ textarea {
     min-width: 65vw;
     bottom: 40vh;
     right: 50vw;
+  }
+
+  .close{
+    transform: scale(1.3, 1.3);
+    padding-left: 6px;
+    padding-bottom: 5px;
+    padding-right: 3px;
+    margin: auto;
   }
 }
 
