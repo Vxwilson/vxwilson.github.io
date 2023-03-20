@@ -139,8 +139,8 @@ body {
 	width: 100%;
 	height: 100%;
 	background: rgba(50, 50, 50, 0.547);
-	backdrop-filter: blur(10px);
-	-webkit-backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(7px);
+	backdrop-filter: blur(7px);
 	z-index: 1;
 }
 
@@ -156,7 +156,7 @@ body {
 	position: fixed;
 	top: 50%;
 	transform: translate(0%, -50%);
-	/* background-color: rgba(8, 8, 8, 0.029); */
+	/* background-color: rgba(8, 8, 8, 0.201); */
 	/* background-color: rgb(255, 255, 255); */
 	/* border: 1px solid #ebebeb; */
 	border-radius: 10px;
@@ -193,7 +193,7 @@ body {
 	margin-left: auto;
 	margin-right: auto;
 	object-fit: contain;
-	max-width: 85%;
+	max-width: 95%;
 	max-height: 90%;
 	border-radius: 15px;
 	/* border: solid rgb(70, 70, 70) 2px; */
@@ -201,14 +201,16 @@ body {
 
 @media screen and (max-width: 500px) {
 	.modal {
-		width: 90vw;
-		height: 50vh;
+		width: 100vw;
+		height: auto;
+		max-height: 65vh;
 		border-radius: 3px;
+		/* background-color: rgba(174, 174, 174, 0.174); */
 	}
 
 	._img {
-		max-width: 97%;
-		max-height: 80%;
+		max-width: 87%;
+		max-height: 75%;
 	}
 }
 
