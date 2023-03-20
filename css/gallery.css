@@ -138,8 +138,8 @@ body {
 	right: 0;
 	width: 100%;
 	height: 100%;
-	background: rgba(0, 0, 0, 0.547);
-	backdrop-filter: blur(4px);
+	background: rgba(50, 50, 50, 0.547);
+	backdrop-filter: blur(10px);
 	z-index: 1;
 }
 
@@ -155,10 +155,18 @@ body {
 	position: fixed;
 	top: 50%;
 	transform: translate(0%, -50%);
-	background-color: rgb(255, 255, 255);
-	border: 1px solid #ebebeb;
+	background-color: rgba(255, 255, 255, 0);
+	/* background-color: rgb(255, 255, 255); */
+	/* border: 1px solid #ebebeb; */
 	border-radius: 10px;
 	z-index: 2;
+}
+
+.modal p{
+	font-size: medium;
+	font-family: Raleway, Roboto;
+	/* font-style:italic */
+	color:rgba(255, 255, 255, 0.611)
 }
 
 /* Modal Content */
@@ -183,8 +191,9 @@ body {
 	margin-left: auto;
 	margin-right: auto;
 	object-fit: contain;
-	max-width: 80%;
+	max-width: 85%;
 	max-height: 90%;
+	border-radius: 15px;
 	/* border: solid rgb(70, 70, 70) 2px; */
 }
 

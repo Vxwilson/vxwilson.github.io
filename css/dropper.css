@@ -521,7 +521,8 @@ textarea {
 
 .modal {
 
-	background-color: rgba(53, 52, 52, 0.68);
+	background-color: rgba(0, 0, 0, 0);
+	/* background-color: rgba(53, 52, 52, 0.68); */
 	border: 0px solid #ebebeb;
 	border-radius: 3px;
 
