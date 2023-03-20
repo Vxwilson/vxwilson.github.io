@@ -140,6 +140,7 @@ body {
 	height: 100%;
 	background: rgba(50, 50, 50, 0.547);
 	backdrop-filter: blur(10px);
+	-webkit-backdrop-filter: blur(10px);
 	z-index: 1;
 }
 
@@ -155,10 +156,11 @@ body {
 	position: fixed;
 	top: 50%;
 	transform: translate(0%, -50%);
-	background-color: rgba(255, 255, 255, 0);
+	/* background-color: rgba(8, 8, 8, 0.029); */
 	/* background-color: rgb(255, 255, 255); */
 	/* border: 1px solid #ebebeb; */
 	border-radius: 10px;
+	/* backdrop-filter: 3px; */
 	z-index: 2;
 }
 
