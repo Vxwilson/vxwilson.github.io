@@ -285,11 +285,11 @@ function makeCloseButton(item, parentEle){
 }
 
 function makeDownloadButton(item, parentEle, url){
-    var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
+    var download = _htmlToElement('<span class="close fa fa-cloud-download"></span>');
 
-    // download.addEventListener("click", function () {
-    //     downloadURI(url, item.name);
-    // })
+    download.addEventListener("click", function () {
+        downloadURI(url, item.name);
+    })
 
     parentEle.insertBefore(download, parentEle.childNodes[0]);
 }
@@ -364,9 +364,11 @@ function _addFile(item) {
             makeCloseButton(item, fig);
 
 
-            // fig.addEventListener("click", function () {
-            //     downloadURI(url, item.name);
-            // })
+            fig.childNodes[2].addEventListener("click", function () {
+    // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
+                open(url);
+                // downloadURI(url, item.name);
+            })
         })
         .catch((error) => {
             // Handle any errors
