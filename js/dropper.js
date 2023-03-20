@@ -285,11 +285,11 @@ function makeCloseButton(item, parentEle){
 }
 
 function makeDownloadButton(item, parentEle, url){
-    var download = _htmlToElement('<span class="close fa fa-cloud-download"></span>');
+    var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
 
-    download.addEventListener("click", function () {
-        downloadURI(url, item.name);
-    })
+    // download.addEventListener("click", function () {
+    //     downloadURI(url, item.name);
+    // })
 
     parentEle.insertBefore(download, parentEle.childNodes[0]);
 }
