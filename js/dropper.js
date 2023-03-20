@@ -207,6 +207,7 @@ function initDataSingle(itemRef) {
 
     getMetadata(itemRef)
         .then((metadata) => {
+            // console.log(metadata);
             contentType = metadata.contentType;
             switch (contentType) {
                 case 'image/jpeg':
@@ -241,10 +242,23 @@ function initData() {
     listAll(listRef)
         .then((res) => {
             res.items.forEach((itemRef) => {
+                
+                //sort by date
+                getMetadata(itemRef).then((metadata) => {
+                    // console.log(metadata);
+                    var timeStamp = metadata.timeCreated;
+                    console.log(new Date(timeStamp).getTime());
+                })
+                .catch((error) => {
+                });
+
                 initDataSingle(itemRef);
+
             });
         }).catch((error) => {
     });
+
+
 
 }
 
@@ -260,6 +274,25 @@ function _htmlToElement(html) {
     return template.content.firstChild;
 }
 
+function makeCloseButton(item, parentEle){
+    var close = _htmlToElement('<span class="close fa fa-trash-o"></span>');
+
+    close.addEventListener("click", function () {
+        deleteFileAtPathAndRemove(item.fullPath, parentEle);
+    })
+
+    parentEle.insertBefore(close, parentEle.childNodes[0]);
+}
+
+function makeDownloadButton(item, parentEle, url){
+    var download = _htmlToElement('<span class="close fa fa-cloud-download"></span>');
+
+    download.addEventListener("click", function () {
+        downloadURI(url, item.name);
+    })
+
+    parentEle.insertBefore(download, parentEle.childNodes[0]);
+}
 
 function _addText(item) {
     getDownloadURL(ref(storage, item._location.path_))
@@ -269,31 +302,18 @@ function _addText(item) {
                 .then( t => {
                     // var tt = t.replace(/['"]+/g, '')
                     var tt = t;
-                    var e = _htmlToElement(
-                    '<div class="textblock">'
-                    // + '<button onclick="'+copyToClipBoard(tt)+'">' + tt + '</button>'
-                    // + '<a href="' + '' + '"</a>'
-                    +'</div>'
+                    var fig = _htmlToElement(
+                    '<div class="textblock"></div>'
                     );
                     var button = _htmlToElement('<button>'+tt+'</button>');
                     button.addEventListener("click", function () {
                         copyToClipBoard(tt);
                     })
+                    fig.appendChild(button);
 
-                    e.appendChild(button);
+                    makeCloseButton(item, fig);
 
-                    
-                    var close = _htmlToElement('<span class="close">x</span>');
-                    close.addEventListener("click", function () {
-                        console.log(item);
-                        deleteFileAtPath(item.fullPath, e);
-                    })
-                    e.insertBefore(close, e.childNodes[0]);
-
-
-
-
-                    document.getElementById("textdiv").appendChild(e);
+                    document.getElementById("textdiv").appendChild(fig);
             });
             
         })
@@ -315,14 +335,8 @@ function _addImage(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
-            var close = _htmlToElement('<span class="close">x</span>');
-                // var close = _htmlToElement('<a href="' + '#' + '" class="close">x</a>');
-            close.addEventListener("click", function () {
-                console.log(item);
-
-                deleteFileAtPath(item.fullPath, fig);
-            })
-            fig.insertBefore(close, fig.childNodes[0]);
+            makeDownloadButton(item, fig, url);
+            makeCloseButton(item, fig);
             document.getElementById("pictures").appendChild(fig);
 
             fig.childNodes[1].addEventListener("click", function () {
@@ -344,24 +358,21 @@ function _addFile(item) {
             +'</figure>'
             );
             document.getElementById("files").appendChild(fig);
-            // fig.setAttribute('src', url);
-            var close = _htmlToElement('<span class="close">x</span>');
-                    close.addEventListener("click", function () {
-                        console.log(item);
-                        deleteFileAtPath(item.fullPath, fig);
-                    })
-            // fig.appendChild(close);
-            fig.insertBefore(close, fig.childNodes[0]);
+          
+            makeDownloadButton(item, fig, url);
+            makeCloseButton(item, fig);
 
 
-            fig.addEventListener("click", function () {
-                downloadURI(url, item.name);
-            })
+            // fig.addEventListener("click", function () {
+            //     downloadURI(url, item.name);
+            // })
         })
         .catch((error) => {
             // Handle any errors
     });
 }
+
+
 
 window.loadmodal = function (url) {
     //code for expanding images into modal box upon clicking
@@ -397,10 +408,9 @@ fetch(url, {
 .catch(console.error);
 }
 
-function deleteFileAtPath(path, element){
+function deleteFileAtPathAndRemove(path, element){
     const delRef = ref(storage, path);
     deleteObject(delRef).then(() =>{
-        console.log('deleted');
         element.parentNode.removeChild(element);
         refresh();
     })
