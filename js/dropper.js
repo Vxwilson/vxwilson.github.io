@@ -438,7 +438,7 @@ input.addEventListener("keypress", function(event) {
   }
 });
 
-function refresh(){
+window.refresh = function(){
     console.log('refreshed');
     window.location = window.location;
 }
