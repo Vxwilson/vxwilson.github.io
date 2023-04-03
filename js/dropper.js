@@ -104,7 +104,6 @@ window.try_create = async function(){
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
         passcode = docSnap.data().code;
-        window.alert(passcode);
         const given_code = document.getElementById("code").value;
         if(given_code == passcode){  //password correct
                 //check if bucket name already exists
@@ -115,7 +114,11 @@ window.try_create = async function(){
                 window.alert("bucket exists.");
             }else{
                 //create bucket
-                create_bucket(document.getElementById("b_name").value);
+                await create_bucket(document.getElementById("b_name").value);
+                //wait one second to goto bucket
+                await new Promise(r => setTimeout(r, 800));
+                // window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + document.getElementById("b_name").value);
+                await try_go_bucket(document.getElementById("b_name").value);
             }
         }
     } else { 
