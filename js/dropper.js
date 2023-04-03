@@ -117,7 +117,6 @@ window.try_create = async function(){
                 await create_bucket(document.getElementById("b_name").value);
                 //wait one second to goto bucket
                 await new Promise(r => setTimeout(r, 800));
-                // window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + document.getElementById("b_name").value);
                 await try_go_bucket(document.getElementById("b_name").value);
             }
         }

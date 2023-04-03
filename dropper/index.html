@@ -79,14 +79,14 @@
     <div class="form-popup" id="create_form">
         <form action="javascript:try_create()" class="form-container">
             <h3>new</h3>
-            <div>
-                <label for="code"><b>verification:</b></label>
-                <input type="password" placeholder="Enter code" id ="code" name="code" required>
-            </div>
             
             <div>
                 <label for="b_name"><b>bucket:</b></label>
-                <input type="text" placeholder="Enter name" id="b_name" name="b_name" required>
+                <input type="text" placeholder="Enter name" id="b_name" name="b_name" autocomplete="off" required>
+            </div>
+            <div>
+                <label for="code"><b>verification:</b></label>
+                <input type="password" placeholder="Enter code" id ="code" name="code" autocomplete="off" required>
             </div>
             <div>
                 <button type="submit" class="button-11">add</button>
