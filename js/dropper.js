@@ -445,7 +445,7 @@ window.refresh = function(){
 }
 
 window.sharelink = async function(){
-    var link ='//' + window.location.host + window.location.pathname + ('?code=' + code);
+    var link ='' + window.location.host + window.location.pathname + ('?code=' + code);
     try {
         await navigator.clipboard.writeText(link);
     }
