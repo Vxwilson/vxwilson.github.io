@@ -441,13 +441,19 @@ input.addEventListener("keypress", function(event) {
 });
 
 window.refresh = function(){
-    console.log('refreshed');
     window.location = window.location;
 }
 
-// window.addEventListener('keydown', (event) =>{
-//     document.getElementById('sentence').focus();
-// })
+window.sharelink = async function(){
+    var link ='//' + window.location.host + window.location.pathname + ('?code=' + code);
+    try {
+        await navigator.clipboard.writeText(link);
+    }
+    catch (err) {
+    console.error('Could not write to clipboard', err);
+    }
+}
+
 
 window.addEventListener('load', (event) =>{
     getCode();
