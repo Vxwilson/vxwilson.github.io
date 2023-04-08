@@ -36,7 +36,8 @@ await get_gpt_api_key().then(api =>{
 });
 
 window.getLuck = async function(){
-    var input = "Write two sentences randomly about my luck of the day, make it kinda funny and interesting. Then on a new line rate the luck over 10.";
+    var input = "Write two sentences randomly about my luck of the day, \
+    make it creative and fun, with absurdism elements. Then on a new line rate the luck over 10.";
     await getPrompt(input).then(message =>{
         var result = message['choices'][0]['message']['content'];
         document.getElementById("luck").innerHTML = result;

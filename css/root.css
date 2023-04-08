@@ -53,6 +53,18 @@ body{
     outline: 0;
   }
 
+.lucktext{
+    font-size: 0.95em;
+    max-width: 90%;
+    margin: auto;
+}
+
+@media only screen and (max-width: 767px) { /* For phones with a maximum width of 767px */
+    .lucktext {
+        font-size: 0.75em;
+    }
+  }
+
 *:empty
 {
     display:none;
