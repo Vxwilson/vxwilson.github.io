@@ -31,6 +31,7 @@
 
     <link rel="stylesheet" href="/css/w3.css">
     <link rel="stylesheet" href="/css/root.css">
+    <!-- <link rel="stylesheet" href="/css/root.css"> -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
@@ -63,12 +64,20 @@
                 <div class="w3-bar w3-border">
                     <!-- <a href="" class="w3-bar-item w3-button">Home</a> -->
                     <a href="gallery" class="w3-bar-item w3-button w3-light-grey">Gallery</a>
-                    <a href="pdfs/maths-revision-1.pdf" target="_blank"
-                        class="w3-bar-item w3-button w3-hide-small">Notes</a>
+                    <!-- <a href="yarn" class="w3-bar-item w3-button">Yarn</a> -->
                     <a href="dropper" class="w3-bar-item w3-button">Dropper</a>
                 </div>
             </div>
         </header>
+    </div>
+
+    <div class="luckdiv">
+        <button type="button" class="button-11 w3-button" onclick="getLuck()">get today's luck!</button>
+        <div class="" >
+            <p id="luck">
+                Today, your luck is like a rollercoaster ride with more downs than ups, but don't worry, you'll land safely in a pile of free candy. Just be careful not to choke on your luck-induced sugar rush.
+            </p>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -81,10 +90,7 @@
     </footer>
 
     <script src="js/firebase-init.js" type="module"></script>
-    <!-- <script src="js/clock.js"></script>  -->
-    <!-- <script src="//cdn.jsdelivr.net/npm/flamelink@next/flamelink.js"></script> -->
-    <!-- <script src="js/testfirebase.js" type="module"></script> -->
-
+    <script src="js/main.js" type="module"></script>
 
     </script>
 

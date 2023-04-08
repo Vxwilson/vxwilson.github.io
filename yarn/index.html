@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<head>
+    <title>YarnSpinner</title>
+
+    <link rel="stylesheet" href="/css/w3.css">
+    <link rel="stylesheet" href="/css/dropper.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+    <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
+        <h1 class="w3-xlarge">Yarn Spinner</h1>
+    </header>
+<!--<img src="{{ url_for('static', filename='dog.png') }}" class="icon"/>-->
+<!--<h3>YarnSpinner</h3>-->
+<form>
+    <input type="text" id="prompt" name="prompt" class='field' placeholder="Continue story with prompt" required/>
+    <!-- <input type="submit" class="button-11" value="Generate"/> -->
+    <button type="button" class="button-11" onclick="generateFromPrompt()">Generate</button>
+</form>
+
+
+<div class='displayer'>
+<!--    <a onclick="refresh()"><i-->
+<!--            class="fa fa-refresh fa-2x w3-hover-opacity"></i></a>-->
+<!--    <a onclick="sharelink()"><i-->
+<!--            class="fa fa-link fa-2x w3-hover-opacity"></i></a>-->
+     <div class="story">
+        <span><h5>Current story:</h5>  </span>
+        <div id="story" class="textmasonry content2">
+            <!-- {{summary}} -->
+        </div>
+    </div>
+    <!-- {% if result %} -->
+    <div class="content">
+        <span><h5>Continuation: </h5>  </span>
+        <div id="result" class="textmasonry content2">
+            <!-- {{result}} -->
+        </div>
+    </div>
+    <div class="tokens">
+        <span><h5>Total tokens used: </h5>  </span>
+        <!-- {{tokens}} tokens ({{price}}) -->
+    </div>
+    <!-- {% endif %} -->
+</div>
+<!--<div class="result">{{ result }}</div>-->
+
+<script src="/js/yarn.js" type="module"></script>
+<script src="/js/main.js" type="module"></script>
+</script>
+</body>
