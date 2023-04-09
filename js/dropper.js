@@ -21,6 +21,7 @@ const db = getFirestore(app);
 
 /////init
 setCollapsible();
+
 //////////////GET CODE to fetch bucket
 var code = '';
 
@@ -308,13 +309,14 @@ function _addText(item) {
                 .then( r => r.text() )
                 .then( t => {
                     // var tt = t.replace(/['"]+/g, '')
-                    var tt = t;
+                    var urlifiedText = urlify2(t);
+                    console.log(urlifiedText);
                     var fig = _htmlToElement(
                     '<div class="textblock"></div>'
                     );
-                    var button = _htmlToElement('<button>'+tt+'</button>');
+                    var button = _htmlToElement('<button>'+urlifiedText+'</button>');
                     button.addEventListener("click", function () {
-                        copyToClipBoard(tt);
+                        copyToClipBoard(t);
                     })
                     fig.appendChild(button);
 
@@ -329,6 +331,37 @@ function _addText(item) {
     });
 }
 
+//urlify that works with .www
+function urlify2(text) {
+    var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+    //var urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function(url,b,c) {
+        var url2 = (c == 'www.') ?  'http://' +url : url;
+        return '<a href="' +url2+ '" target="_blank">' + url + '</a>';
+    }) 
+}
+
+// wraps urls in text with the a tag and return it
+function urlify(text, openNew=true) {
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    if(openNew){
+        return text.replace(urlRegex, function(url) {
+            return '<a href="' + url + '" target="_blank">' + url + '</a>';
+        })
+    }
+    return text.replace(urlRegex, function(url) {
+      return '<a href="' + url + '">' + url + '</a>';
+    })
+
+    // or alternatively
+    // return text.replace(urlRegex, '<a href="$1">$1</a>')
+}
+//   var text = 'Find me at http://www.example.com and also at http://stackoverflow.com';
+// var html = urlify(text);
+
+// console.log(html);
+ 
+
 async function copyToClipBoard(t){
         try {
         await navigator.clipboard.writeText(t);
@@ -336,7 +369,7 @@ async function copyToClipBoard(t){
         catch (err) {
         console.error('Could not write to clipboard', err);
         }
-    }
+}
 
 function _addImage(item) {
     getDownloadURL(ref(storage, item._location.path_))
@@ -481,5 +514,6 @@ function setCollapsible() {
         });
       }
 }
+
 
 

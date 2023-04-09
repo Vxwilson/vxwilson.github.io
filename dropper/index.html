@@ -46,8 +46,8 @@
                 <a href="#" onclick="show_create()" class="w3-bar-item w3-button fa fa-file w3-hover-opacity"></a>
                 <!-- <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a> -->
                 <a href="#" onclick="show_goto()" class="w3-bar-item w3-button fa fa-folder w3-hover-opacity"></a>
-                <a href="#" onclick="refresh()" class="w3-bar-item w3-button fa fa-refresh w3-hover-opacity"></a>
-                <a href="#" onclick="sharelink()" class="w3-bar-item w3-button fa fa-link w3-hover-opacity"></a>
+                <a onclick="refresh()" class="w3-bar-item w3-button fa fa-refresh w3-hover-opacity"></a>
+                <a onclick="sharelink()" class="w3-bar-item w3-button fa fa-link w3-hover-opacity"></a>
                 <!-- <a href="#" onclick="show_goto()" class="w3-bar-item w3-button">Goto</a> -->
             </div>
         </div>
@@ -57,7 +57,10 @@
     <div class="droparea collapsiblecontent">
         <!-- <h5 style="color:#626178">files</h5> -->
         <form>
-            <input type="file" class='field' id="files_upload" name="files" accept="" multiple required>
+            <label class = ''>
+            
+                <input type="file" class='field' id="files_upload" name="files" accept="" multiple required style="">
+            </label>
             <h6 style="color:#626178">or</h6>
             <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
             <button type="button" class="button-11" onclick="try_upload()">upload</button>
