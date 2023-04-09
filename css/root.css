@@ -2,6 +2,10 @@ body{
     background-color: #f7f3eb;
 }
 
+p {
+  font-family: Roboto;
+}
+
 .luckdiv {
     /* text-align: center; */
     text-align: center;
@@ -34,8 +38,10 @@ body{
     align-items: center;
     text-align: center;
     margin: auto;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
     /* padding-top: 1em; */
-    padding-bottom: 1em;
+    padding-bottom: 2em;
     font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
     border-radius: 6px;
     color: #4f4f4f;
@@ -63,7 +69,11 @@ body{
     .lucktext {
         font-size: 0.75em;
     }
-  }
+
+    .button-11{
+        width:90%;
+    }
+}
 
 *:empty
 {

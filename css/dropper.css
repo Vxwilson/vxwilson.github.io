@@ -186,20 +186,11 @@ h1 {
   background: #29282951;
 }
 
-.displayer{
-}
 
 .displayer h5{
   /* color:#52495b; */
   color:#626178
 }
-
-.displayer span{
-  /* display: fixed;
-  left: 5vw; */
-}
-
-
 
 .close {
   display:block;
