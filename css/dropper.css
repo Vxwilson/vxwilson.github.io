@@ -92,7 +92,7 @@ h1 {
   padding: 2em 2em;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
-  color: #e2e2e2;
+  /* color: #e2e2e2; */
   background: var(--base-01);
   border: none;
   box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1);
@@ -131,7 +131,7 @@ h1 {
   border-bottom: 5px solid rgba(0, 0, 0, .72);
 }
 .textblock button:after {
-  content: 'Copy to Clipboard';
+  content: 'copy';
   display: none;
   position: absolute;
   z-index: 9999;
@@ -157,7 +157,7 @@ h1 {
   outline: none;
 }
 .textblock button:active:after, .textblock button:focus:after {
-  content: 'Copied!';
+  content: 'copied';
 }
 
 
@@ -322,12 +322,10 @@ input{
 .field{
   padding: 0.5em;
   border-radius: 0.5em;
-  /* border: none; */
   border: 2px solid #4d465f9b;
   background-color: var(--base-01);
   width:100%;
   height: 5em;
-  /* flex-grow: 1; */
   position: relative;
   outline-offset: -0.0625rem;
   outline-style: solid;

@@ -15,7 +15,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const storiesRef = doc(db, "yarn", "stories");
+var storybook = "timetravel";
+
+const storiesRef = doc(db, "yarn", storybook);
 const storiesSnap = await getDoc(storiesRef);
 
 var gpt_api_key = '';
@@ -33,17 +35,19 @@ if (storiesSnap.exists()) {
 var story_data = storiesSnap.data();
 var summary = story_data["summary"];
 
-
 /////////init//////////
 setCollapsible();
 var full_story = composeStory();
 document.getElementById("fullstory").innerHTML = full_story;
-
 //////////////////////
 
-var system_prompt = " \
-You are Yarn the writer, good at following style guiding to write continuations of existing stories. \
-"
+var system_prompt = ` 
+You are a writer, tasked with this:
+${story_data['guide']}
+` 
+// var system_prompt = " \
+// You are Yarn the writer, good at following style guiding to write continuations of existing stories. \
+// "
 // var assistant_prompt = ` 
 // General style:
 // ${story_data['style']}
@@ -58,16 +62,14 @@ You are Yarn the writer, good at following style guiding to write continuations 
 // Summary: [one paragraph of summary, must retain all existing important information + new content]
 // `
 
-
+// Style guide:
+// ${story_data['guide']}
 var assistant_prompt = ` 
-Style guide:
-${story_data['style']}
 
-Existing summary:
+Existing story's summary:
 ${summary}
 
-You are provided a style guide and concise summary of an existing story. Based on user prompt detailing 
-how next paragraph should be, generate one: 
+Based on user prompt detailing how next paragraph should be, generate one: 
 
 [medium-length paragraph based that advances the plot]
 `
@@ -82,8 +84,6 @@ function composeStory(){
     for (let i = 0; i < paragraphs.length; i++) {
         story += paragraphs[i]['paragraph'] + "\n\n";
     }
-    console.log(story);
-
     return story;
 }
 
@@ -108,7 +108,12 @@ window.generateFromPrompt = async function () {
         result = message['choices'][0]['message']['content'];
 
         document.getElementById("result").innerHTML = result;
-        console.log('result: ' + result);
+        
+        //update story
+        var full_story = document.getElementById("fullstory").innerHTML+ '\n\n' + result;
+        document.getElementById("fullstory").innerHTML = full_story;
+
+        //update total tokens
         tokens = tokens + message['usage']['total_tokens'];
     });
 

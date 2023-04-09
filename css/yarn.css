@@ -2,9 +2,19 @@
 
 .button-11{
     color: rgb(135, 164, 134);
-    margin-top: 1em;
+    margin-top: 0.5em;
     background-color: #312d3592;
 }
+
+.field{
+    border: 2px solid rgb(135, 164, 134);
+    font-size: 0.8em;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 20em;
+    height: 5em;
+    color:rgb(162, 162, 170);
+  }
 
 .collapsible {
     margin: auto;
@@ -36,7 +46,7 @@
   
   /* Style the collapsible content. Note: hidden by default */
   .collapsiblecontent {
-    padding: 0 18px;
+    /* padding: 0 18px; */
     overflow: hidden;
     /* background-color: #5a5a5a; */
 
@@ -67,10 +77,12 @@
 
   .content{
     margin-bottom: 1em;
+    padding: 0.5em 1.5em;
+    border-radius: 10px;
   }
 
   p{
     white-space: pre-wrap;
     font-family: 'Roboto';
-    color: rgb(162, 162, 170);
+    color: rgb(149, 149, 155);
   }

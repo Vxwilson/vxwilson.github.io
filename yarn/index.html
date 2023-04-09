@@ -22,10 +22,11 @@
     </header>
     <!--<img src="{{ url_for('static', filename='dog.png') }}" class="icon"/>-->
     <!--<h3>YarnSpinner</h3>-->
-    <form>
-        <input type="text" id="prompt" name="prompt" class='field' placeholder="Continue story with prompt" required />
+    <form action="javascript:generateFromPrompt()">
+        <textarea id="prompt" placeholder="continue story with prompt :)"class='field' name="w3review" rows="3" cols="40" required></textarea>
+        <!-- <input type="text" id="prompt" name="prompt" class='field' placeholder="continue story with prompt" required /> -->
         <!-- <input type="submit" class="button-11" value="Generate"/> -->
-        <button type="button" class="button-11" onclick="generateFromPrompt()">Generate</button>
+        <button type="submit" class="button-11">Generate</button>
     </form>
 
 

@@ -2,8 +2,11 @@ body{
     background-color: #f7f3eb;
 }
 
-p {
-  font-family: Roboto;
+p, span, button{
+  white-space: pre-wrap;
+  font-family: 'Roboto';
+  color: rgb(17, 17, 231);
+  /* color: rgb(162, 162, 170); */
 }
 
 .luckdiv {
