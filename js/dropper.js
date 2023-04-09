@@ -309,19 +309,22 @@ function _addText(item) {
                 .then( r => r.text() )
                 .then( t => {
                     // var tt = t.replace(/['"]+/g, '')
-                    var urlifiedText = urlify4(t);
+                    var resultDict = textProcessor(t);
+                    // var urlifiedText = urlify4(t);
                     // var urlifiedText = (t);
-                    console.log(urlifiedText);
+                    console.log(resultDict);
                     var fig = _htmlToElement(
                     '<div class="textblock"></div>'
                     );
-                    var button = _htmlToElement('<button>'+urlifiedText+'</button>');
+                    var button = _htmlToElement('<button>'+resultDict["output"]+'</button>');
                     button.addEventListener("click", function () {
                         copyToClipBoard(t);
                     })
                     fig.appendChild(button);
-
-                    makeCloseButton(item, fig);
+                    
+                    if(resultDict['pin'] == false){
+                        makeCloseButton(item, fig);
+                    }
 
                     document.getElementById("textdiv").appendChild(fig);
             });
@@ -331,6 +334,29 @@ function _addText(item) {
             // Handle any errors
     });
 }
+
+
+//urlify text, then process it by:
+//checking for tags, marked by -tag-
+function textProcessor(text){
+    var output = urlify4(text);
+
+    var outputDict = {"output": '', "pin": false};
+    // pinned text cant be deleted
+    if(output.includes("-pin-")){
+        output = output.replace("-pin-", "").trim();
+        outputDict["pin"] = true;
+    }
+    // add more tags
+    // if(output.includes("-pin-")){
+    //     output = output.replace("-pin-", "");
+    // }
+
+    outputDict['output'] = output;
+
+    return outputDict;
+}
+
 const url5Regex = /(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
 function urlify4(text) {
     // var urlRegex =/(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
