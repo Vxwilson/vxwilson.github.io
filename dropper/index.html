@@ -49,16 +49,14 @@
         </div>
     </header>
 
-    <div class="droparea">
+    <button type="button" class="button-11 collapsible"></button>
+    <div class="droparea collapsiblecontent">
         <h5 style="color:#626178">files</h5>
         <form>
             <input type="file" class='field' id="files_upload" name="files" accept="" multiple required>
-            <!-- <input type="submit" value="drop"> -->
-            <!-- <button type="button" class="button-11" onclick="upload_files()">upload</button> -->
             <h6 style="color:#626178">or</h6>
-            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40" autofocus></textarea>
+            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
             <button type="button" class="button-11" onclick="try_upload()">upload</button>
-            <!-- <button type="button" class="button-11" onclick="upload_string()">upload</button> -->
         </form>                                 
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>

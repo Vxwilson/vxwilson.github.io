@@ -20,21 +20,10 @@
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
         <h1 class="w3-xlarge">Yarn Spinner</h1>
     </header>
-    <!--<img src="{{ url_for('static', filename='dog.png') }}" class="icon"/>-->
-    <!--<h3>YarnSpinner</h3>-->
-    <form action="javascript:generateFromPrompt()">
-        <textarea id="prompt" placeholder="continue story with prompt :)"class='field' name="w3review" rows="3" cols="40" required></textarea>
-        <!-- <input type="text" id="prompt" name="prompt" class='field' placeholder="continue story with prompt" required /> -->
-        <!-- <input type="submit" class="button-11" value="Generate"/> -->
-        <button type="submit" class="button-11">Generate</button>
-    </form>
-
 
     <div class='displayer'>
         <!--    <a onclick="refresh()"><i-->
         <!--            class="fa fa-refresh fa-2x w3-hover-opacity"></i></a>-->
-        <!--    <a onclick="sharelink()"><i-->
-        <!--            class="fa fa-link fa-2x w3-hover-opacity"></i></a>-->
         <div class="content">
             <span>
                 <h5>Current story:</h5>
@@ -48,6 +37,13 @@
             </div>
 
         </div>
+    </div>
+        <!-- <button type="button" class="button-11 collapsible"></button> -->
+        <form action="javascript:generateFromPrompt()" class="">
+            <textarea id="prompt" placeholder="continue story with prompt :)"class='field' name="w3review" rows="3" cols="40" required></textarea>
+            <button type="submit" class="button-11">Generate</button>
+        </form>
+    <div class="displayer">
         <div class="content">
             <span>
                 <h5>Continuation: </h5>

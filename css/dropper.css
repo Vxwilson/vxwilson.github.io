@@ -525,3 +525,34 @@ footer{
 *:empty{
   /* display: none; */
 }
+
+.collapsible {
+  margin: auto;
+  margin-top: 2em;
+  margin-bottom: 2em;
+  width: 15%;
+  background-color: #312d3578;
+}
+
+/* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+.active, .collapsible:hover {
+  background-color: #323038;
+}
+
+
+.collapsiblecontent {
+  padding: 0 18px;
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.25s ease;
+}
+
+.collapsible:after {
+  content: '\002B';
+  background-color: #312d3578;
+  font-weight: bold;
+}
+
+.active:after {
+  content: "\2212";
+}

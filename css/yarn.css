@@ -1,13 +1,13 @@
 /* Style the button that is used to open and close the collapsible content */
 
 .button-11{
-    color: rgb(135, 164, 134);
+    color: rgb(115, 138, 114);
     margin-top: 0.5em;
     background-color: #312d3592;
 }
 
 .field{
-    border: 2px solid rgb(135, 164, 134);
+    border: 2px solid rgb(115, 138, 114);
     font-size: 0.8em;
     white-space: normal;
     word-wrap: break-word;
@@ -22,20 +22,6 @@
     margin-bottom: 2em;
     width: 50%;
     background-color: #312d3578;
-    
-    /* background-color: #739b72;
-    color: #444;
-    cursor: pointer;
-    padding: 18px;
-    margin: auto;
-    width: 50%;
-    height: 2em;
-    border: none;
-    text-align: center;
-    align-items: center;
-    outline: none;
-    font-size: 1em; */
-    /* display: flex; */
   }
   
   /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
@@ -44,11 +30,9 @@
   }
 
   
-  /* Style the collapsible content. Note: hidden by default */
   .collapsiblecontent {
-    /* padding: 0 18px; */
+    padding: 0px;
     overflow: hidden;
-    /* background-color: #5a5a5a; */
 
     max-height: 0;
     transition: max-height 0.25s ease;
@@ -58,7 +42,6 @@
     content: '\002B';
     background-color: #312d3578;
     font-weight: bold;
-    /* float: ; */
   }
   
   .active:after {
