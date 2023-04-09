@@ -1100,7 +1100,7 @@ a {
 
 .w3-panel {
     margin-top: 16px;
-    margin-bottom: 16px
+    margin-bottom: 16px;
 }
 
 .w3-code,
@@ -1364,7 +1364,7 @@ a {
 }
 
 .w3-center {
-    text-align: center !important
+    text-align: center !important;
 }
 
 .w3-border-0 {
@@ -1452,7 +1452,7 @@ a {
 
 .w3-padding-24 {
     padding-top: 24px !important;
-    padding-bottom: 24px !important
+    padding-bottom: 24px !important;
 }
 
 .w3-padding-32 {

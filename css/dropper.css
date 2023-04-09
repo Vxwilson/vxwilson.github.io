@@ -91,6 +91,10 @@ h1 {
   margin-left: 10px;
 }
 
+.displayer{
+  margin-top: 1em;
+}
+
 .displayer h5 {
   /* color:#52495b; */
   text-align: center;
@@ -121,11 +125,12 @@ h1 {
   /* flex-direction: row; */
   text-align: center;
   padding: 0.5em;
+  padding-bottom: 1em;
+  gap: 3em;
   /* padding-top: 0.5em;
-  padding-bottom: 1em; */
   border-radius: 6px;
   /* gap: 0.3em; */
-  background-color: #27242a52;
+  /* background-color: #27242a52; */
 }
 
 .droparea h5 {
@@ -141,7 +146,7 @@ h1 {
   display: block;
   text-align: center;
   margin: auto;
-  /* gap:1em */
+  /* gap:1em; */
   /* padding-bottom: 0.5em; */
 }
 
@@ -212,6 +217,7 @@ h1 {
   -webkit-user-select: none;
   touch-action: manipulation;
 }
+
 
 .button-11:focus {
   box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
@@ -320,7 +326,7 @@ textarea {
   height: 100%;
   /* margin:auto; */
   word-wrap: break-word;
-  padding: 1.75em 2em;
+  padding: 1.5em 2em;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
   background: var(--base-01);
@@ -504,7 +510,7 @@ footer {
 
 .collapsible {
   margin: auto;
-  margin-top: 2em;
+  margin-top: 0.5em;
   margin-bottom: 2em;
   width: 15%;
   background-color: #312d3578;
@@ -518,7 +524,8 @@ footer {
 
 
 .collapsiblecontent {
-  padding: 0 18px;
+  padding: 0px 15px;
+  margin-bottom: 0.5em;
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.25s ease;

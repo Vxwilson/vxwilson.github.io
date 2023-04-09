@@ -40,23 +40,28 @@
 <body>
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
         <h1 class="w3-xlarge" id="bucket_title"></h1> 
-        <div class="w3-padding-24">
+        <div class="w3-padding-16">
             <div class="w3-bar w3-border">
-                <a href="/" class="w3-bar-item w3-button">Home</a>
-                <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a>
-                <a href="#" onclick="show_goto()" class="w3-bar-item w3-button">Goto</a>
+                <a href="/" class="w3-bar-item w3-button fa fa-home fa-lg w3-hover-opacity"></a>
+                <a href="#" onclick="show_create()" class="w3-bar-item w3-button fa fa-file w3-hover-opacity"></a>
+                <!-- <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a> -->
+                <a href="#" onclick="show_goto()" class="w3-bar-item w3-button fa fa-folder w3-hover-opacity"></a>
+                <a href="#" onclick="refresh()" class="w3-bar-item w3-button fa fa-refresh w3-hover-opacity"></a>
+                <a href="#" onclick="sharelink()" class="w3-bar-item w3-button fa fa-link w3-hover-opacity"></a>
+                <!-- <a href="#" onclick="show_goto()" class="w3-bar-item w3-button">Goto</a> -->
             </div>
         </div>
     </header>
 
     <button type="button" class="button-11 collapsible"></button>
     <div class="droparea collapsiblecontent">
-        <h5 style="color:#626178">files</h5>
+        <!-- <h5 style="color:#626178">files</h5> -->
         <form>
             <input type="file" class='field' id="files_upload" name="files" accept="" multiple required>
             <h6 style="color:#626178">or</h6>
             <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
             <button type="button" class="button-11" onclick="try_upload()">upload</button>
+            <h6> </h6>
         </form>                                 
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>
@@ -108,10 +113,10 @@
     
     <!-- dynamically added by js file-->
     <div class='displayer'>
-        <a onclick="refresh()"><i
+        <!-- <a onclick="refresh()"><i
             class="fa fa-refresh fa-2x w3-hover-opacity"></i></a>
         <a onclick="sharelink()"><i
-            class="fa fa-link fa-2x w3-hover-opacity"></i></a>
+            class="fa fa-link fa-2x w3-hover-opacity"></i></a> -->
         <div class="content">
             <span><h5>clipboard</h5></span>
             <div id="textdiv" class="textmasonry"></div>
