@@ -229,7 +229,7 @@ function initDataSingle(itemRef) {
 
                     break;
                 default:
-                    console.log('adding type ' + contentType);
+                    // console.log('adding type ' + contentType);
                     _addFile(itemRef);
 
                     break;
@@ -250,8 +250,8 @@ function initData() {
                 //sort by date
                 getMetadata(itemRef).then((metadata) => {
                     // console.log(metadata);
-                    var timeStamp = metadata.timeCreated;
-                    console.log(new Date(timeStamp).getTime());
+                    // var timeStamp = metadata.timeCreated;
+                    // console.log(new Date(timeStamp).getTime());
                 })
                 .catch((error) => {
                 });
@@ -281,7 +281,10 @@ function _htmlToElement(html) {
 function makeCloseButton(item, parentEle){
     var close = _htmlToElement('<span class="close fa fa-trash-o"></span>');
 
-    close.addEventListener("click", function () {
+    // close.addEventListener("click", function () {
+    //     deleteFileAtPathAndRemove(item.fullPath, parentEle);
+    // })
+    $(close).on('click', function(){
         deleteFileAtPathAndRemove(item.fullPath, parentEle);
     })
 
@@ -419,7 +422,7 @@ function deleteFileAtPathAndRemove(path, element){
     const delRef = ref(storage, path);
     deleteObject(delRef).then(() =>{
         element.parentNode.removeChild(element);
-        refresh();
+        // refresh();
     })
 }
 document.addEventListener("DOMContentLoaded", function(event) { 
