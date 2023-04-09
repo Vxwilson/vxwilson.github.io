@@ -309,7 +309,8 @@ function _addText(item) {
                 .then( r => r.text() )
                 .then( t => {
                     // var tt = t.replace(/['"]+/g, '')
-                    var urlifiedText = urlify2(t);
+                    var urlifiedText = urlify4(t);
+                    // var urlifiedText = (t);
                     console.log(urlifiedText);
                     var fig = _htmlToElement(
                     '<div class="textblock"></div>'
@@ -330,32 +331,54 @@ function _addText(item) {
             // Handle any errors
     });
 }
-
-//urlify that works with .www
-function urlify2(text) {
-    var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
-    //var urlRegex = /(https?:\/\/[^\s]+)/g;
-    return text.replace(urlRegex, function(url,b,c) {
-        var url2 = (c == 'www.') ?  'http://' +url : url;
-        return '<a href="' +url2+ '" target="_blank">' + url + '</a>';
-    }) 
+const url5Regex = /(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
+function urlify4(text) {
+    // var urlRegex =/(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
+    return text.replace(url5Regex, function(url) {
+        var text = url;
+        //adds in front to make urls valid
+        if (!url.startsWith('http')) {
+            url = 'https://' + url;
+        }else{ //beautify by removing the http when displayed
+            // text = text.replace('https://', '');
+            // text = text.replace('http://', '');
+        }
+        return '<a href="' + url + '" target="_blank">' + text + '</a>';
+    });
 }
 
-// wraps urls in text with the a tag and return it
-function urlify(text, openNew=true) {
-    var urlRegex = /(https?:\/\/[^\s]+)/g;
-    if(openNew){
-        return text.replace(urlRegex, function(url) {
-            return '<a href="' + url + '" target="_blank">' + url + '</a>';
-        })
-    }
-    return text.replace(urlRegex, function(url) {
-      return '<a href="' + url + '">' + url + '</a>';
-    })
+// function urlify3(text) {
+//     var urlRegex =/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+//     return text.replace(urlRegex, function(url) {
+//         return '<a href="' + url + '" target="_blank">' + url + '</a>';
+//     });
+// }
+
+// //urlify that works with .www
+// function urlify2(text) {
+//     var urlRegex = /(((https?:\/\/)|(www\.))[^\s]+)/g;
+//     //var urlRegex = /(https?:\/\/[^\s]+)/g;
+//     return text.replace(urlRegex, function(url,b,c) {
+//         var url2 = (c == 'www.') ?  'http://' +url : url;
+//         return '<a href="' +url2+ '" target="_blank">' + url + '</a>';
+//     }) 
+// }
+
+// // wraps urls in text with the a tag and return it
+// function urlify(text, openNew=true) {
+//     var urlRegex = /(https?:\/\/[^\s]+)/g;
+//     if(openNew){
+//         return text.replace(urlRegex, function(url) {
+//             return '<a href="' + url + '" target="_blank">' + url + '</a>';
+//         })
+//     }
+//     return text.replace(urlRegex, function(url) {
+//       return '<a href="' + url + '">' + url + '</a>';
+//     })
 
     // or alternatively
     // return text.replace(urlRegex, '<a href="$1">$1</a>')
-}
+// }
 //   var text = 'Find me at http://www.example.com and also at http://stackoverflow.com';
 // var html = urlify(text);
 

@@ -341,6 +341,12 @@ textarea {
   touch-action: manipulation;
 }
 
+.textblock button a{
+  font-weight: 600;
+  text-decoration: none;
+  color:#5d5984;
+}
+
 .textblock button:before {
   content: '';
   display: none;
