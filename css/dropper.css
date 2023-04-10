@@ -482,8 +482,13 @@ textarea {
     padding: 0.7rem;
   }
 
+  .textblock button{
+    width: 90%;
+    height: 95%;
+  }
+
   .textmasonry div {
-    max-width: 80%;
+    max-width: 90%;
   }
 
   .filemasonry {
@@ -492,6 +497,8 @@ textarea {
 }
 
 @media screen and (max-width: 500px) {
+
+  
   .textmasonry {
     margin-top: 0rem;
     column-count: 1;
@@ -513,8 +520,15 @@ textarea {
     padding-bottom: 0rem;
   }
 
+  .textblock button{
+    width: 90%;
+    height: 95%;
+  }
+  
   .textmasonry div {
     max-width: 80%;
+    /* width: 90%; */
+    /* padding-right:1em; */
   }
 
   .form-popup {
