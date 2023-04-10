@@ -283,9 +283,9 @@ textarea {
 .masonry3 {
   border-radius: 10px;
   width: 90vw;
-  gap: 2em;
+  gap: 1.8em;
+  padding: 0.5rem;
   margin-top: 1rem;
-  padding: 0.7rem;
   margin-bottom: 1rem;
   /* margin: auto; */
 }
@@ -320,7 +320,7 @@ textarea {
 
   background: var(--base-01);
   border-radius: 6px;
-  padding-right:  10px;
+  padding-right:  0px;
 }
 
 /* for buttons */
@@ -337,6 +337,7 @@ textarea {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
+  /* padding: 1em; */
 }
 
 /* hides buttons by default */
@@ -487,11 +488,15 @@ textarea {
 
 @media screen and (max-width: 500px) {
 
+  .masonry3 {
+
+    gap: 1em;
+  }
   
   .textmasonry {
     margin-top: 0rem;
     column-count: 1;
-    padding: 1rem;
+    padding: 0.2rem;
   }
 
   .textmasonry figure:not(:first-child) {
