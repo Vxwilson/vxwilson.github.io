@@ -25,31 +25,31 @@ setCollapsible();
 //////////////GET CODE to fetch bucket
 var code = '';
 
-window.getCode = function(){
+window.getCode = function () {
     const queryString = window.location.search;
     console.log(queryString);
     const urlParams = new URLSearchParams(queryString);
     code = urlParams.get('code');
 }
-window.checkCode = async function(){ //check then init, called when load
+window.checkCode = async function () { //check then init, called when load
     const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
     const bucket_name = code;
-    if(buckets.data()[bucket_name] === true){
+    if (buckets.data()[bucket_name] === true) {
         console.log("bucket exists.");
-    }else{
+    } else {
         code = 'gallery';
     }
 
     initData();
 }
 
-window.checkCodeOnly = async function(){  // check only
+window.checkCodeOnly = async function () {  // check only
     const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
     const bucket_name = code;
-    if(buckets.data()[bucket_name] === true){
+    if (buckets.data()[bucket_name] === true) {
         console.log("bucket exists.");
         return true;
-    }else{
+    } else {
         console.log('gall');
         // code = 'gallery';
         return false;
@@ -57,23 +57,23 @@ window.checkCodeOnly = async function(){  // check only
 }
 
 //////////////CREATE bucket
-window.show_goto = function(){
+window.show_goto = function () {
     document.getElementById("goto_form").style.display = "flex";
     document.getElementById("input_code").focus();
     // console.log('create');
 }
 
 
-window.hide_goto = function(){
+window.hide_goto = function () {
     // element.style.display = "none";
     document.getElementById("goto_form").style.display = "none";
 }
 
-window.try_go_bucket = function(input=''){
-    if(input === ''){
+window.try_go_bucket = function (input = '') {
+    if (input === '') {
         input = document.getElementById("input_code").value
     }
-    if(input ===''){
+    if (input === '') {
         console.log('no bucket exists');
         hide_goto();
         return;
@@ -81,26 +81,26 @@ window.try_go_bucket = function(input=''){
 
     var temp = code;
     code = input;
-    if(checkCodeOnly()){
+    if (checkCodeOnly()) {
         window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + code);
-    }else{
+    } else {
         code = temp;
     }
 }
 
-window.show_create = function(){
+window.show_create = function () {
     document.getElementById("create_form").style.display = "flex";
     document.getElementById("code").focus();
     // console.log('create');
 }
 
 
-window.hide_create = function(){
+window.hide_create = function () {
     // element.style.display = "none";
     document.getElementById("create_form").style.display = "none";
 }
 
-window.try_create = async function(){
+window.try_create = async function () {
     const docRef = doc(db, "cred_admin", "passcode");
 
     var passcode = '';
@@ -108,14 +108,14 @@ window.try_create = async function(){
     if (docSnap.exists()) {
         passcode = docSnap.data().code;
         const given_code = document.getElementById("code").value;
-        if(given_code == passcode){  //password correct
-                //check if bucket name already exists
+        if (given_code == passcode) {  //password correct
+            //check if bucket name already exists
             const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
             const bucket_name = document.getElementById("b_name").value
-            if(buckets.data()[bucket_name] === true){
+            if (buckets.data()[bucket_name] === true) {
                 console.log("bucket already exists.");
                 window.alert("bucket exists.");
-            }else{
+            } else {
                 //create bucket
                 await create_bucket(document.getElementById("b_name").value);
                 //wait one second to goto bucket
@@ -123,13 +123,13 @@ window.try_create = async function(){
                 await try_go_bucket(document.getElementById("b_name").value);
             }
         }
-    } else { 
+    } else {
         console.log("No such document!");
         //password file not found
     }
 }
 
-window.create_bucket = async function(bucket_name){
+window.create_bucket = async function (bucket_name) {
     console.log('creating ' + bucket_name);
     const buckets = doc(db, "cred_admin", "buckets");
 
@@ -140,11 +140,11 @@ window.create_bucket = async function(bucket_name){
 
 
 //////////////UPLOAD
-window.try_upload = function(){
+window.try_upload = function () {
     const files = document.querySelector("#files_upload").files;
-    if(files.length === 0){
+    if (files.length === 0) {
         upload_string();
-    }else{
+    } else {
         upload_files();
     }
 }
@@ -157,7 +157,7 @@ window.upload_files = function () {
     for (let i = 0; i < files.length; i++) {
         const name = files[i].name;
         // const name = +new Date() + "-" + files[i].name;
-        const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
+        const reff = ref(storage, 'dropper/files/' + code + '/' + name);
 
         uploadBytes(reff, files[i]).then((snapshot) => {
             console.log('Uploaded a file!');
@@ -177,7 +177,7 @@ window.upload_string = function () {
     var sentence = document.getElementById('sentence').value
     console.log(sentence);
 
-    if(sentence === ''){
+    if (sentence === '') {
         window.alert('empty string detected.');
         return;
     }
@@ -186,10 +186,10 @@ window.upload_string = function () {
     var json_string = JSON.stringify(sentence, undefined, 2);
     console.log(json_string);
     var blob = new Blob([sentence], { type: 'text/plain' });
-   
+
 
     const name = +new Date() + "-string";
-    const reff = ref(storage, 'dropper/files/' +code+'/'+ name);
+    const reff = ref(storage, 'dropper/files/' + code + '/' + name);
 
     uploadBytes(reff, blob).then((snapshot) => {
         document.getElementById('sentence').value = ''; //empties element
@@ -242,32 +242,32 @@ function initDataSingle(itemRef) {
 
 function initData() {
     updateUI();
-    const listRef = ref(storage, 'dropper/files/'+code+'/');
+    const listRef = ref(storage, 'dropper/files/' + code + '/');
     // Find all the prefixes and items.
     listAll(listRef)
         .then((res) => {
             res.items.forEach((itemRef) => {
-                
+
                 //sort by date
                 getMetadata(itemRef).then((metadata) => {
                     // console.log(metadata);
                     // var timeStamp = metadata.timeCreated;
                     // console.log(new Date(timeStamp).getTime());
                 })
-                .catch((error) => {
-                });
+                    .catch((error) => {
+                    });
 
                 initDataSingle(itemRef);
 
             });
         }).catch((error) => {
-    });
+        });
 
 
 
 }
 
-function updateUI(){
+function updateUI() {
     console.log(code);
     document.getElementById("bucket_title").innerText = code;
 }
@@ -279,71 +279,83 @@ function _htmlToElement(html) {
     return template.content.firstChild;
 }
 
-function makeCloseButton(item, parentEle){
-    var close = _htmlToElement('<span class="close fa fa-trash-o"></span>');
+function makeCloseButton(item, parentEle, eleToDelete) {
+    var close = _htmlToElement('\
+    <span class="close fa fa-trash-o"></span>');
+    // var close = _htmlToElement('<span class="close fa fa-trash-o"></span>');
 
     // close.addEventListener("click", function () {
     //     deleteFileAtPathAndRemove(item.fullPath, parentEle);
     // })
-    $(close).on('click', function(){
-        deleteFileAtPathAndRemove(item.fullPath, parentEle);
+    parentEle.childNodes[0].after(close);
+
+    $(close).on('click', function () {
+        deleteFileAtPathAndRemove(item.fullPath, eleToDelete);
     })
 
-    parentEle.insertBefore(close, parentEle.childNodes[0]);
+    // parentEle.insertBefore(close, parentEle.childNodes[0]);
 }
 
-function makeDownloadButton(item, parentEle, url){
+function makeDownloadButton(item, parentEle, url) {
     var download = _htmlToElement('<span class="close fa fa-cloud-download"></span>');
 
     download.addEventListener("click", function () {
         downloadURI(url, item.name);
     })
 
-    parentEle.insertBefore(download, parentEle.childNodes[0]);
+    parentEle.childNodes[0].after(download);
+
+
+    // parentEle.insertBefore(download, parentEle.childNodes[0]);
 }
 
 function _addText(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             fetch(url)
-                .then( r => r.text() )
-                .then( t => {
-                    // var tt = t.replace(/['"]+/g, '')
+                .then(r => r.text())
+                .then(t => {
                     var resultDict = textProcessor(t);
-                    // var urlifiedText = urlify4(t);
-                    // var urlifiedText = (t);
                     console.log(resultDict);
                     var fig = _htmlToElement(
-                    '<div class="textblock"></div>'
+                        '<div class="textblock block">\
+                    </div>'
                     );
-                    var button = _htmlToElement('<button>'+resultDict["output"]+'</button>');
-                    button.addEventListener("click", function () {
+
+                    // stores delete button etc
+                    var buttonContainer = _htmlToElement(
+                        '<div class="textbuttoncontainer">\
+                    </div>')
+
+                    var textbutton = _htmlToElement('<button>' + resultDict["output"] + '</button>');
+                    textbutton.addEventListener("click", function () {
                         copyToClipBoard(t);
                     })
-                    fig.appendChild(button);
-                    
-                    if(resultDict['pin'] == false){
-                        makeCloseButton(item, fig);
+                    fig.appendChild(textbutton);
+                    fig.appendChild(buttonContainer);
+
+                    if (resultDict['pin'] == false) {
+                        makeCloseButton(item, buttonContainer, fig);
                     }
 
                     document.getElementById("textdiv").appendChild(fig);
-            });
-            
+                });
+
         })
         .catch((error) => {
             // Handle any errors
-    });
+        });
 }
 
 
 //urlify text, then process it by:
 //checking for tags, marked by -tag-
-function textProcessor(text){
+function textProcessor(text) {
     var output = urlify4(text);
 
-    var outputDict = {"output": '', "pin": false};
+    var outputDict = { "output": '', "pin": false };
     // pinned text cant be deleted
-    if(output.includes("-pin-")){
+    if (output.includes("-pin-")) {
         output = output.replace("-pin-", "").trim();
         outputDict["pin"] = true;
     }
@@ -360,12 +372,12 @@ function textProcessor(text){
 const url5Regex = /(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
 function urlify4(text) {
     // var urlRegex =/(https?:\/\/)?(www\.)?([\w-]+\.)+[\w]{2,}([/?#]\S*)?/ig
-    return text.replace(url5Regex, function(url) {
+    return text.replace(url5Regex, function (url) {
         var text = url;
         //adds in front to make urls valid
         if (!url.startsWith('http')) {
             url = 'https://' + url;
-        }else{ //beautify by removing the http when displayed
+        } else { //beautify by removing the http when displayed
             // text = text.replace('https://', '');
             // text = text.replace('http://', '');
         }
@@ -402,112 +414,133 @@ function urlify4(text) {
 //       return '<a href="' + url + '">' + url + '</a>';
 //     })
 
-    // or alternatively
-    // return text.replace(urlRegex, '<a href="$1">$1</a>')
+// or alternatively
+// return text.replace(urlRegex, '<a href="$1">$1</a>')
 // }
 //   var text = 'Find me at http://www.example.com and also at http://stackoverflow.com';
 // var html = urlify(text);
 
 // console.log(html);
- 
 
-async function copyToClipBoard(t){
-        try {
+
+async function copyToClipBoard(t) {
+    try {
         await navigator.clipboard.writeText(t);
-        }
-        catch (err) {
+    }
+    catch (err) {
         console.error('Could not write to clipboard', err);
-        }
+    }
 }
 
 function _addImage(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
-            var fig = _htmlToElement('<figure class="pf"><img src=' + url + ' class="photo"></img></figure>');
-            makeDownloadButton(item, fig, url);
-            makeCloseButton(item, fig);
+            var fig = _htmlToElement('<figure class="block">\
+            <img src=' + url + ' class="photo"></img>\
+            </figure>');
+
+            // stores delete button etc
+            var buttonContainer = _htmlToElement(
+                '<div class="textbuttoncontainer">\
+            </div>')
+
+            fig.appendChild(buttonContainer);
+
+            makeDownloadButton(item, buttonContainer, url);
+            makeCloseButton(item, buttonContainer, fig);
             document.getElementById("pictures").appendChild(fig);
-            
+
             //todo not brute force the index
-            fig.childNodes[2].addEventListener("click", function () {
+            console.log(fig.childNodes);
+            fig.childNodes[1].addEventListener("click", function () {
+                console.log('clicked');
                 window.loadmodal(url);
             })
         })
         .catch((error) => {
             // Handle any errors
-    });
+        });
 }
 
 function _addFile(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement(
-            '<figure class="pf">'
-            +'<img src=/photos/barcode.png class="photo"></img>'
-            +'<figcaption> ' +item.name+' </figcaption>'
-            +'</figure>'
+                '<figure class="block">'
+                + '<img src=/photos/barcode.png class="photo"></img>'
+                + '<figcaption> ' + item.name + ' </figcaption>'
+                + '</figure>'
             );
-            document.getElementById("files").appendChild(fig);
-          
-            makeDownloadButton(item, fig, url);
-            makeCloseButton(item, fig);
 
+            // stores delete button etc
+            var buttonContainer = _htmlToElement(
+                '<div class="textbuttoncontainer">\
+                </div>')
 
-            fig.childNodes[2].addEventListener("click", function () {
-    // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
+            fig.appendChild(buttonContainer);
+
+            makeDownloadButton(item, buttonContainer, url);
+            makeCloseButton(item, buttonContainer, fig);
+
+            //fix this 
+            fig.childNodes[0].addEventListener("click", function () {
+                // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
                 open(url);
                 // downloadURI(url, item.name);
             })
+
+            document.getElementById("files").appendChild(fig);
+
         })
         .catch((error) => {
             // Handle any errors
-    });
+        });
 }
 
 
 
 window.loadmodal = function (url) {
     //code for expanding images into modal box upon clicking
-  
+
     const modal = document.querySelector(".modal");
     const overlay = document.querySelector(".overlay");
-  
+
     overlay.addEventListener('click', function () {
-      modal.classList.add("hidden");
-      overlay.classList.add("hidden");
+        modal.classList.add("hidden");
+        overlay.classList.add("hidden");
     })
-  
+
     modal.classList.remove("hidden");
     overlay.classList.remove("hidden");
-  
+
     var fig = document.getElementById("modal_img");
-  
+
     fig.src = url;
-  }
+}
 
 
 function downloadURI(url, filename) {
-fetch(url, {
-    // mode: "no-cors"
-})
-    .then(response => response.blob())
-    .then(blob => {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-})
-.catch(console.error);
+    fetch(url, {
+        // mode: "no-cors"
+    })
+        .then(response => response.blob())
+        .then(blob => {
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+        })
+        .catch(console.error);
 }
 
-function deleteFileAtPathAndRemove(path, element){
+function deleteFileAtPathAndRemove(path, element) {
     const delRef = ref(storage, path);
-    deleteObject(delRef).then(() =>{
+    deleteObject(delRef).then(() => {
         element.parentNode.removeChild(element);
         // refresh();
     })
 }
-document.addEventListener("DOMContentLoaded", function(event) { 
+document.addEventListener("DOMContentLoaded", function (event) {
     var scrollpos = localStorage.getItem('scrollpos');
     if (scrollpos) window.scrollTo(0, scrollpos);
 });
@@ -517,32 +550,32 @@ document.addEventListener("DOMContentLoaded", function(event) {
 var input = document.getElementById("input_code");
 
 // Execute a function when the user presses a key on the keyboard
-input.addEventListener("keypress", function(event) {
-  // If the user presses the "Enter" key on the keyboard
-  if (event.key === "Enter") {
-    // Cancel the default action, if needed
-    event.preventDefault();
-    // Trigger the button element with a click
-    document.getElementById("goto_button").click();
-  }
+input.addEventListener("keypress", function (event) {
+    // If the user presses the "Enter" key on the keyboard
+    if (event.key === "Enter") {
+        // Cancel the default action, if needed
+        event.preventDefault();
+        // Trigger the button element with a click
+        document.getElementById("goto_button").click();
+    }
 });
 
-window.refresh = function(){
+window.refresh = function () {
     window.location = window.location;
 }
 
-window.sharelink = async function(){
-    var link ='' + window.location.host + window.location.pathname + ('?code=' + code);
+window.sharelink = async function () {
+    var link = '' + window.location.host + window.location.pathname + ('?code=' + code);
     try {
         await navigator.clipboard.writeText(link);
     }
     catch (err) {
-    console.error('Could not write to clipboard', err);
+        console.error('Could not write to clipboard', err);
     }
 }
 
 
-window.addEventListener('load', (event) =>{
+window.addEventListener('load', (event) => {
     getCode();
     checkCode();
 });
@@ -552,16 +585,16 @@ function setCollapsible() {
     var i;
 
     for (i = 0; i < coll.length; i++) {
-        coll[i].addEventListener("click", function() {
-          this.classList.toggle("active");
-          var content = this.nextElementSibling;
-          if (content.style.maxHeight){
-            content.style.maxHeight = null;
-          } else {
-            content.style.maxHeight = (content.scrollHeight)+ "px";
-          }
+        coll[i].addEventListener("click", function () {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = (content.scrollHeight) + "px";
+            }
         });
-      }
+    }
 }
 
 

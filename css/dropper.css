@@ -302,7 +302,6 @@ textarea {
   vertical-align: middle;
   margin: auto;
   margin-bottom: 0.7rem;
-
   /* display: block; */
   break-inside: avoid;
   cursor: pointer;
@@ -318,6 +317,38 @@ textarea {
   font-size: smaller;
   white-space: pre-wrap;
   position: relative;
+
+  background: var(--base-01);
+  border-radius: 6px;
+  padding-right:  10px;
+}
+
+/* for buttons */
+
+.fa{
+  opacity: 0.75;                /* Opacity (Transparency) */
+  /* color: rgba(0, 0, 0, 0.75);   /* RGBA Color (Alternative Transparency) */
+  /* -webkit-filter: blur(2px);   */
+  /* -moz-filter: blur(2px);
+  filter: blur(2px); */ 
+}
+
+.block {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.textbuttoncontainer{
+  display: flex;
+  margin-left: -3px;
+  margin-bottom: 3px;
+  align-items: flex-end;
+  flex-direction: column;
+}
+
+.textbuttoncontainer *{
+  margin-top: 3px;
 }
 
 /* textblock buttons */
@@ -366,7 +397,7 @@ textarea {
   display: none;
   position: absolute;
   z-index: 9999;
-  top: 16px;
+  top: 0px;
   right: 0px;
   width: 60px;
   height: 36px;
@@ -374,7 +405,7 @@ textarea {
   font-size: 11px;
   line-height: 36px;
   text-align: center;
-  background: rgb(67, 50, 86);
+  background: rgba(69, 54, 86, 0.789);
   border-radius: 3px;
 }
 
@@ -399,6 +430,14 @@ textarea {
   content: 'copied';
 }
 
+/* image flex set to make button at right */
+.masonry3 figure {
+	margin: 0;
+	display: flex;
+	align-items: flex-end;
+	flex-direction: row;
+}
+
 .filemasonry {
   column-count: 5;
 }
@@ -415,7 +454,8 @@ textarea {
   font-size: smaller;
   width: 90%;
   margin: 0;
-  display: block;
+  /* display: block; */
+  display: flex;
   break-inside: avoid;
   cursor: pointer;
   position: relative;
