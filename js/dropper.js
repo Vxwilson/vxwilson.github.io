@@ -309,6 +309,17 @@ function makeDownloadButton(item, parentEle, url) {
     // parentEle.insertBefore(download, parentEle.childNodes[0]);
 }
 
+// for clipboard
+function makeCopyButton(text, parentEle){
+    var copy = _htmlToElement('<span class="close fa fa-copy"></span>');
+
+    copy.addEventListener("click", function () {
+        copyToClipBoard(text);
+    })
+
+    parentEle.childNodes[0].after(copy);
+}
+
 function _addText(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
@@ -327,16 +338,21 @@ function _addText(item) {
                         '<div class="textbuttoncontainer">\
                     </div>')
 
-                    var textbutton = _htmlToElement('<button>' + resultDict["output"] + '</button>');
+                    var textbutton = _htmlToElement('<span class="textspan">' + resultDict["output"] + '</span>');
+                    // var textbutton = _htmlToElement('<button>' + resultDict["output"] + '</button>');
                     textbutton.addEventListener("click", function () {
                         copyToClipBoard(t);
                     })
                     fig.appendChild(textbutton);
                     fig.appendChild(buttonContainer);
+                    
 
                     if (resultDict['pin'] == false) {
                         makeCloseButton(item, buttonContainer, fig);
                     }
+
+                    makeCopyButton(t, buttonContainer);
+
 
                     document.getElementById("textdiv").appendChild(fig);
                 });
@@ -431,6 +447,7 @@ async function copyToClipBoard(t) {
         console.error('Could not write to clipboard', err);
     }
 }
+
 
 function _addImage(item) {
     getDownloadURL(ref(storage, item._location.path_))
