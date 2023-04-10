@@ -339,12 +339,19 @@ textarea {
   justify-content: flex-start;
 }
 
+/* hides buttons by default */
 .textbuttoncontainer{
-  display: flex;
+  display: none;
   margin-left: -3px;
   margin-bottom: 3px;
   align-items: flex-end;
   flex-direction: column;
+}
+
+/* show buttons on hover */
+
+.block:hover .textbuttoncontainer{
+    display: flex;
 }
 
 .textbuttoncontainer *{
@@ -355,11 +362,11 @@ textarea {
 .textblock .textspan {
   text-align: left;
   display: block;
-  width: 100%;
+  width: 95%;
   height: 100%;
   /* margin:auto; */
   word-wrap: break-word;
-  padding: 1.5em 2em;
+  padding: 1.5em 1.5em 1em;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
   background: var(--base-01);
@@ -378,54 +385,38 @@ textarea {
   color:#5d5984;
 }
 
-.textblock .textspan:before {
-  content: '';
-  display: none;
-  position: absolute;
-  z-index: 9998;
-  top: 35px;
-  left: 15px;
-  width: 0;
-  height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-}
-
-.textblock .textspan:after {
-  content: 'copy';
-  display: none;
+.textblock .textspan:hover:after {
+  content: attr(hover_text);
+  display: block;
+  font-weight: bold;
   position: absolute;
   z-index: 9999;
   top: 0px;
   right: 0px;
-  width: 60px;
-  height: 36px;
+  width: 54px;
+  height: 30px;
   color: #959298;
-  font-size: 11px;
+  font-size: 10px;
   line-height: 36px;
   text-align: center;
-  background: rgba(69, 54, 86, 0.789);
+  background: rgba(69, 54, 86, 0.142);
   border-radius: 3px;
 }
 
-.textblock .textspan:hover {
-  background-color: #353239;
-} */
-
-/* .textblock .textspan:hover:before,
-.textblock .textspan:hover:after {
-  display: block;
-}
-
-.textblock .textspan:active,
-.textblock .textspan:focus {
-  outline: none;
-}
-
 .textblock .textspan:active:after,
-.textblock .textspan:focus:after {
-  content: 'copied';
+  .textblock .textspan:focus:after {
+  content: 'Done';
+  display: block;
+  position: absolute;
 }
+
+.textblock:has(.textspan:hover){
+  background-color: #353239;
+} 
+
+.textblock .textspan:hover{
+  background-color: #353239;
+} 
 
 
 /* image flex set to make button at right */

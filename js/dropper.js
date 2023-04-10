@@ -336,9 +336,25 @@ function _addText(item) {
                     // stores delete button etc
                     var buttonContainer = _htmlToElement(
                         '<div class="textbuttoncontainer">\
-                    </div>')
+                    </div>')  
+                    
 
-                    var textbutton = _htmlToElement('<span class="textspan">' + resultDict["output"] + '</span>');
+                    // cheat: uncomment below to temporarily delete somthing
+                    // makeCloseButton(item, buttonContainer, fig);
+                    
+                    if (resultDict['pin'] == false) {
+                        //can be deleted
+                        makeCloseButton(item, buttonContainer, fig);
+                    }else{
+                        //add pin icon 
+                        var pin = '<span class="fa fa-thumb-tack"></span> \n'
+                        resultDict["output"] = pin + resultDict["output"];
+                    }
+
+                    // makeCopyButton(t, buttonContainer);
+
+
+                    var textbutton = _htmlToElement('<span class="textspan" hover_text="Copy">' + resultDict["output"] + '</span>');
                     // var textbutton = _htmlToElement('<button>' + resultDict["output"] + '</button>');
                     textbutton.addEventListener("click", function () {
                         copyToClipBoard(t);
@@ -347,11 +363,7 @@ function _addText(item) {
                     fig.appendChild(buttonContainer);
                     
 
-                    if (resultDict['pin'] == false) {
-                        makeCloseButton(item, buttonContainer, fig);
-                    }
 
-                    makeCopyButton(t, buttonContainer);
 
 
                     document.getElementById("textdiv").appendChild(fig);
