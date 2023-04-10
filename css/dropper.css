@@ -335,7 +335,7 @@ textarea {
 
 .block {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
 }
 
@@ -434,12 +434,12 @@ textarea {
 .masonry3 figure {
 	margin: 0;
 	display: flex;
-	align-items: flex-end;
+	align-items: flex-start;
 	flex-direction: row;
 }
 
 .filemasonry {
-  column-count: 5;
+  column-count: 4;
 }
 
 .filemasonry figcaption {
@@ -455,7 +455,7 @@ textarea {
   width: 90%;
   margin: 0;
   /* display: block; */
-  display: flex;
+  /* display: flex; */
   break-inside: avoid;
   cursor: pointer;
   position: relative;
@@ -492,7 +492,7 @@ textarea {
   }
 
   .filemasonry {
-    column-count: 4;
+    column-count: 3;
   }
 }
 
@@ -513,7 +513,7 @@ textarea {
   .filemasonry {
     /* line-clamp: 2; */
 
-    column-count: 3;
+    column-count: 2;
   }
 
   .photo {

@@ -466,18 +466,23 @@ function _addFile(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement(
-                '<figure class="block">'
+                '<div class="block">' + 
+                '<figure style="display:block">'
                 + '<img src=/photos/barcode.png class="photo"></img>'
                 + '<figcaption> ' + item.name + ' </figcaption>'
                 + '</figure>'
+                + '</div>'
             );
 
             // stores delete button etc
             var buttonContainer = _htmlToElement(
                 '<div class="textbuttoncontainer">\
                 </div>')
-
+            
+            document.getElementById("files").appendChild(fig);
+            
             fig.appendChild(buttonContainer);
+            // fig.appendChild(buttonContainer);
 
             makeDownloadButton(item, buttonContainer, url);
             makeCloseButton(item, buttonContainer, fig);
@@ -489,7 +494,6 @@ function _addFile(item) {
                 // downloadURI(url, item.name);
             })
 
-            document.getElementById("files").appendChild(fig);
 
         })
         .catch((error) => {
