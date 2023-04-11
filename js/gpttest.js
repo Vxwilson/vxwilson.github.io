@@ -52,11 +52,15 @@ window.generateFromPrompt = async function () {
         document.getElementById("result").innerHTML = result;
         
         //update total tokens
-        tokens = tokens + message['usage']['total_tokens'];
+        tokens = message['usage']['total_tokens'];
+        var pp_thousand_tokens = 0.002;
+        // price = f"{tokens / 1000 * pp_thousand_tokens} USD"
+        var token_string = "Tokens: " + tokens + " (" + tokens / 1000 * pp_thousand_tokens * 4.4 + " MYR)";
+        document.getElementById("token").innerHTML = token_string;
     });
 }
 
-async function getPrompt(user_prompt = '', assistant_prompt = '', system_prompt = '', max_tokens = 200) {
+async function getPrompt(user_prompt = '', assistant_prompt = '', system_prompt = '', max_tokens = 350) {
     if (user_prompt === '') {
         user_prompt = 'Write a sad poem about my border collie, Pepper';
     }
