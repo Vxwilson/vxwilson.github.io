@@ -327,8 +327,8 @@ function setUpGenerateButton() {
 
     textarea.addEventListener('keydown', (event) => {
         if (event.ctrlKey && event.key === 'Enter') {
-            event.preventDefault(); // prevent default behavior of adding a new line
-            button.click(); // trigger click event on the button
+            // event.preventDefault(); // prevent default behavior of adding a new line
+            // button.click(); // trigger click event on the button
         }
     });
 }
