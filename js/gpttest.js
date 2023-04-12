@@ -35,7 +35,7 @@ await get_gpt_api_key().then(api => {
 });
 
 setupHeaderButtons();
-// setUpGenerateButton();
+setUpGenerateButton();
 //////////////////////
 
 var system_prompt = ``;
