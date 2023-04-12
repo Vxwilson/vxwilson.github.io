@@ -1,4 +1,4 @@
-var gpt_key = '';
+var gpt_api_key = '';
 
 const GPTState = {
     NORMAL: 1,
@@ -31,7 +31,7 @@ let currentSummary = ``;
 
 /////////init//////////
 await get_gpt_api_key().then(api => {
-    gpt_key = api;
+    gpt_api_key = api;
 });
 
 setupHeaderButtons();
@@ -142,7 +142,7 @@ async function getPrompt(user_prompt = '', assistant_prompt = '', system_prompt 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${gpt_key}`
+            'Authorization': `Bearer ${gpt_api_key}`
         },
         body: JSON.stringify({
             model: 'gpt-3.5-turbo',
