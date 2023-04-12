@@ -1,7 +1,9 @@
 /* Style the button that is used to open and close the collapsible content */
 
 .button-11{
+    
     color: rgb(115, 138, 114);
+    /* color: rgb(138, 133, 114); */
     margin-top: 0.5em;
     background-color: #312d3592;
 }
