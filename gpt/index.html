@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width initial-scale=1.0 maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="canonical" href="">
     <meta name="description" content="">
     <meta name="keywords" content="">
@@ -55,22 +55,6 @@
         <button class="button-11 headerButton" id="gptStyleButton">Normal</button>
         <button class="button-11 headerButton" id="memoryButton">Memoryless</button>
     </header>
-
-    <button type="button" class="button-11 collapsible"></button>
-    <div class="droparea collapsiblecontent">
-        <!-- <h5 style="color:#626178">files</h5> -->
-        <form>
-            <label class = ''>
-            
-                <input type="file" class='field' id="files_upload" name="files" accept="" multiple required style="">
-            </label>
-            <h6 style="color:#626178">or</h6>
-            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
-            <button type="button" class="button-11" onclick="">upload</button>
-            <h6> </h6>
-        </form>                                 
-        <p id=uploaded style="display:none">Uploaded!</p>
-    </div>
 
     <form action="javascript:generateFromPrompt()" class="">
         <textarea id="prompt" placeholder="ask anything :)" class='field' name="w3review" rows="3" cols="40"
