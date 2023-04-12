@@ -4,17 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="canonical" href="">
-    <meta name="description" content="">
-    <meta name="keywords" content="">
-
-    <!--Social Media Display-->
-    <meta property="og:title" content="" />
-    <meta property="og:description" content="" />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="" />
-    <meta property="og:image" content="" />
-    <meta property="og:image:secure_url" content="" />
 
     <title>GPT</title>
 
@@ -28,25 +17,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     
-    <style>
-        header {
-            display: flex;
-            align-items: center;
-        }
-
-        .headerButton {
-            /* margin-left: auto; */
-            margin-left: 1em;
-            width: 7em;
-            text-align: center;
-
-        }
-
-        .content {
-            /* max-height: 500px;
-            overflow: auto; */
-        }
-    </style>
+   
 </head>
 
 <body>
@@ -55,30 +26,6 @@
         <button class="button-11 headerButton" id="gptStyleButton">Normal</button>
         <button class="button-11 headerButton" id="memoryButton">Memoryless</button>
     </header>
-
-    <form action="javascript:generateFromPrompt()" class="">
-        <textarea id="prompt" placeholder="ask anything :)" class='field' name="w3review" rows="3" cols="40"
-            required></textarea>
-        <button id="generateButton" type="submit" class="button-11">Generate</button>
-    </form>
-
-
-    <div class="displayer">
-        <div class="content">
-            <span>
-                <h5>Conversation </h5>
-            </span>
-            <div class="conversation" id="conversation"></div>
-        </div>
-        <div class="content">
-            <span>
-                <h5>Usage </h5>
-            </span>
-            <div class="">
-                <p id="token"></p>
-            </div>
-        </div>
-    </div>
 
     <script src="/js/main.js" type="module"></script>
     <script src="/js/gpttest.js" type="module"></script>

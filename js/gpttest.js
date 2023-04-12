@@ -35,8 +35,7 @@ await get_gpt_api_key().then(api => {
 });
 
 setupHeaderButtons();
-setCollapsible();
-setUpGenerateButton();
+// setUpGenerateButton();
 //////////////////////
 
 var system_prompt = ``;
