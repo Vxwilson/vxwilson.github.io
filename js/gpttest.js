@@ -30,9 +30,9 @@ let conversation = [
 let currentSummary = ``;
 
 /////////init//////////
-await get_gpt_api_key().then(api => {
-    gpt_api_key = api;
-});
+// await get_gpt_api_key().then(api => {
+//     gpt_api_key = api;
+// });
 
 setupHeaderButtons();
 setUpGenerateButton();
