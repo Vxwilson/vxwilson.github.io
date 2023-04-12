@@ -29,11 +29,11 @@ window.get_gpt_api_key = async function(){
     return api;
 }
 
-var gpt_api_key = '';
+// var gpt_api_key = '';
 
-await get_gpt_api_key().then(api =>{
-    gpt_api_key = api;
-});
+// await get_gpt_api_key().then(api =>{
+//     gpt_api_key = api;
+// });
 
 window.getLuck = async function(){
     var input = "Write two sentences randomly about my luck of the day, \
