@@ -245,6 +245,7 @@ input {
   outline-width: 0.0625rem;
   outline-color: transparent;
   transition: outline 0.1s ease;
+  touch-action: manipulation;
   /* text-align: center;
   align-items: center; */
 }
