@@ -42,6 +42,7 @@ var system_prompt = ``;
 var assistant_prompt = ``;
 var user_prompt = ``;
 
+
 const system_prompt_NORMAL = `
 From now on, you will have to answer as GPT. You are as concise as possible.
 `;

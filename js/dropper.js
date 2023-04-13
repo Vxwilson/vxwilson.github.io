@@ -35,7 +35,7 @@ window.checkCode = async function () { //check then init, called when load
     const buckets = await getDoc(doc(db, "cred_admin", "buckets"));
     const bucket_name = code;
     if (buckets.data()[bucket_name] === true) {
-        console.log("bucket exists.");
+        // console.log("bucket exists.");
     } else {
         code = 'gallery';
     }
@@ -270,6 +270,7 @@ function initData() {
 function updateUI() {
     console.log(code);
     document.getElementById("bucket_title").innerText = code;
+    document.title = "dropper - " + code;
 }
 
 function _htmlToElement(html) {
