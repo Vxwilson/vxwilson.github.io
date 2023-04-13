@@ -28,6 +28,11 @@ onAuthStateChanged(auth, (user) => {
     console.log('username', user.uids);
 
     // this is a window function in another js file (callback)
+    try{
+        updateAuthState(user);
+    } catch (e) {
+        console.log(e);
+    }
     // updateAuthState(user);
     // ...
   } else {
@@ -75,7 +80,7 @@ window.getCurrentUser = async function(){
 
 window.getLuck = async function(){
     var input = "Write two sentences randomly about my luck of the day, \
-    make it creative and fun, with creepy elements. Then on a new line rate the luck over 10.";
+    make it creative and fun. Then on a new line rate the luck over 10.";
 
     document.getElementById("luck").innerHTML = "generating... ";
 
@@ -112,9 +117,8 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
                   'content': user_prompt
               }
           ],
-          temperature: 1,
-          top_p: 0.5,
-          frequency_penalty: 0.7,
+          temperature: 1.5,
+          top_p: 0.2,
           max_tokens: max
         })
       })
