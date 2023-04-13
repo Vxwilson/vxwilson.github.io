@@ -46,3 +46,8 @@ window.createUser = async function() {
         // ..
     });
 }
+
+window.login = async function() {
+
+
+    
