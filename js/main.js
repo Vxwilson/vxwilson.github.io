@@ -28,7 +28,7 @@ onAuthStateChanged(auth, (user) => {
     console.log('username', user.uids);
 
     // this is a window function in another js file (callback)
-    updateAuthState(user);
+    // updateAuthState(user);
     // ...
   } else {
     // User is signed out
@@ -36,7 +36,8 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-var apiKey = await get_gpt_api_key();
+var apiKey = '';
+
 
 window.get_gpt_api_key = async function(){
     const docRef = doc(db, "cred_admin", "passcode");
@@ -49,6 +50,10 @@ window.get_gpt_api_key = async function(){
     }
     return api;
 }
+
+await get_gpt_api_key().then(api => {
+    apiKey = api;
+});
 
 window.getCurrentUser = async function(){
     // if (user) {
@@ -70,7 +75,7 @@ window.getCurrentUser = async function(){
 
 window.getLuck = async function(){
     var input = "Write two sentences randomly about my luck of the day, \
-    make it creative and fun, with absurdism elements. Then on a new line rate the luck over 10.";
+    make it creative and fun, with creepy elements. Then on a new line rate the luck over 10.";
 
     document.getElementById("luck").innerHTML = "generating... ";
 
