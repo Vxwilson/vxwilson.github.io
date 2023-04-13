@@ -1,7 +1,7 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
 import { getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
-
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 
 
 const firebaseConfig = {
@@ -17,6 +17,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const auth = getAuth();
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in, see docs for a list of available properties
+    // https://firebase.google.com/docs/reference/js/firebase.User
+    const uid = user.uid;
+    console.log('uid changed', uid);
+    console.log('username', user.uids);
+
+    // this is a window function in another js file (callback)
+    updateAuthState(user);
+    // ...
+  } else {
+    // User is signed out
+    // ...
+  }
+});
+
+var apiKey = await get_gpt_api_key();
+
 window.get_gpt_api_key = async function(){
     const docRef = doc(db, "cred_admin", "passcode");
     var api = '';
@@ -28,6 +49,18 @@ window.get_gpt_api_key = async function(){
     }
     return api;
 }
+
+window.getCurrentUser = async function(){
+    // if (user) {
+    //     // User is signed in, see docs for a list of available properties
+    //     // https://firebase.google.com/docs/reference/js/firebase.User
+    //     // ...
+    //   } else {
+    //     // No user is signed in.
+    //   }
+    return auth.currentUser;
+}
+
 
 // var gpt_api_key = '';
 
@@ -56,7 +89,7 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${gpt_api_key}`
+          'Authorization': `Bearer ${apiKey}`
         },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
