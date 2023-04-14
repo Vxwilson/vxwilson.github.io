@@ -3,7 +3,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebas
 import { getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 
-
 const firebaseConfig = {
     apiKey: "AIzaSyB7_zWxwHufzF2Ztc3-h7XhEpTBW2LslKA",
     authDomain: "test-7bbdd.firebaseapp.com",
@@ -125,6 +124,8 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
 
     return await response.json();
 }
+
+
 
 
 

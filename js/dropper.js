@@ -21,9 +21,25 @@ const db = getFirestore(app);
 
 /////init
 setCollapsible();
-
-//////////////GET CODE to fetch bucket
+// var user = null;
 var code = '';
+
+
+window.addEventListener('load', (event) => {
+    getCode();
+    checkCode();
+});
+//////////////GET CODE to fetch bucket
+
+window.updateAuthState = function(user) {
+    if (user) {
+        console.log('user logged in', user.uid);
+        // code = user.displayName;
+    } else {
+        console.log('user logged out');
+    }
+}
+
 
 window.getCode = function () {
     const queryString = window.location.search;
@@ -50,7 +66,6 @@ window.checkCodeOnly = async function () {  // check only
         console.log("bucket exists.");
         return true;
     } else {
-        console.log('gall');
         // code = 'gallery';
         return false;
     }
@@ -73,6 +88,7 @@ window.try_go_bucket = function (input = '') {
     if (input === '') {
         input = document.getElementById("input_code").value
     }
+    // not needed as input is required todo remove
     if (input === '') {
         console.log('no bucket exists');
         hide_goto();
@@ -82,7 +98,9 @@ window.try_go_bucket = function (input = '') {
     var temp = code;
     code = input;
     if (checkCodeOnly()) {
-        window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + code);
+        // window.location.href = '//' + window.location.host + window.location.pathname + ('?code=' + code);
+        initData();
+        hide_goto();
     } else {
         code = temp;
     }
@@ -240,9 +258,14 @@ function initDataSingle(itemRef) {
         });
 }
 
-function initData() {
+function initData(private_bucket = false) {
     updateUI();
-    const listRef = ref(storage, 'dropper/files/' + code + '/');
+
+    if(private_bucket){
+    const listRef = ref(storage, `dropper/private/${use}` + code + '/');
+    }else{
+        const listRef = ref(storage, 'dropper/files/' + code + '/');
+    }
     // Find all the prefixes and items.
     listAll(listRef)
         .then((res) => {
@@ -268,9 +291,13 @@ function initData() {
 }
 
 function updateUI() {
-    console.log(code);
     document.getElementById("bucket_title").innerText = code;
     document.title = "dropper - " + code;
+
+    //empty page content
+    document.getElementById("textdiv").innerHTML = '';
+    document.getElementById("pictures").innerHTML = '';
+    document.getElementById("files").innerHTML = '';
 }
 
 function _htmlToElement(html) {
@@ -574,10 +601,10 @@ function deleteFileAtPathAndRemove(path, element) {
         // refresh();
     })
 }
-document.addEventListener("DOMContentLoaded", function (event) {
-    var scrollpos = localStorage.getItem('scrollpos');
-    if (scrollpos) window.scrollTo(0, scrollpos);
-});
+// document.addEventListener("DOMContentLoaded", function (event) {
+//     var scrollpos = localStorage.getItem('scrollpos');
+//     if (scrollpos) window.scrollTo(0, scrollpos);
+// });
 
 //goto on enter key press
 // Get the input field
@@ -609,10 +636,6 @@ window.sharelink = async function () {
 }
 
 
-window.addEventListener('load', (event) => {
-    getCode();
-    checkCode();
-});
 
 function setCollapsible() {
     var coll = document.getElementsByClassName("collapsible");

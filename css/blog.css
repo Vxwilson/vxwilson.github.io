@@ -1,0 +1,129 @@
+
+.button-11{
+    
+    /* color: rgb(115, 138, 114);
+    /* color: rgb(138, 133, 114); 
+    margin-top: 0.5em;
+    background-color: #312d3592; */
+    width: 20vw;
+    margin: auto;
+    margin-bottom: 1em;
+}
+
+.field{
+    border: 2px solid rgb(115, 138, 114);
+    font-size: 0.8em;
+    white-space: normal;
+    word-wrap: break-word;
+    width: 20em;
+    height: 5em;
+    color:rgb(162, 162, 170);
+  }
+
+.collapsible {
+    margin: auto;
+    margin-top: 2em;
+    margin-bottom: 2em;
+    width: 50%;
+    background-color: #312d3578;
+  }
+  
+  /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
+  .active, .collapsible:hover {
+    background-color: #323038;
+  }
+
+  
+  .collapsiblecontent {
+    padding: 0px;
+    overflow: hidden;
+
+    max-height: 0;
+    transition: max-height 0.25s ease;
+  }
+
+  .collapsible:after {
+    content: '\002B';
+    background-color: #312d3578;
+    font-weight: bold;
+  }
+  
+  .active:after {
+    content: "\2212";
+  }
+
+  .displayer{
+    border-radius: 10px;
+    background: #2828290c;
+    margin-top: 1rem;
+    padding: 0.7rem;
+    margin-bottom: 1rem;
+    column-count: 1;
+    width: 90vw;
+  }
+
+  .content{
+    background: #564a5b2e;
+    width: 65vw;
+    margin: auto;
+    margin-bottom: 1em;
+
+    /* margin-left: 10em;
+    margin-right: 10em; */
+    padding: 0.5em 2.5em;
+    border-radius: 10px;
+  }
+
+  /* blog selection page */
+  .blogSelection{
+    width: 65vw;
+    margin: auto;
+    margin-bottom: 2em;
+
+    /* margin-left: 10em;
+    margin-right: 10em; */
+    padding: 0.5em 2.5em;
+    border-radius: 10px;
+  }
+
+  p{
+    white-space: pre-wrap;
+    font-family: 'Roboto';
+    color: rgb(149, 149, 155);
+    font-size: 1.2em;
+  }
+
+
+
+  /* ------------------- */
+  /* blog displayer */
+
+  .blogContainer{
+    display:none;
+  }
+
+  #blogContent figure{
+    width: 50%;
+    display: block;
+    margin: auto;
+  }
+
+  #blogContent figure img {
+    width: 100%;
+    display: block;
+    margin: auto;
+    /* Your styles here */
+  }  
+  
+  /* #blogContent img:not(figure img) {
+    width: 50%;
+    display: block;
+    margin: auto;
+  } */
+
+  #blogContent img{
+    width: 50%;
+    display: block;
+    margin: auto;
+    /* Your styles here */
+  }

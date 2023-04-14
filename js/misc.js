@@ -25,4 +25,9 @@ window.cloneFireStoreCollection = async function(fromCol, fromDoc, toCol, newDoc
     await setDoc(doc(db, toCol, newDoc),data);
 }
 
-
+window._htmlToElement= function(html){
+    var template = document.createElement('template');
+    html = html.trim(); // Never return a text node of whitespace as the result
+    template.innerHTML = html;
+    return template.content.firstChild;
+}

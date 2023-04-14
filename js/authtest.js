@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"
-import { getAuth, createUserWithEmailAndPassword, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"
+import { getAuth, createUserWithEmailAndPassword, sendEmailVerification, connectAuthEmulator, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.0.2/firebase-auth.js"
 
 // TODO: Replace the following with your app's Firebase project configuration
 // See: https://firebase.google.com/docs/web/learn-more#config-object
@@ -26,28 +26,92 @@ const auth = getAuth(app);
 // const email = 'vxwilson@hotmail.com';
 // const password = "12345678Abcd_";
 
-window.createUser = async function() {
+
+///init/////
+setCollapsible();
+////////
+
+window.createUser = async function () {
 
     let email = document.getElementById("email").value;
     let password = document.getElementById("password").value;
 
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-        // Signed in 
-        const user = userCredential.user;
-        console.log(user);
-        // ...
-    })
-    .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
+    await createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed in 
+            const user = userCredential.user;
+            console.log(user);
+            // ...
+            if (user != null){
+                sendEmailVerification(user);
+            }
 
-        console.log(errorCode, errorMessage)
-        // ..
-    });
+            //produce a folder for user
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+
+            console.log(errorCode, errorMessage)
+            // ..
+        });
 }
 
-window.login = async function() {
+window.login = async function () {
+    let email = document.getElementById("emaillogin").value;
+    let password = document.getElementById("passwordlogin").value;
 
 
-    
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            // Signed in 
+            const user = userCredential.user;
+            console.log('sign in: ', user);
+            // ...
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+
+            console.log(errorCode, errorMessage);
+        });
+}
+
+
+function setCollapsible() {
+    var coll = document.getElementsByClassName("collapsible");
+    var i;
+
+    for (i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function () {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+            } else {
+                content.style.maxHeight = (content.scrollHeight) + "px";
+            }
+        });
+    }
+}
+
+
+// todo delete bucket if user is deleted
+window.create_private_bucket = async function (bucket_name) {
+    console.log('creating ' + bucket_name);
+
+    var buckets = await getDoc(doc(db, "cred_admin", "private_buckets"));
+
+    // check if bucket exists
+    if (buckets.data()[bucket_name] === true) {
+        console.log("bucket already exists.");
+        window.alert("bucket exists.");
+        return;
+    }
+
+    buckets = doc(db, "cred_admin", "private_buckets");
+
+    setDoc(buckets, {
+        [bucket_name]: true
+    }, { merge: true });
+}
