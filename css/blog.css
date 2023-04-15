@@ -83,6 +83,8 @@
     width: 65vw;
     margin: auto;
     margin-bottom: 2em;
+    background-color: #564a5b2e;
+
 
     /* margin-left: 10em;
     margin-right: 10em; */
@@ -163,6 +165,23 @@
   }
 
   @media screen and (max-width: 500px) {
+
+    .blogSelection{
+      width: 70vw;
+      /* height: 10vh; */
+      background-color: #564a5b2e;
+      margin: auto;
+      margin-bottom: 1em;
+  
+      /* margin-left: 10em;
+      margin-right: 10em; */
+      padding: 1em 2em;
+      border-radius: 10px;
+    }
+
+    .blogSelection *{
+      margin:auto;
+    }
 
     .content{
       width: 80vw;

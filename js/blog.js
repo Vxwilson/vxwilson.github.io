@@ -36,7 +36,7 @@ getDocs(collectionRef)
 function makeButtonForBlog(blogData){
     var blogButton = _htmlToElement(
         `
-        <div class="content blogSelection">
+        <div class="blogSelection">
         <span>
             <h5>${blogData['title']}</h5>
         </span>
