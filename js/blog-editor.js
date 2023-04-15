@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getFirestore, doc, setDoc, getDocs, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -39,11 +39,20 @@ InlineEditor
 window.updatePreview = function () {
     const data = editor.getData();
     document.getElementById('blogContent').innerHTML = data;
+    //update blog title
+    let title = document.getElementById('title').value;
+    document.getElementById('blogTitle').innerHTML = title == null || title == "" ? "Untitled" : title;
+    document.getElementById('blogDate').innerHTML = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    updateCodeStyle();
+}
+
+window.onload = function (){
+    updatePreview();
 }
 
 window.uploadBlog = async function () {
     const data = editor.getData();
-    var title = document.getElementById('blogTitle').value;
+    var title = document.getElementById('title').value;
 
     //check if title is empty
     console.log(title);
@@ -55,6 +64,14 @@ window.uploadBlog = async function () {
     title = title.replace(/[^a-zA-Z0-9]/g, '');
     title = title.toLowerCase();
     
+    //check if doc exists
+    const docRef = doc(db, "blog", title);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+        alert("Title already exists. Please enter a different title.");
+        return;
+    }
+
     // set doc to firestore
     await setDoc(doc(db, "blog", title), {
         title: title,
@@ -63,4 +80,8 @@ window.uploadBlog = async function () {
         date: new Date()
     });
     
+}
+
+function updateCodeStyle(){
+    hljs.highlightAll();
 }

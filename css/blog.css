@@ -72,12 +72,12 @@ body{
     padding: 0.7rem;
     margin-bottom: 1rem;
     column-count: 1;
-    width: 90vw;
+    width: 90%;
   }
 
   .content{
     /* background: #564a5b2e; */
-    width: 70vw;
+    width: 70%;
     margin: auto;
     margin-bottom: 1em;
     /* margin-left: 10em;
@@ -102,7 +102,7 @@ body{
   }
 
   .blogSelection{
-    width: 65vw;
+    width: 65%;
     margin: auto;
     margin-bottom: 2em;
     background-color: #564a5b19;
@@ -128,7 +128,7 @@ body{
     /* background-color: #564a5b2e; */
     border-radius: 10px;
     text-align: left;
-    width: 80vw;
+    width: 80%;
   }
 
   .blogHeader *:not(h2){
@@ -165,17 +165,15 @@ body{
 
   #blogContent{
     /* border: solid 1px rgba(108, 108, 114, 0.503); */
-    width: 85vw;
-
+    width: 85%;
   }
 
-  #blogContent *:not(code){
+  /* all elements in div that is not in code */
+  #blogContent > *:not(code > *) {
     white-space: pre-wrap;
-    /* font-family: 'Inter', 'Roboto'; */
     font-family: 'system-ui','-apple-system','BlinkMacSystemFont','Segoe UI','Roboto','Helvetica','Arial',sans-serif;
     color: rgb(213, 212, 209);
     font-weight: 300;
-
   }
 
   #blogContent ol{
@@ -198,7 +196,7 @@ body{
 
 
   .blogContainer{
-    display:none;
+    /* display:none; */
     margin-bottom: 1em;
     padding: 2em 3em;
   }
@@ -273,7 +271,7 @@ body{
 
     #blogContent{
       /* border: solid 1px rgba(108, 108, 114, 0.503); */
-      width: 90vw;
+      width: 90%;
   
     }
   

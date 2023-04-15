@@ -31,19 +31,25 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    
     <style>
-        /* header {
-            display: flex;
-            align-items: center;
-        } */
+        .blogContainer {
+            display: block;
+        }
+
+        .blogHeader {
+            display: inline-block;
+        }
     </style>
     <script src="/js/ckeditor.js"></script>
 </head>
 
 <body>
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge" id="title">Blog Editor</h1>
+        <h1 class="w3-xlarge">Blog Editor</h1>
     </header>
 
     <div class="header-button-container">
@@ -51,11 +57,11 @@
         <a href="/" class="fa fa-home fa-2x"></a>
     </div>
 
-    <div class="displayer">
+    <!-- <div class="displayer"> -->
         <!-- show date -->
         <div class="content">
             <h3>Title</h3>
-            <input type="text" id="blogTitle" placeholder="select a title">
+            <input type="text" id="title" placeholder="select a title">
         </div>
         <div class="content">
             <h3>Editor</h3>
@@ -64,17 +70,23 @@
             </div>
         </div>
 
-        <!-- div to contain two side by side buttons -->
         <div class="button-container" style=" display: flex;
         align-items: center;">
             <button class="button-11" onclick="updatePreview()">Update preview</button>
-            <!-- <button class="button-11" onclick="uploadBlog()">Save</button> -->
         </div>
 
         <div class="content">
             <h3>Preview</h3>
-            <div id="blogContent">
-                <p>This is some sample content.
+            <div class="blogHeader">
+                <h2 id="blogTitle">Blog Title</h2>
+                <span class="fa fa-calendar"></span>
+                <h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
+                <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
+                <hr>
+            </div>
+            <div class="displayer blogContainer" id="blogContent">
+                <p>
+                    This is some sample content.
                 </p>
             </div>
         </div>
@@ -84,7 +96,7 @@
             <!-- <button class="button-11" onclick="updatePreview()">Update preview</button> -->
             <button class="button-11" onclick="uploadBlog()">Publish!</button>
         </div>
-    </div>
+    <!-- </div> -->
 
 
     <script src="/js/main.js" type="module"></script>
