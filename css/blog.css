@@ -67,12 +67,16 @@
     width: 65vw;
     margin: auto;
     margin-bottom: 1em;
-
     /* margin-left: 10em;
     margin-right: 10em; */
     padding: 3em 3em;
     border-radius: 10px;
   }
+
+  /* phone width */
+  
+
+
 
   /* blog selection page */
   .blogSelection{
@@ -156,4 +160,25 @@
     display: block;
     margin: auto;
     /* Your styles here */
+  }
+
+  @media screen and (max-width: 500px) {
+
+    .content{
+      width: 80vw;
+      margin: auto;
+      margin-bottom: 1em;
+      /* margin-left: 10em;
+      margin-right: 10em; */
+      padding: 3em 3em;
+      border-radius: 10px;
+    }
+  
+    #blogContent *:not(code){
+      font-size: 0.95em;
+    }
+
+    #blogContent code{
+      font-size: 0.95em;
+    }
   }
