@@ -201,6 +201,13 @@
       font-size: 0.95em;
     }
 
+    #blogContent figcaption{
+      text-align: center;
+      font-size: 0.82em;
+      color: rgb(184, 184, 191);
+    }
+  
+
     #blogContent figure{
       width: 100%;
       display: block;
