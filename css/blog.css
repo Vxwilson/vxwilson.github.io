@@ -70,7 +70,7 @@
 
     /* margin-left: 10em;
     margin-right: 10em; */
-    padding: 0.5em 2.5em;
+    padding: 3em 3em;
     border-radius: 10px;
   }
 
@@ -86,13 +86,23 @@
     border-radius: 10px;
   }
 
-  p{
+  /* p{
     white-space: pre-wrap;
     font-family: 'Roboto';
     color: rgb(149, 149, 155);
     font-size: 1.2em;
+  } */
+
+  #blogContent *:not(code){
+    white-space: pre-wrap;
+    font-family: 'Roboto';
+    color: rgb(184, 184, 191);
+    font-size: 1em;
   }
 
+  #blogContent ol{
+    margin: 1em 0;
+  }
 
 
   /* ------------------- */
@@ -100,12 +110,23 @@
 
   .blogContainer{
     display:none;
+    margin-bottom: 1em;
+  }
+
+  .blogContainer a{
+    text-decoration: none;
   }
 
   #blogContent figure{
-    width: 50%;
+    width: 60%;
     display: block;
     margin: auto;
+  }
+
+  #blogContent figcaption{
+    text-align: center;
+    font-size: 0.85em;
+    color: rgb(184, 184, 191);
   }
 
   #blogContent figure img {
@@ -121,8 +142,17 @@
     margin: auto;
   } */
 
+  #blogContent hr{
+    width: 95%;
+    display: block;
+    margin: auto;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border: 1px solid rgba(184, 184, 191, 0.3);
+  }
+
   #blogContent img{
-    width: 50%;
+    width: 60%;
     display: block;
     margin: auto;
     /* Your styles here */

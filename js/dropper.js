@@ -31,7 +31,7 @@ window.addEventListener('load', (event) => {
 });
 //////////////GET CODE to fetch bucket
 
-window.updateAuthState = function(user) {
+window.updateAuthState = function (user) {
     if (user) {
         console.log('user logged in', user.uid);
         // code = user.displayName;
@@ -261,10 +261,11 @@ function initDataSingle(itemRef) {
 function initData(private_bucket = false) {
     updateUI();
 
-    if(private_bucket){
-    const listRef = ref(storage, `dropper/private/${use}` + code + '/');
-    }else{
-        const listRef = ref(storage, 'dropper/files/' + code + '/');
+    let listRef;
+    if (private_bucket) {
+        listRef = ref(storage, `dropper/private/${use}` + code + '/');
+    } else {
+        listRef = ref(storage, 'dropper/files/' + code + '/');
     }
     // Find all the prefixes and items.
     listAll(listRef)
@@ -338,7 +339,7 @@ function makeDownloadButton(item, parentEle, url) {
 }
 
 // for clipboard
-function makeCopyButton(text, parentEle){
+function makeCopyButton(text, parentEle) {
     var copy = _htmlToElement('<span class="close fa fa-copy"></span>');
 
     copy.addEventListener("click", function () {
@@ -364,16 +365,16 @@ function _addText(item) {
                     // stores delete button etc
                     var buttonContainer = _htmlToElement(
                         '<div class="textbuttoncontainer">\
-                    </div>')  
-                    
+                    </div>')
+
 
                     // cheat: uncomment below to temporarily delete somthing
                     // makeCloseButton(item, buttonContainer, fig);
-                    
+
                     if (resultDict['pin'] == false) {
                         //can be deleted
                         makeCloseButton(item, buttonContainer, fig);
-                    }else{
+                    } else {
                         //add pin icon 
                         var pin = '<span class="fa fa-thumb-tack"></span> \n'
                         resultDict["output"] = pin + resultDict["output"];
@@ -389,7 +390,7 @@ function _addText(item) {
                     })
                     fig.appendChild(textbutton);
                     fig.appendChild(buttonContainer);
-                    
+
 
 
 
@@ -523,7 +524,7 @@ function _addFile(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement(
-                '<div class="block">' + 
+                '<div class="block">' +
                 '<figure style="display:block">'
                 + '<img src=/photos/barcode.png class="photo"></img>'
                 + '<figcaption> ' + item.name + ' </figcaption>'
@@ -535,9 +536,9 @@ function _addFile(item) {
             var buttonContainer = _htmlToElement(
                 '<div class="textbuttoncontainer">\
                 </div>')
-            
+
             document.getElementById("files").appendChild(fig);
-            
+
             fig.appendChild(buttonContainer);
             // fig.appendChild(buttonContainer);
 

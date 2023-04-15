@@ -22,7 +22,11 @@ getDocs(collectionRef)
   .then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
       console.log(doc.id, " => ", doc.data());
-      makeButtonForBlog(doc.data());
+      //check if blog 'show' is true
+      if(doc.data()['show'] == true){
+        makeButtonForBlog(doc.data());
+      }
+      // makeButtonForBlog(doc.data());
     });
   })
   .catch((error) => {
@@ -62,9 +66,22 @@ function loadBlog(blogData){
 
     //change heading title/date to blog title
     document.getElementById("title").innerHTML = blogData['title'];
-    // document.getElementById("date").innerHTML = (blogData['date']['seconds']);
-    console.log(blogData['date']);
     document.getElementById("date").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('blogContent').innerHTML = blogData['content'];
 
+}
+
+window.hideBlog = function(){
+    //hide all selectors ui and show blog ui
+    document.getElementById("blogSelectionContainer").style.display = "block";
+    //unhide all elements with class = blogContainer
+    var blogContainers = document.getElementsByClassName("blogContainer");
+    for (var i = 0; i < blogContainers.length; i++) {
+        blogContainers[i].style.display = "none";
+    }
+
+    //change heading title back to default
+    document.getElementById("title").innerHTML = "VEIS";
+    document.getElementById("date").innerHTML = "a collection of some <i>very exciting items</i>";
+    
 }
