@@ -200,4 +200,17 @@
     #blogContent code{
       font-size: 0.95em;
     }
+
+    #blogContent figure{
+      width: 100%;
+      display: block;
+      margin: auto;
+    }
+
+    #blogContent img{
+      width: 100%;
+      display: block;
+      margin: auto;
+      /* Your styles here */
+    }
   }
