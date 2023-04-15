@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -21,13 +21,17 @@ const db = getFirestore(app);
 let editor;
 
 InlineEditor
-    .create( document.querySelector( '#editor' ) )
-    .then( newEditor => {
+    .create(document.querySelector('#editor'))
+    .then(newEditor => {
         editor = newEditor;
-    } )
-    .catch( error => {
-        console.error( error );
-    } );
+        editor.model.document.on('change:data', () => {
+            // const data = editor.getData();
+            updatePreview();
+        });
+    })
+    .catch(error => {
+        console.error(error);
+});
 
 // // Assuming there is a <button id="submit">Submit</button> in your application.
 // document.querySelector( '#submit' ).addEventListener( 'click', () => {
@@ -46,7 +50,7 @@ window.updatePreview = function () {
     updateCodeStyle();
 }
 
-window.onload = function (){
+window.onload = function () {
     updatePreview();
 }
 
@@ -63,7 +67,7 @@ window.uploadBlog = async function () {
     //process title to remove spaces and special characters
     title = title.replace(/[^a-zA-Z0-9]/g, '');
     title = title.toLowerCase();
-    
+
     //check if doc exists
     const docRef = doc(db, "blog", title);
     const docSnap = await getDoc(docRef);
@@ -79,9 +83,9 @@ window.uploadBlog = async function () {
         show: true,
         date: new Date()
     });
-    
+
 }
 
-function updateCodeStyle(){
+function updateCodeStyle() {
     hljs.highlightAll();
 }

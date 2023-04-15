@@ -41,8 +41,23 @@
         }
 
         .blogHeader {
+            margin-top: 1em;
             display: inline-block;
         }
+
+        .content{
+            width:80%;
+            border: solid 1px rgba(115, 112, 112, 0.5);
+        }
+
+        @media screen and (max-width: 500px) {
+            .content{
+                width:85%;
+                margin-bottom: 0.5em;
+                margin-top: 0.5em;
+            }
+        }
+            
     </style>
     <script src="/js/ckeditor.js"></script>
 </head>
@@ -61,7 +76,7 @@
         <!-- show date -->
         <div class="content">
             <h3>Title</h3>
-            <input type="text" id="title" placeholder="select a title">
+            <input type="text" id="title" onchange="updatePreview()" placeholder="select a title">
         </div>
         <div class="content">
             <h3>Editor</h3>
@@ -69,11 +84,11 @@
                 <p>This is some sample content.</p>
             </div>
         </div>
-
+<!-- 
         <div class="button-container" style=" display: flex;
         align-items: center;">
             <button class="button-11" onclick="updatePreview()">Update preview</button>
-        </div>
+        </div> -->
 
         <div class="content">
             <h3>Preview</h3>
