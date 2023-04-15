@@ -106,7 +106,7 @@ p, span, button{
 
 *:empty
 {
-    display:none;
+  /* display:none; */
 }
 
 .not-selectable {

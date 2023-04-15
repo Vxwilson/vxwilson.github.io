@@ -116,8 +116,8 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
                   'content': user_prompt
               }
           ],
-          temperature: 2,
-          top_p: 0.2,
+          temperature: 1,
+          top_p: 0.3,
           max_tokens: max
         })
       })
