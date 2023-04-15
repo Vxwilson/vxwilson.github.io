@@ -2,10 +2,36 @@ body{
     background-color: #f7f3eb;
 }
 
+.header-button-container {
+  position: absolute;
+  top: 25px;
+  left: 25px;
+  font-size: 0.85em;
+  color: #666565c3;
+  text-decoration: none;
+}
+
+.header-button-container a{
+  margin-right: 15px;
+  text-decoration: none;
+
+}
+
+@media screen and (max-width: 500px) {
+  .header-button-container {
+    
+    font-size: 0.75em;
+  
+  }
+  
+  .header-button-container a{
+  }
+}
+
 p, span, button{
-  white-space: pre-wrap;
+  /* white-space: pre-wrap;
   font-family: 'Roboto';
-  color: rgb(17, 17, 231);
+  color: rgb(17, 17, 231); */
   /* color: rgb(162, 162, 170); */
 }
 

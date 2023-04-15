@@ -233,7 +233,7 @@ h1 {
 }
 
 h2 {
-    font-size: 30px
+    font-size: 30px;
 }
 
 h3 {
@@ -1336,7 +1336,7 @@ a {
 }
 
 .w3-xlarge {
-    font-size: 24px !important
+    font-size: 24px !important;
 }
 
 .w3-xxlarge {

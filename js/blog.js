@@ -57,6 +57,10 @@ function loadBlog(blogData){
     //hide all selectors ui and show blog ui
     document.getElementById("blogSelectionContainer").style.display = "none";
     //unhide all elements with class = blogContainer
+    var blogContainers = document.getElementsByClassName("blogHeader");
+    for (var i = 0; i < blogContainers.length; i++) {
+        blogContainers[i].style.display = "block";
+    }
     var blogContainers = document.getElementsByClassName("blogContainer");
     for (var i = 0; i < blogContainers.length; i++) {
         blogContainers[i].style.display = "block";
@@ -65,8 +69,8 @@ function loadBlog(blogData){
     // document.getElementById("blogContent").style.display = "block";
 
     //change heading title/date to blog title
-    document.getElementById("title").innerHTML = blogData['title'];
-    document.getElementById("date").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    document.getElementById("blogTitle").innerHTML = blogData['title'];
+    document.getElementById("blogDate").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('blogContent').innerHTML = blogData['content'];
 
 }
@@ -75,13 +79,17 @@ window.hideBlog = function(){
     //hide all selectors ui and show blog ui
     document.getElementById("blogSelectionContainer").style.display = "block";
     //unhide all elements with class = blogContainer
+    var blogContainers = document.getElementsByClassName("blogHeader");
+    for (var i = 0; i < blogContainers.length; i++) {
+        blogContainers[i].style.display = "none";
+    }
     var blogContainers = document.getElementsByClassName("blogContainer");
     for (var i = 0; i < blogContainers.length; i++) {
         blogContainers[i].style.display = "none";
     }
 
     //change heading title back to default
-    document.getElementById("title").innerHTML = "VEIS";
-    document.getElementById("date").innerHTML = "a collection of some <i>very exciting items</i>";
+    // document.getElementById("title").innerHTML = "VEIS";
+    // document.getElementById("date").innerHTML = "a collection of some <i>very exciting items</i>";
     
 }

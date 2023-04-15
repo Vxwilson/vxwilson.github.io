@@ -29,6 +29,7 @@
 
     <!-- <link rel="stylesheet" href="/css/root.css"> -->
     <link rel="stylesheet" href="/css/w3.css">
+    <link rel="stylesheet" href="/css/root.css">
     <link rel="stylesheet" href="/css/gallery.css">
     <link rel="stylesheet" href="/css/dropper.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
@@ -42,16 +43,21 @@
         <h1 class="w3-xlarge" id="bucket_title"></h1> 
         <div class="w3-padding-16">
             <div class="w3-bar w3-border">
-                <a href="/" class="w3-bar-item w3-button fa fa-home fa-lg w3-hover-opacity"></a>
+                <!-- <a href="/" class="w3-bar-item w3-button fa fa-home fa-lg w3-hover-opacity"></a> -->
                 <a href="#" onclick="show_create()" class="w3-bar-item w3-button fa fa-file w3-hover-opacity"></a>
                 <!-- <a href="#" onclick="show_create()" class="w3-bar-item w3-button">New</a> -->
                 <a href="#" onclick="show_goto()" class="w3-bar-item w3-button fa fa-folder w3-hover-opacity"></a>
-                <a onclick="refresh()" class="w3-bar-item w3-button fa fa-refresh w3-hover-opacity"></a>
                 <a onclick="sharelink()" class="w3-bar-item w3-button fa fa-link w3-hover-opacity"></a>
                 <!-- <a href="#" onclick="show_goto()" class="w3-bar-item w3-button">Goto</a> -->
             </div>
         </div>
     </header>
+
+    <div class="header-button-container">
+        <a href="/" class="fa fa-home fa-2x"></a>
+        <a onclick="refresh()" class="fa-2x fa fa-refresh "></a>
+
+    </div>
 
     <button type="button" class="button-11 collapsible"></button>
     <div class="droparea collapsiblecontent">

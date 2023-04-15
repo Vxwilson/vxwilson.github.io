@@ -23,6 +23,7 @@
 
     <!-- <link rel="stylesheet" href="/css/root.css"> -->
     <link rel="stylesheet" href="/css/w3.css">
+    <link rel="stylesheet" href="/css/root.css">
     <link rel="stylesheet" href="/css/dropper.css">
     <link rel="stylesheet" href="/css/yarn.css">
     <link rel="stylesheet" href="/css/blog.css">
@@ -43,8 +44,13 @@
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
         <h1 class="w3-xlarge" id="title">VEIS</h1>
         <h5 id="date" style="font-size: 0.95em;">a collection of some <i>very exciting items</i></h5>
+        <!-- <a href="/" class="fa fa-home"></a> -->
     </header>
 
+    <div class="header-button-container">
+        <a href="#" onclick="hideBlog()" class="back-button fa fa-arrow-left fa-2x"></a>
+        <a href="/" class="fa fa-home fa-2x"></a>
+    </div>
     <!-- blog selector -->
     <div class="selector displayer" id="blogSelectionContainer">
         <!-- <div class="content blogSelection">
@@ -58,8 +64,14 @@
     </div>
 
     <!-- blog display -->
-    <div class="blogContainer">
-        <a href="#" onclick="hideBlog()" class="fa fa-home"></a>
+    <div class="blogHeader">
+        <!-- <a href="#" onclick="hideBlog()" class="back-button fa fa-arrow-left fa-2x"></a> -->
+        <h2 id="blogTitle">Blog Title</h2>
+        <span class="fa fa-calendar"></span><h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
+        <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
+        <!-- <a href="#" onclick="hideBlog()" class="fa fa-home"></a> -->
+    <hr>
+
     </div>
     <div class="">
         <div class="displayer content blogContainer" id="blogContent">
