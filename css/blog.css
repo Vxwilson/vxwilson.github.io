@@ -85,17 +85,22 @@ body{
     border-radius: 10px;
   }
 
-  /* phone width */
-  
-
-
-
   /* blog selection page */
   .displayer h5{
     color: #c0b4a5;
     font-weight: bold;
 
   }
+
+  /* The following two are used for hiding  */
+  .nonBlog{
+    display: block;
+  }
+
+  .isBlog{
+    display: none;
+  }
+
   .blogSelection{
     width: 65vw;
     margin: auto;
@@ -110,9 +115,14 @@ body{
     border-radius: 10px;
   }
 
+  .blogSelection:hover{
+    cursor: pointer;
+  }
+
   .blogHeader{
     /* margin: auto; */
     display:none;
+    margin-top: 6em;
     margin-bottom: 1em;
     padding: 0em 0em;
     /* background-color: #564a5b2e; */

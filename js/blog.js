@@ -36,7 +36,7 @@ getDocs(collectionRef)
 function makeButtonForBlog(blogData){
     var blogButton = _htmlToElement(
         `
-        <div class="blogSelection">
+        <div class="blogSelection nonBlog">
         <span>
             <h5>${blogData['title']}</h5>
         </span>
@@ -55,15 +55,24 @@ function makeButtonForBlog(blogData){
 
 function loadBlog(blogData){
     //hide all selectors ui and show blog ui
-    document.getElementById("blogSelectionContainer").style.display = "none";
-    //unhide all elements with class = blogContainer
-    var blogContainers = document.getElementsByClassName("blogHeader");
+    // document.getElementById("blogSelectionContainer").style.display = "none";
+    // //unhide all elements with class = blogContainer
+    // var blogContainers = document.getElementsByClassName("blogHeader");
+    // for (var i = 0; i < blogContainers.length; i++) {
+    //     blogContainers[i].style.display = "block";
+    // }
+    // var blogContainers = document.getElementsByClassName("blogContainer");
+    // for (var i = 0; i < blogContainers.length; i++) {
+    //     blogContainers[i].style.display = "block";
+    // }
+
+    var blogContainers = document.getElementsByClassName("isBlog");
     for (var i = 0; i < blogContainers.length; i++) {
         blogContainers[i].style.display = "block";
     }
-    var blogContainers = document.getElementsByClassName("blogContainer");
+    var blogContainers = document.getElementsByClassName("nonBlog");
     for (var i = 0; i < blogContainers.length; i++) {
-        blogContainers[i].style.display = "block";
+        blogContainers[i].style.display = "none";
     }
 
     // document.getElementById("blogContent").style.display = "block";
@@ -77,15 +86,15 @@ function loadBlog(blogData){
 
 window.hideBlog = function(){
     //hide all selectors ui and show blog ui
-    document.getElementById("blogSelectionContainer").style.display = "block";
+    // document.getElementById("blogSelectionContainer").style.display = "block";
     //unhide all elements with class = blogContainer
-    var blogContainers = document.getElementsByClassName("blogHeader");
+    var blogContainers = document.getElementsByClassName("isBlog");
     for (var i = 0; i < blogContainers.length; i++) {
         blogContainers[i].style.display = "none";
     }
-    var blogContainers = document.getElementsByClassName("blogContainer");
+    var blogContainers = document.getElementsByClassName("nonBlog");
     for (var i = 0; i < blogContainers.length; i++) {
-        blogContainers[i].style.display = "none";
+        blogContainers[i].style.display = "block";
     }
 
     //change heading title back to default
