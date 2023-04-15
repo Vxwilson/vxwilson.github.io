@@ -265,6 +265,8 @@ function addConversation(sender, content) {
 }
 
 function updateConversationUI() {
+
+
     let conversationUI = document.getElementById("conversation");
     conversationUI.innerHTML = "";
     conversation.forEach(message => {
@@ -272,16 +274,19 @@ function updateConversationUI() {
         conversationUI.innerHTML += `
         <div class="message">
             <p class="message-sender" style="font-weight:bold; color:rgb(138, 133, 114)">${message.sender}</p>
-            <p class="message-content"> <b style="color:rgb(74, 66, 78)">></b> ${processedMessage} \n\n</p>
+            <span class="message-content"> <b style="color:rgb(74, 66, 78)">></b> ${processedMessage} \n\n</span>
         </div>
         `;
     });
+
+    //update code styling
+    hljs.highlightAll();
 }
 
 function processMessage(message) {
     // add code tags for code inside message while ``` is in message
     while (message.includes('```')) {
-        message = message.replace('```', '<code>').replace('```', '</code>');
+        message = message.replace('```', '<pre><code>').replace('```', '</code></pre>');
     }
     return message;
 }

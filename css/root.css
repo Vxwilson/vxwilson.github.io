@@ -23,17 +23,20 @@ body{
     font-size: 0.75em;
   
   }
-  
-  .header-button-container a{
-  }
 }
 
-p, span, button{
-  /* white-space: pre-wrap;
-  font-family: 'Roboto';
-  color: rgb(17, 17, 231); */
-  /* color: rgb(162, 162, 170); */
+.hljs{
+  border-radius: 8px;
+  /* padding-top: 0em; */
 }
+
+/* pre code.hljs {
+  white-space: pre;
+  padding-top: 1.00em;
+  display: block;
+} */
+
+/* main page */
 
 .luckdiv {
     /* text-align: center; */

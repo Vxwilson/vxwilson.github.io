@@ -82,6 +82,9 @@ function loadBlog(blogData){
     document.getElementById("blogDate").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('blogContent').innerHTML = blogData['content'];
 
+
+    updateCodeStyle();
+
 }
 
 window.hideBlog = function(){
@@ -101,4 +104,8 @@ window.hideBlog = function(){
     // document.getElementById("title").innerHTML = "VEIS";
     // document.getElementById("date").innerHTML = "a collection of some <i>very exciting items</i>";
     
+}
+
+function updateCodeStyle(){
+    hljs.highlightAll();
 }

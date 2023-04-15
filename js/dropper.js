@@ -284,11 +284,16 @@ function initData(private_bucket = false) {
                 initDataSingle(itemRef);
 
             });
+            // not working
+            // updateCodeStyle();
+
         }).catch((error) => {
         });
 
+}
 
-
+function updateCodeStyle() {
+    hljs.highlightAll();
 }
 
 function updateUI() {

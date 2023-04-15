@@ -32,6 +32,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
 
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/dark.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
     <style>
         /* header {
             display: flex;
@@ -67,10 +70,11 @@
     <div class="blogHeader isBlog">
         <!-- <a href="#" onclick="hideBlog()" class="back-button fa fa-arrow-left fa-2x"></a> -->
         <h2 id="blogTitle">Blog Title</h2>
-        <span class="fa fa-calendar"></span><h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
+        <span class="fa fa-calendar"></span>
+        <h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
         <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
         <!-- <a href="#" onclick="hideBlog()" class="fa fa-home"></a> -->
-    <hr>
+        <hr>
 
     </div>
     <div class="">
@@ -115,8 +119,9 @@
 
     <script src="/js/main.js" type="module"></script>
     <script src="/js/misc.js" type="module"></script>
-
     <script src="/js/blog.js" type="module"></script>
+    <script>hljs.highlightAll();</script>
+
     </script>
 </body>
 
