@@ -78,7 +78,8 @@ body{
   .content{
     /* background: #564a5b2e; */
     width: 70%;
-    margin: auto;
+    /* this is causing errors where content is at the bottom */
+    /* margin: auto; */
     margin-bottom: 1em;
     /* margin-left: 10em;
     margin-right: 10em; */

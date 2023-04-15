@@ -49,7 +49,7 @@ body {
 body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   color: #222;
   position: relative;
   min-height: 100vh;

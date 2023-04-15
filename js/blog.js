@@ -79,6 +79,7 @@ function loadBlog(blogData){
 
     //change heading title/date to blog title
     document.getElementById("blogTitle").innerHTML = blogData['title'];
+    document.getElementById("blogIntro").innerHTML = blogData['intro'];
     document.getElementById("blogDate").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('blogContent').innerHTML = blogData['content'];
 

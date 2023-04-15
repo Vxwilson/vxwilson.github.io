@@ -46,6 +46,8 @@ window.updatePreview = function () {
     //update blog title
     let title = document.getElementById('title').value;
     document.getElementById('blogTitle').innerHTML = title == null || title == "" ? "Untitled" : title;
+    //update blog intro
+    document.getElementById('blogIntro').innerHTML = document.getElementById('intro').value;
     document.getElementById('blogDate').innerHTML = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     updateCodeStyle();
 }
@@ -56,17 +58,17 @@ window.onload = function () {
 
 window.uploadBlog = async function () {
     const data = editor.getData();
-    var title = document.getElementById('title').value;
 
+    var title = document.getElementById('title').value;
     //check if title is empty
-    console.log(title);
     if (title == null || title == "") {
         alert("Please enter a title for your blog");
         return;
     }
     //process title to remove spaces and special characters
-    title = title.replace(/[^a-zA-Z0-9]/g, '');
-    title = title.toLowerCase();
+    title = title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+    var intro = document.getElementById('intro').value;
 
     //check if doc exists
     const docRef = doc(db, "blog", title);
@@ -79,6 +81,7 @@ window.uploadBlog = async function () {
     // set doc to firestore
     await setDoc(doc(db, "blog", title), {
         title: title,
+        intro: intro,
         content: data,
         show: true,
         date: new Date()

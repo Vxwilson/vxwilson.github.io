@@ -31,11 +31,16 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
-    
+
     <style>
+        #intro {
+            min-height: 80px;
+        }
+
         .blogContainer {
             display: block;
         }
@@ -45,29 +50,31 @@
             display: inline-block;
         }
 
-        .content{
-            width:80%;
+        .content {
+            width: 80%;
             border: solid 1px rgba(115, 112, 112, 0.5);
         }
 
-        .content h3{
-            color:rgb(177, 176, 173);
+        .content h3 {
+            color: rgb(177, 176, 173);
+            font-size: 1.4em;
         }
 
-        .ck{
+        .ck {
             background-color: rgb(49, 45, 53);
             border-radius: 20px;
             margin: 1em 0;
+            /* min-height: 80px; */
+
         }
 
         @media screen and (max-width: 500px) {
-            .content{
-                width:85%;
+            .content {
+                width: 85%;
                 margin-bottom: 0.5em;
                 margin-top: 0.5em;
             }
         }
-            
     </style>
     <script src="/js/ckeditor.js"></script>
 </head>
@@ -83,51 +90,55 @@
     </div>
 
     <!-- <div class="displayer"> -->
-        <!-- show date -->
-        <div class="content">
-            <h3>Title</h3>
-            <input type="text" id="title" onchange="updatePreview()" placeholder="select a title">
+    <!-- show date -->
+    <div class="content">
+        <h3>Title</h3>
+        <input type="text" id="title" oninput="updatePreview()" placeholder="Untitled">
+        <h3>Introduction</h3>
+        <!-- <input type="text" id="intro" onchange="updatePreview()" placeholder=""> -->
+        <textarea id="intro" oninput="updatePreview()" placeholder="" class='' rows="5" cols="40"></textarea>
+    </div>
+    <div class="content">
+        <h3>Editor</h3>
+        <div id="editor">
+            <p>This is some sample content.</p>
         </div>
-        <div class="content">
-            <h3>Editor</h3>
-            <div id="editor">
-                <p>This is some sample content.</p>
-            </div>
-        </div>
-<!-- 
+    </div>
+    <!-- 
         <div class="button-container" style=" display: flex;
         align-items: center;">
             <button class="button-11" onclick="updatePreview()">Update preview</button>
         </div> -->
 
-        <div class="content">
-            <h3>Preview</h3>
-            <div class="blogHeader">
-                <h2 id="blogTitle">Blog Title</h2>
-                <span class="fa fa-calendar"></span>
-                <h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
-                <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
-                <hr>
-            </div>
-            <div class="displayer blogContainer" id="blogContent">
-                <p>
-                    This is some sample content.
-                </p>
-            </div>
+    <div class="content">
+        <h3>Preview</h3>
+        <div class="blogHeader">
+            <h2 id="blogTitle">Blog Title</h2>
+            <span class="fa fa-calendar"></span>
+            <h6 id="blogIntro">a short intro for the blog. haha.</h6>
+            <h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
+            <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
+            <hr>
         </div>
+        <div class="displayer blogContainer" id="blogContent">
+            <p>
+                This is some sample content.
+            </p>
+        </div>
+    </div>
 
-        <div class="button-container" style=" display: flex;
+    <div class="button-container" style=" display: flex;
         align-items: center;">
-            <!-- <button class="button-11" onclick="updatePreview()">Update preview</button> -->
-            <button class="button-11" onclick="uploadBlog()">Publish!</button>
-        </div>
+        <!-- <button class="button-11" onclick="updatePreview()">Update preview</button> -->
+        <button class="button-11" onclick="uploadBlog()">Publish!</button>
+    </div>
     <!-- </div> -->
 
 
     <script src="/js/main.js" type="module"></script>
     <script src="/js/blog-editor.js" type="module"></script>
     <script>
-      
+
     </script>
 </body>
 
