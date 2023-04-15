@@ -78,12 +78,12 @@ window.getCurrentUser = async function(){
 // });
 
 window.getLuck = async function(){
-    var input = "Write two sentences randomly about my luck of the day, \
-    make it creative and fun. Then on a new line rate the luck over 10.";
+    var input = "Write a couple of creative sentences to predict my luck of the day (from 0 to 10), \
+    make it oddly specific and non-animal related. Then on a new line rate the luck over 10.";
 
     document.getElementById("luck").innerHTML = "generating... ";
 
-    await getPrompt(input).then(message =>{
+    await getPrompt(input, '','',100).then(message =>{
         var result = message['choices'][0]['message']['content'];
         document.getElementById("luck").innerHTML = result;
     });
@@ -116,7 +116,7 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
                   'content': user_prompt
               }
           ],
-          temperature: 1.5,
+          temperature: 2,
           top_p: 0.2,
           max_tokens: max
         })
