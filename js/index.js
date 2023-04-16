@@ -37,7 +37,7 @@ window.get_gpt_api_key = async function () {
 // set up luck button
 window.getLuck = async function () {
     var input = "Write a couple of creative sentences to predict my luck of the day (from 0 to 10), \
-    make it oddly specific and non-animal related. Then on a new line rate the luck over 10.";
+    make it specific and fantasy-themed. Then on a new line rate the luck over 10.";
 
     document.getElementById("luck").innerHTML = "generating... ";
 

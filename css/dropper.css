@@ -86,12 +86,12 @@ h1 {
   margin-bottom: 2em;
 }
 
-.content span h5{
+.content span h5 {
   align-items: center;
   margin-left: 10px;
 }
 
-.displayer{
+.displayer {
   margin-top: 1em;
 }
 
@@ -277,7 +277,7 @@ textarea {
   /* margin: auto; */
   /* max-width: 95vw; */
   /* gap: 0.6rem; */
-} 
+}
 
 
 .masonry3 {
@@ -317,31 +317,31 @@ textarea {
   font-size: smaller;
   white-space: pre-wrap;
   position: relative;
-
   background: var(--base-01);
   border-radius: 6px;
-  padding-right:  0px;
+  padding-right: 0px;
 }
 
 /* for buttons */
 
-.fa{
-  opacity: 0.75;                /* Opacity (Transparency) */
+.fa {
+  opacity: 0.75;
+  /* Opacity (Transparency) */
   /* color: rgba(0, 0, 0, 0.75);   /* RGBA Color (Alternative Transparency) */
   /* -webkit-filter: blur(2px);   */
   /* -moz-filter: blur(2px);
-  filter: blur(2px); */ 
+  filter: blur(2px); */
 }
 
 .block {
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-start;
   /* padding: 1em; */
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 /* hides buttons by default */
-.textbuttoncontainer{
+.textbuttoncontainer {
   display: none;
   margin-left: -3px;
   margin-bottom: 3px;
@@ -351,11 +351,11 @@ textarea {
 
 /* show buttons on hover */
 
-.block:hover .textbuttoncontainer{
-    display: flex;
+.block:hover .textbuttoncontainer {
+  display: flex;
 }
 
-.textbuttoncontainer *{
+.textbuttoncontainer * {
   margin-top: 3px;
 }
 
@@ -380,10 +380,10 @@ textarea {
   touch-action: manipulation;
 }
 
-.textblock .textspan a{
+.textblock .textspan a {
   font-weight: 600;
   text-decoration: none;
-  color:#5d5984;
+  color: #5d5984;
 }
 
 .textblock .textspan:hover:after {
@@ -405,27 +405,27 @@ textarea {
 }
 
 .textblock .textspan:active:after,
-  .textblock .textspan:focus:after {
+.textblock .textspan:focus:after {
   content: 'Done';
   display: block;
   position: absolute;
 }
 
-.textblock:has(.textspan:hover){
+.textblock:has(.textspan:hover) {
   background-color: #353239;
-} 
+}
 
-.textblock .textspan:hover{
+.textblock .textspan:hover {
   background-color: #353239;
-} 
+}
 
 
 /* image flex set to make button at right */
 .masonry3 figure {
-	margin: 0;
-	display: flex;
-	align-items: flex-start;
-	flex-direction: row;
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
 }
 
 .filemasonry {
@@ -472,7 +472,7 @@ textarea {
     padding: 0.7rem;
   }
 
-  .textblock .textspan{
+  .textblock .textspan {
     width: 90%;
     height: 95%;
   }
@@ -492,7 +492,7 @@ textarea {
 
     gap: 1em;
   }
-  
+
   .textmasonry {
     margin-top: 0rem;
     column-count: 1;
@@ -514,13 +514,23 @@ textarea {
     padding-bottom: 0rem;
   }
 
-  .textblock .textspan{
-    width: 90%;
+  .textblock .textspan {
+    width: 95%;
     height: 95%;
   }
-  
+
+  /* disables buttons for mobile layout */
+  .block:hover .textbuttoncontainer {
+    display: none;
+  }
+
+  /* recenter the block (since we have no buttons) */
+  .block {
+    justify-content: center;
+  }
+
   .textmasonry div {
-    max-width: 80%;
+    max-width: 90%;
     /* width: 90%; */
     /* padding-right:1em; */
   }
@@ -572,6 +582,8 @@ footer {
   width: 15%;
   background-color: #312d3578;
 }
+
+
 
 /* Add a background color to the button if it is clicked on (add the .active class with JS), and when you move the mouse over it (hover) */
 .active,

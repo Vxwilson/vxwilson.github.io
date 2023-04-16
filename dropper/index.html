@@ -27,6 +27,11 @@
     <meta name="theme-color" content="#ffffff">
 
 
+    <!-- code styling -->
+    <link rel="stylesheet"
+        href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/github-dark-dimmed.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+
     <!-- <link rel="stylesheet" href="/css/root.css"> -->
     <link rel="stylesheet" href="/css/w3.css">
     <link rel="stylesheet" href="/css/root.css">
@@ -34,16 +39,23 @@
     <link rel="stylesheet" href="/css/dropper.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/dark.min.css">
-    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<!-- 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script> -->
 
     <title>Dropper</title>
+
+    <style>
+        .hljs{
+            background-color: rgb(36, 37, 43);
+            margin: 1em auto;
+        }
+    </style>
 </head>
 
 <body>
     <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge" id="bucket_title"></h1> 
+        <h1 class="w3-xlarge" id="bucket_title"></h1>
         <div class="w3-padding-16">
             <div class="w3-bar w3-border">
                 <!-- <a href="/" class="w3-bar-item w3-button fa fa-home fa-lg w3-hover-opacity"></a> -->
@@ -65,15 +77,16 @@
     <div class="droparea collapsiblecontent">
         <!-- <h5 style="color:#626178">files</h5> -->
         <form>
-            <label class = ''>
-            
+            <label class=''>
+
                 <input type="file" class='field' id="files_upload" name="files" accept="" multiple required style="">
             </label>
             <h6 style="color:#626178">or</h6>
-            <textarea id="sentence" placeholder="add something..."class='field' name="w3review" rows="3" cols="40"></textarea>
+            <textarea id="sentence" placeholder="add something..." class='field' name="w3review" rows="3"
+                cols="40"></textarea>
             <button type="button" class="button-11" onclick="try_upload()">upload</button>
             <h6> </h6>
-        </form>                                 
+        </form>
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>
 
@@ -82,32 +95,32 @@
             <h3>goto</h3>
             <div>
                 <label for="code"><b>code:</b></label>
-                <input type="text" placeholder="Enter code" id ="input_code" name="input_code" required>
+                <input type="text" placeholder="Enter code" id="input_code" name="input_code" required>
             </div>
             <div>
                 <button type="button" class="button-11" id="goto_button" onclick="try_go_bucket()">go</button>
-                <button type="button" class="button-11"  onclick="hide_goto()">return</button>
+                <button type="button" class="button-11" onclick="hide_goto()">return</button>
 
-            </div>  
+            </div>
         </div>
     </div>
 
     <div class="form-popup" id="create_form">
         <form action="javascript:try_create()" class="form-container">
             <h3>new</h3>
-            
+
             <div>
                 <label for="b_name"><b>bucket:</b></label>
                 <input type="text" placeholder="Enter name" id="b_name" name="b_name" autocomplete="off" required>
             </div>
             <div>
                 <label for="code"><b>verification:</b></label>
-                <input type="password" placeholder="Enter code" id ="code" name="code" autocomplete="off" required>
+                <input type="password" placeholder="Enter code" id="code" name="code" autocomplete="off" required>
             </div>
             <div>
                 <button type="submit" class="button-11">add</button>
                 <button type="button" class="button-11" onclick="hide_create()">return</button>
-            </div>  
+            </div>
         </form>
     </div>
 
@@ -121,7 +134,7 @@
         <p></p>
     </section>
 
-    
+
     <!-- dynamically added by js file-->
     <div class='displayer'>
         <!-- <a onclick="refresh()"><i
@@ -129,16 +142,22 @@
         <a onclick="sharelink()"><i
             class="fa fa-link fa-2x w3-hover-opacity"></i></a> -->
         <div class="content">
-            <span><h5>clipboard</h5></span>
+            <span>
+                <h5>clipboard</h5>
+            </span>
             <div id="textdiv" class="textmasonry"></div>
         </div>
         <div class="content">
-            <span><h5>pictures</h5></span>
+            <span>
+                <h5>pictures</h5>
+            </span>
             <div id="pictures" class="masonry3 w3-grayscale-mmin"></div>
         </div>
         <div class="content">
-            <span><h5>files</h5></span>
-            <div id="files" class="masonry3 filemasonry" ></div>
+            <span>
+                <h5>files</h5>
+            </span>
+            <div id="files" class="masonry3 filemasonry"></div>
         </div>
     </div>
 
@@ -146,8 +165,7 @@
     <footer class="w3-container w3-padding-64  w3-center w3-large">
         <a href="https://www.instagram.com/takedoke/" target="_blank"><i
                 class="fa fa-instagram w3-hover-opacity"></i></a>
-        <a href="https://www.github.com/vxwilson/" target="_blank"><i
-            class="fa fa-github w3-hover-opacity"></i></a>
+        <a href="https://www.github.com/vxwilson/" target="_blank"><i class="fa fa-github w3-hover-opacity"></i></a>
         <!-- <p><span id="time-now"></span></p> -->
     </footer>
 

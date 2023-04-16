@@ -284,8 +284,6 @@ function initData(private_bucket = false) {
                 initDataSingle(itemRef);
 
             });
-            // not working
-            // updateCodeStyle();
 
         }).catch((error) => {
         });
@@ -396,11 +394,9 @@ function _addText(item) {
                     fig.appendChild(textbutton);
                     fig.appendChild(buttonContainer);
 
-
-
-
-
                     document.getElementById("textdiv").appendChild(fig);
+
+                    updateCodeStyle();
                 });
 
         })
