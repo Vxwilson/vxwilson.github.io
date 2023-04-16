@@ -31,7 +31,12 @@ getDocs(collectionRef)
   })
   .catch((error) => {
     console.log("Error getting documents: ", error);
-  });
+});
+
+let pageState = 'hidingBlog';
+
+history.pushState({state: 'hidingBlog'}, null, null);
+
 
 function makeButtonForBlog(blogData){
     var blogButton = _htmlToElement(
@@ -86,6 +91,8 @@ function loadBlog(blogData){
 
     updateCodeStyle();
 
+    pageState = 'showingBlog';
+    history.pushState({state: 'showingBlog'}, 'a', blogData['title']);
 }
 
 window.hideBlog = function(){
@@ -101,6 +108,9 @@ window.hideBlog = function(){
         blogContainers[i].style.display = "block";
     }
 
+    pageState = 'hidingBlog';
+    history.pushState({state: 'hidingBlog'}, 'b', '/blog');
+    // history.pushState({state: 'hidingBlog'}, 'hidingBlog', '/blog');
     //change heading title back to default
     // document.getElementById("title").innerHTML = "VEIS";
     // document.getElementById("date").innerHTML = "a collection of some <i>very exciting items</i>";
@@ -110,3 +120,26 @@ window.hideBlog = function(){
 function updateCodeStyle(){
     hljs.highlightAll();
 }
+
+window.addEventListener('popstate', function(event) {
+    console.log('popped');
+    if (event.state) {
+        //check base state 
+      if (event.state.state === 'hidingBlog') {
+        // base state change
+        this.history.replaceState({state: 'showingBlog'}, null, null);
+        // below function will push another state on top of the base state
+        hideBlog();
+      }else {
+        //base state change (does nothing tho since we are returning to home page at this point)
+        this.history.replaceState({state: 'hidingBlog'}, null, null);
+
+        window.location.href = '/';
+      }
+    
+    }else{
+        //no blog is opened, but back is pressed; return to home page 
+        window.location.href = '/';
+    }
+});
+  
