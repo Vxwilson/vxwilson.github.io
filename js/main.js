@@ -96,8 +96,8 @@ window.getLatestBlog = async function(){
         // doc.data() is never undefined for query doc snapshots
         console.log(doc.id, " => ", doc.data());
         // return doc.data();
-        document.getElementById("latestBlogTitle").innerHTML = "<i style='font-weight:400'>></i> " + doc.data().title;
-        document.getElementById("latestBlogIntro").innerHTML = doc.data().intro;
+        document.getElementById("latestBlogTitle").innerHTML = "<i style='font-weight:400'></i> " + doc.data().title;
+        document.getElementById("latestBlogIntro").innerHTML = "<i style='font-weight:400'></i> " +doc.data().intro;
     });
 }
 

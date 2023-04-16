@@ -56,7 +56,7 @@
     <!-- !PAGE CONTENT! -->
     <div class="w3-content" style="max-width:1500px">
 
-        <header class="w3-panel w3-center w3-opacity" style="padding:128px 16px">
+        <header class="w3-panel w3-center w3-opacity" style="padding:80px 16px">
             <h1 class="w3-xlarge">VX</h1>
             <h1>:)</h1>
 
@@ -71,15 +71,16 @@
         </header>
     </div>
 
-    <div class="luckdiv">
+    <div class="maindiv">
         <div id="blogRedirect" >
-            <!-- <p>latest blog update: </p> -->
+            <h4>latest blog</h4>
             <h3 class="lucktext" id="latestBlogTitle"></h3>
-            <span><p class="lucktext" id="latestBlogIntro"></p> ...<a id='latestBlogLink'href="blog">Read More</a></span>
+            <span><p class="lucktext" id="latestBlogIntro"></p> <a id='latestBlogLink'href="blog">read more</a></span>
         </div>
     </div>
-    <div class="luckdiv">
-        <button type="button" class="button-11 w3-button" onclick="getLuck()">get today's ai-generated luck!</button>
+    <div class="maindiv">
+        <h4>luck </h4>
+        <button type="button" class="button-11 w3-button" id="luckButton" onclick="getLuck()">get today's ai-generated luck!</button>
         <div class="luck" >
             <p class="lucktext" id="luck"></p>
         </div>

@@ -46,27 +46,55 @@ a{
 /* ///////////////////////// */
 /* main page */
 
-.luckdiv {
+.maindiv {
   /* text-align: center; */
   text-align: center;
   max-width: 60%;
   background-color: rgba(84, 80, 73, 0.05);
   /* Slightly opaque white background color */
   border-radius: 6px;
-  padding-top: 1em;
-  padding-bottom: 1em;
+  padding-top: 0.25em;
+  padding-bottom: 2em;
   padding-left: 0.5em;
   padding-right: 0.5em;
-  margin: 0.5em auto;
+  margin: 1em auto;
+}
+
+.maindiv h4{
+  font-size: 1.2em;
+  font-weight: 300;
+  font-style: italic;
+  color: #4f4f4f82;
+  padding-right: 0.5em;
+  /* padding-top:0em; */
+  margin-bottom: 0.75em;
+  text-align: right;
+}
+
+.maindiv button{
+  /* width:100%; */
 }
 
 @media only screen and (max-width: 767px) {
 
   /* For phones with a maximum width of 767px */
-  .luckdiv {
-    text-align: left;
+  .maindiv {
+    /* text-align: left; */
     max-width: 80%;
   }
+
+  .maindiv h4{
+    font-size: 1em;
+    font-weight: 300;
+    font-style: italic;
+    color: #4f4f4f82;
+    padding-right: 0.5em;
+    /* padding-top:0em; */
+    margin-bottom: 0.75em;
+    text-align: right;
+  }
+
+
 }
 
 .lucktext {
@@ -84,48 +112,71 @@ a{
 }
 
 #latestBlogIntro{
-  /* font-size: 1.3em; */
-  /* font-weight: 600; */
-  /* color: #4f4f4f; */
-  margin-bottom: 0.5em;
-  display:inline;
+  font-size: 1em;
+  /* margin-bottom: 0.5em; */
+  display:inline-block;
 }
 
-#blogRedirect span{
+#blogRedirect h3{
+  line-height: 1.35em;
 }
 
 #blogRedirect a{
-
-  display:inline;
+  display:inline-block;
 }
 
 #latestBlogLink{
-  color:rgb(130, 153, 172)
+  color:rgb(110, 135, 156);
+  font-size:1.1em;
 }
 
-.button-11 {
+#luckButton {
   display: block;
-  /* width: 140px; */
-  width: 50%;
+  width: 65%;
   height: 40px;
   align-items: center;
   text-align: center;
   margin: auto;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
-  /* padding-top: 1em; */
   padding-bottom: 2em;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
-  color: #4f4f4f;
+  color: rgb(91, 99, 105);
   background-color: #e5e0d8c5;
-  /* background: ; */
   border: none;
-  /* box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1);
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation; */
 }
+
+@media only screen and (max-width: 767px) {
+
+  #blogRedirect span{
+    /* text-align: left; */
+    /* text-align-last: justify; */
+    /* display:flex; */
+  }
+
+  #latestBlogIntro{
+    font-size: 0.9em;
+    text-align: left;
+  }
+  
+  #latestBlogTitle{
+    font-size: 1.2em;
+  }
+
+  #latestBlogLink{
+    font-size:1em;
+    text-align: left;
+  }
+
+  #luckButton{
+    /* padding: auto 1em; */
+    /* font-size: smaller; */
+    width: 80%;
+  }
+}
+
+
 
 .button-11:focus {
   box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
