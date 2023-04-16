@@ -67,7 +67,7 @@ window.uploadBlog = async function () {
     }
     //process title to remove spaces and special characters
     // title = title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
+    // console.log(title);
     var intro = document.getElementById('intro').value;
 
     //check if doc exists
