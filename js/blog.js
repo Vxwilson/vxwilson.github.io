@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getFirestore, doc, setDoc, getDocs, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+import { getFirestore, doc, setDoc, query, orderBy, getDocs, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -18,7 +18,11 @@ const db = getFirestore(app);
 
 const collectionRef = collection(db, 'blog');
 
-getDocs(collectionRef)
+
+// latest on top
+const q = query(collectionRef, orderBy("date", "desc"));
+
+await getDocs(q)
   .then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
       console.log(doc.id, " => ", doc.data());
