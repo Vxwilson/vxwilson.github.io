@@ -90,5 +90,8 @@ window.uploadBlog = async function () {
 }
 
 function updateCodeStyle() {
-    hljs.highlightAll();
+    var codeBlocks = document.getElementById('blogContent').getElementsByTagName('code');
+    for (var i = 0; i < codeBlocks.length; i++) {
+        hljs.highlightElement(codeBlocks[i]);
+    }
 }

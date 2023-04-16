@@ -62,9 +62,9 @@ a{
 
 .maindiv h4{
   font-size: 1.15em;
-  font-weight: 300;
+  /* font-weight: 300; */
   /* font-style: italic; */
-  color: #4f4f4fa2;
+  color: #4f4f4f8e;
   padding-right: 0.5em;
   /* padding-top:0em; */
   margin-bottom: 0.75em;

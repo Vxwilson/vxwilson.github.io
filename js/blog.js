@@ -44,6 +44,9 @@ await tryOpenBlog(getTitle()).then((result) => {
         history.pushState({ state: 'hidingBlog' }, null, null);
     }
 });
+
+hljs.addPlugin(new CopyButtonPlugin());
+
 init();
 //
 
