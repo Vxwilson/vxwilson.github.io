@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getFirestore, doc, setDoc, query, orderBy, getDocs, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, query, orderBy, getDocs, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 
 
 const firebaseConfig = {
@@ -25,7 +25,7 @@ const q = query(collectionRef, orderBy("date", "desc"));
 await getDocs(q)
   .then((querySnapshot) => {
     querySnapshot.forEach((doc) => {
-      console.log(doc.id, " => ", doc.data());
+    //   console.log(doc.id, " => ", doc.data());
       //check if blog 'show' is true
       if(doc.data()['show'] == true){
         makeButtonForBlog(doc.data());
@@ -37,10 +37,10 @@ await getDocs(q)
     console.log("Error getting documents: ", error);
 });
 
-let pageState = 'hidingBlog';
-
+// init 
 history.pushState({state: 'hidingBlog'}, null, null);
-
+tryOpenBlog(getTitle());
+//
 
 function makeButtonForBlog(blogData){
     var blogButton = _htmlToElement(
@@ -60,6 +60,30 @@ function makeButtonForBlog(blogData){
     blogButton.addEventListener("click", function(){
         loadBlog(blogData);
     });
+}
+
+function getTitle() {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    return urlParams.get('title');
+}
+
+function tryOpenBlog(title){
+    if(title != null){
+        //find blog with title
+        getDoc(doc(db, "blog", title)).then((doc) => {
+            if (doc.exists()) {
+                loadBlog(doc.data());
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        }).catch((error) => {
+            console.log("Error getting document:", error);
+        });
+    }else{
+        //do nothing
+    }
 }
 
 function loadBlog(blogData){
@@ -95,8 +119,7 @@ function loadBlog(blogData){
 
     updateCodeStyle();
 
-    pageState = 'showingBlog';
-    history.pushState({state: 'showingBlog'}, 'a', blogData['title']);
+    history.pushState({state: 'showingBlog'}, null, '?title='+blogData['title']);
 }
 
 window.hideBlog = function(){
@@ -112,7 +135,6 @@ window.hideBlog = function(){
         blogContainers[i].style.display = "block";
     }
 
-    pageState = 'hidingBlog';
     history.pushState({state: 'hidingBlog'}, 'b', '/blog');
     // history.pushState({state: 'hidingBlog'}, 'hidingBlog', '/blog');
     //change heading title back to default
