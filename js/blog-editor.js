@@ -31,7 +31,7 @@ InlineEditor
     })
     .catch(error => {
         console.error(error);
-});
+    });
 
 // // Assuming there is a <button id="submit">Submit</button> in your application.
 // document.querySelector( '#submit' ).addEventListener( 'click', () => {
@@ -53,6 +53,8 @@ window.updatePreview = function () {
 }
 
 window.onload = function () {
+    //check if blog exists
+    loadBlogData();
     updatePreview();
 }
 
@@ -93,5 +95,20 @@ function updateCodeStyle() {
     var codeBlocks = document.getElementById('blogContent').getElementsByTagName('code');
     for (var i = 0; i < codeBlocks.length; i++) {
         hljs.highlightElement(codeBlocks[i]);
+    }
+}
+
+window.saveBlogData = function() {
+    localStorage.setItem("blogContentUnfinished", editor.getData());
+    localStorage.setItem("blogTitleUnfinished", document.getElementById('title').value);
+    localStorage.setItem("blogIntroUnfinished", document.getElementById('intro').value);
+}
+
+function loadBlogData() {
+    var text = localStorage.getItem("blogContentUnfinished");
+    if (text) {
+        document.getElementById('title').value = localStorage.getItem("blogTitleUnfinished");
+        document.getElementById('intro').value = localStorage.getItem("blogIntroUnfinished");
+        editor.setData(text);
     }
 }
