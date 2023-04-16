@@ -61,10 +61,10 @@ a{
 }
 
 .maindiv h4{
-  font-size: 1.2em;
+  font-size: 1.15em;
   font-weight: 300;
-  font-style: italic;
-  color: #4f4f4f82;
+  /* font-style: italic; */
+  color: #4f4f4fa2;
   padding-right: 0.5em;
   /* padding-top:0em; */
   margin-bottom: 0.75em;
@@ -85,13 +85,6 @@ a{
 
   .maindiv h4{
     font-size: 1em;
-    font-weight: 300;
-    font-style: italic;
-    color: #4f4f4f82;
-    padding-right: 0.5em;
-    /* padding-top:0em; */
-    margin-bottom: 0.75em;
-    text-align: right;
   }
 
 
@@ -114,7 +107,10 @@ a{
 #latestBlogIntro{
   font-size: 1em;
   /* margin-bottom: 0.5em; */
-  display:inline-block;
+  /* display:inline-block; */
+  text-align: left;
+  color: rgb(91, 99, 105);
+
 }
 
 #blogRedirect h3{
@@ -122,7 +118,7 @@ a{
 }
 
 #blogRedirect a{
-  display:inline-block;
+  /* display:inline-block; */
 }
 
 #latestBlogLink{
@@ -140,9 +136,12 @@ a{
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   padding-bottom: 2em;
+  /* font-family: "Raleway", Arial, sans-serif; */
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
-  color: rgb(91, 99, 105);
+  /* color: rgb(91, 99, 105); */
+  color: #4f4f4f;
+
   background-color: #e5e0d8c5;
   border: none;
 }
