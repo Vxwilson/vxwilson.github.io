@@ -1,6 +1,6 @@
 /////////// Initialize Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-import { getFirestore, doc, getDoc} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+import { getFirestore, doc, getDocs, getDoc, query, orderBy, limit, collection} from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -55,9 +55,13 @@ window.get_gpt_api_key = async function(){
     return api;
 }
 
-await get_gpt_api_key().then(api => {
-    apiKey = api;
-});
+window.onload = async function(){
+    await get_gpt_api_key().then(api => {
+        apiKey = api;
+    });
+
+    await getLatestBlog();
+}
 
 window.getCurrentUser = async function(){
     // if (user) {
@@ -71,12 +75,7 @@ window.getCurrentUser = async function(){
 }
 
 
-// var gpt_api_key = '';
-
-// await get_gpt_api_key().then(api =>{
-//     gpt_api_key = api;
-// });
-
+// set up luck button
 window.getLuck = async function(){
     var input = "Write a couple of creative sentences to predict my luck of the day (from 0 to 10), \
     make it oddly specific and non-animal related. Then on a new line rate the luck over 10.";
@@ -86,6 +85,19 @@ window.getLuck = async function(){
     await getPrompt(input, '','',100).then(message =>{
         var result = message['choices'][0]['message']['content'];
         document.getElementById("luck").innerHTML = result;
+    });
+}
+
+// set up getting latest blogpost
+window.getLatestBlog = async function(){
+    const q = query(collection(db, "blog"), orderBy("date", "desc"), limit(1));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        // doc.data() is never undefined for query doc snapshots
+        console.log(doc.id, " => ", doc.data());
+        // return doc.data();
+        document.getElementById("latestBlogTitle").innerHTML = "<i style='font-weight:400'>></i> " + doc.data().title;
+        document.getElementById("latestBlogIntro").innerHTML = doc.data().intro;
     });
 }
 
