@@ -64,6 +64,42 @@ window.getLatestBlog = async function () {
     });
 }
 
+async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', max=100){
+    if(user_prompt === ''){
+        user_prompt = 'Write a sad poem about my border collie, Pepper';
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+              {
+                  'role':'system',
+                  'content': system_prompt
+              },
+              {
+                'role':'assistant',
+                'content': assistant_prompt
+              },
+              {
+                  'role': 'user',
+                  'content': user_prompt
+              }
+          ],
+          temperature: 1,
+          top_p: 0.3,
+          max_tokens: max
+        })
+      })
+
+    return await response.json();
+}
+
 
 window.onload = async function () {
     await get_gpt_api_key().then(api => {

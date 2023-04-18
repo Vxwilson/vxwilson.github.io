@@ -46,6 +46,10 @@ a{
 /* ///////////////////////// */
 /* main page */
 
+.w3-bar-item{
+  color: rgb(75, 90, 103);
+}
+
 .maindiv {
   /* text-align: center; */
   text-align: center;
@@ -81,10 +85,14 @@ a{
   .maindiv {
     /* text-align: left; */
     max-width: 80%;
+    padding-bottom: 1em;
   }
 
   .maindiv h4{
     font-size: 1em;
+    text-align: left;
+    margin-left: 2.5%;
+    margin-top: 2.5%;
   }
 
 
@@ -94,13 +102,15 @@ a{
   font-size: 0.95em;
   max-width: 90%;
   margin: auto;
+  text-align: left;
+  color: rgb(91, 99, 105);
+
 }
 
 #latestBlogTitle{
   font-size: 1.3em;
   font-weight: 600;
   color: #4f4f4f;
-  margin-bottom: 0.5em;
   text-align: left;
 }
 
@@ -109,6 +119,7 @@ a{
   /* margin-bottom: 0.5em; */
   /* display:inline-block; */
   text-align: left;
+  margin-top: 0.5em;
   color: rgb(91, 99, 105);
 
 }
@@ -124,25 +135,32 @@ a{
 #latestBlogLink{
   color:rgb(110, 135, 156);
   font-size:1.1em;
+  text-align: left;
+  display: block;
+  margin-left: 5%;
+  margin-top: 1em;
 }
 
 #luckButton {
+  color:rgb(110, 135, 156);
+  font-size:1.1em;
+  text-align: left;
   display: block;
   width: 65%;
   height: 40px;
-  align-items: center;
-  text-align: center;
-  margin: auto;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding-bottom: 2em;
-  /* font-family: "Raleway", Arial, sans-serif; */
+  align-items: left;
+  text-align: left;
+  /* margin: auto; */
+  margin-left: 5%;
+  /* margin-top: 0.5em; */
+  /* margin-bottom: 0.5em; */
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
-  /* color: rgb(91, 99, 105); */
-  color: #4f4f4f;
-
-  background-color: #e5e0d8c5;
+  /* color: #4f4f4f; */
+  background-color: #e5e0d800;
   border: none;
 }
 
@@ -165,34 +183,28 @@ a{
 
   #latestBlogLink{
     font-size:1em;
-    text-align: left;
+    text-align: right;
+    margin-right: 5%;
   }
 
   #luckButton{
     /* padding: auto 1em; */
     /* font-size: smaller; */
-    width: 80%;
+    width: 90%;
+    text-align: right;
   }
-}
 
-
-
-.button-11:focus {
-  box-shadow: 0px 0.5px 1px rgba(0, 0, 0, 0.1), 0px 0px 0px 3.5px rgba(58, 108, 217, 0.5);
-  outline: 0;
-}
-
-@media only screen and (max-width: 767px) {
-
-  /* For phones with a maximum width of 767px */
-  .lucktext {
-    font-size: 0.75em;
+  .lucktext{
+    /* text-align: right; */
+    font-size: 0.85em;
   }
 
   .button-11 {
     width: 90%;
+    padding-right: 0;
   }
 }
+
 
 *:empty {
   /* display:none; */
