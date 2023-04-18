@@ -1,7 +1,10 @@
 body {
-  /* background-color: rgb(189, 184, 178); */
+  background-color: rgb(247, 243, 235);
 }
 
+header{
+  color:rgb(42, 42, 44);
+}
 /* .back-button {
   position: absolute;
   top: 25px;
@@ -72,12 +75,12 @@ body {
 
 .displayer {
   border-radius: 10px;
-  background: #2828290c;
-  margin-top: 1rem;
+  background: #28282900;
+  margin-top: 0rem;
   padding: 0.7rem;
   margin-bottom: 1rem;
   column-count: 1;
-  width: 90%;
+  width: 100%;
 }
 
 .content {
@@ -108,18 +111,58 @@ body {
 }
 
 .blogSelection {
-  width: 65%;
-  margin: auto;
-  margin-bottom: 2em;
-  background-color: #564a5b19;
 
-  color: #c0b4a5;
-
-  /* margin-left: 10em;
-    margin-right: 10em; */
-  padding: 0.5em 2.5em;
-  border-radius: 10px;
+  text-align: center;
+  max-width: 60%;
+  background-color: rgb(238, 235, 227);
+  border-radius: 6px;
+  padding-top: 1em;
+  padding-bottom: 2em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  margin: 1.5em auto;
 }
+
+.blogSelection .blogTitle{
+  font-size: 1.3em;
+  font-weight: 600;
+  color: #4f4f4f;
+
+  text-align: left;
+  margin-left: 5%;
+}
+
+.blogSelection .blogIntro{
+  font-size: 1em;
+  /* margin-bottom: 0.5em; */
+  /* display:inline-block; */
+  text-align: left;
+  margin-top: 0.5em;
+  color: rgb(91, 99, 105);
+  margin-left: 5%;
+
+}
+@media only screen and (max-width: 500px) {
+
+  /* For phones with a maximum width of 767px */
+  .blogSelection {
+    /* text-align: left; */
+    max-width: 80%;
+    padding-bottom: 1.5em;
+    margin-bottom: 1em;
+  }
+
+  .blogSelection .blogIntro{
+    font-size: 0.9em;
+    text-align: left;
+  }
+  
+  .blogSelection .blogTitle{
+    font-size: 1.2em;
+  }
+}
+
+
 
 .blogSelection:hover {
   cursor: pointer;
@@ -138,13 +181,16 @@ body {
 }
 
 .blogHeader *:not(h2) {
-  color: rgba(175, 175, 181, 0.793);
+  /* color: rgba(175, 175, 181, 0.793); */
+  color: rgb(91, 99, 105);  
 }
 
 .blogHeader h2 {
   font-size: 2.1em;
   font-weight: bold;
-  color: #c0b4a5;
+  /* color: #c0b4a5; */
+  color: #4f4f4f;
+
 }
 
 .blogHeader .fa {
@@ -178,8 +224,15 @@ body {
 #blogContent>*:not(code > *) {
   white-space: pre-wrap;
   font-family: 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
-  color: rgb(213, 212, 209);
-  font-weight: 300;
+  /* color: rgb(213, 212, 209); */
+  color: rgb(56, 60, 61);
+
+  /* font-weight: 300; */
+}
+
+#blogContent a{
+  color:rgb(110, 135, 156);
+
 }
 
 #blogContent ol {
@@ -221,7 +274,8 @@ a {
 #blogContent figcaption {
   text-align: center;
   font-size: 0.85em;
-  color: rgb(184, 184, 191);
+  /* color: rgb(184, 184, 191); */
+  color: rgb(150, 150, 156);
 }
 
 #blogContent figure img {
@@ -264,14 +318,14 @@ a {
   }
 
   .blogSelection {
-    width: 70vw;
+    /* width: 70vw;
     margin: auto;
     margin-bottom: 1em;
-    padding: 1em 2em;
+    padding: 1em 2em; */
   }
 
   .blogSelection * {
-    margin: auto;
+    /* margin: auto; */
   }
 
   .content {
@@ -307,10 +361,10 @@ a {
 }
 
 /* editor */
-#editorTitle{
+#editorTitle {
   width: 100%;
 }
 
-#editorIntro{
+#editorIntro {
   height: 5em;
 }

@@ -51,18 +51,29 @@ init();
 //
 
 function makeButtonForBlog(blogData) {
+    // var blogButton = _htmlToElement(
+    //     `
+    //     <div class="blogSelection nonBlog">
+    //     <span>
+    //         <h5>${blogData['title']}</h5>
+    //     </span>
+    //     <!-- <div class="">
+    //         <p></p>
+    //     </div> -->
+    //     </div>
+    //     `
+    // );
+
     var blogButton = _htmlToElement(
         `
         <div class="blogSelection nonBlog">
-        <span>
-            <h5>${blogData['title']}</h5>
-        </span>
-        <!-- <div class="">
-            <p></p>
-        </div> -->
+            <div>
+                <h3 class="blogTitle">${blogData['title']}</h3>
+                <span><p class="blogIntro">${blogData['intro']}</p></span>
+            </div>
         </div>
         `
-    );
+    )
 
     document.getElementById("blogSelectionContainer").appendChild(blogButton);
     blogButton.addEventListener("click", function () {
