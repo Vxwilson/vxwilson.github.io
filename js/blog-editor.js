@@ -44,10 +44,10 @@ window.updatePreview = function () {
     const data = editor.getData();
     document.getElementById('blogContent').innerHTML = data;
     //update blog title
-    let title = document.getElementById('title').value;
+    let title = document.getElementById('editorTitle').value;
     document.getElementById('blogTitle').innerHTML = title == null || title == "" ? "Untitled" : title;
     //update blog intro
-    document.getElementById('blogIntro').innerHTML = document.getElementById('intro').value;
+    document.getElementById('blogIntro').innerHTML = document.getElementById('editorIntro').value;
     document.getElementById('blogDate').innerHTML = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     updateCodeStyle();
 }
@@ -61,7 +61,7 @@ window.onload = function () {
 window.uploadBlog = async function () {
     const data = editor.getData();
 
-    var title = document.getElementById('title').value;
+    var title = document.getElementById('editorTitle').value;
     //check if title is empty
     if (title == null || title == "") {
         alert("Please enter a title for your blog");
@@ -70,7 +70,7 @@ window.uploadBlog = async function () {
     //process title to remove spaces and special characters
     // title = title.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     // console.log(title);
-    var intro = document.getElementById('intro').value;
+    var intro = document.getElementById('editorIntro').value;
 
     //check if doc exists
     const docRef = doc(db, "blog", title);
@@ -100,15 +100,15 @@ function updateCodeStyle() {
 
 window.saveBlogData = function() {
     localStorage.setItem("blogContentUnfinished", editor.getData());
-    localStorage.setItem("blogTitleUnfinished", document.getElementById('title').value);
-    localStorage.setItem("blogIntroUnfinished", document.getElementById('intro').value);
+    localStorage.setItem("blogTitleUnfinished", document.getElementById('editorTitle').value);
+    localStorage.setItem("blogIntroUnfinished", document.getElementById('editorIntro').value);
 }
 
 function loadBlogData() {
     var text = localStorage.getItem("blogContentUnfinished");
     if (text) {
-        document.getElementById('title').value = localStorage.getItem("blogTitleUnfinished");
-        document.getElementById('intro').value = localStorage.getItem("blogIntroUnfinished");
+        document.getElementById('editorTitle').value = localStorage.getItem("blogTitleUnfinished");
+        document.getElementById('editorIntro').value = localStorage.getItem("blogIntroUnfinished");
         editor.setData(text);
     }
 }

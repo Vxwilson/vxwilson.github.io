@@ -305,3 +305,12 @@ a {
     width: 100%;
   }
 }
+
+/* editor */
+#editorTitle{
+  width: 100%;
+}
+
+#editorIntro{
+  height: 5em;
+}
