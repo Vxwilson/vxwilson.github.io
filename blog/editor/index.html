@@ -55,7 +55,9 @@
 
         .blogHeader {
             margin-top: 1em;
+            /* display: flex; */
             display: inline-block;
+            flex-direction: column;
         }
 
         .content {
@@ -83,8 +85,18 @@
 
         #previewer {
             background-color: rgb(231, 227, 219);
+            width: 100%;
+            display: flex;
+            /* padding-left: 2em; */
+            /* align-items: left;             */
             /* background-color: rgb(247, 243, 235); */
+            align-items: center;
+            flex-direction: column;
+        }
 
+        #previewer h3{
+            color: rgba(81, 78, 81, 0.782);
+            font-size: 1.2em;
         }
 
         @media screen and (max-width: 500px) {
@@ -129,7 +141,7 @@
             <button class="button-11" onclick="updatePreview()">Update preview</button>
         </div> -->
 
-    <div class="content" id="previewer">
+    <div class="" id="previewer">
         <h3>Preview</h3>
         <div class="blogHeader">
             <h2 id="blogTitle">Blog Title</h2>
