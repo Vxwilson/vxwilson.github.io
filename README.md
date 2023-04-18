@@ -65,8 +65,12 @@
 
 <!-- USAGE EXAMPLES -->
 ## Usage
+- [Dropper](https://vxwilson.github.io/dropper) - a simple file hoster equipped with advanced clipboard support! Features include auto-formatting code snippet, pinning clips, and direct URL links.
+- GPT - integration with the famous ChatGPT API! Includes chatbots with personality, and adjustable parameters (to-come).
+- [VEIS](https://vxwilson.github.io/blog) - personal blogsite on some Very Exciting Items (VEIS).
+- [Gallery](https://vxwilson.github.io/gallery) - personal gallery.
 
-Visit the site [here](https://vxwilson.github.io).
+Visit the full site [here](https://vxwilson.github.io).
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
@@ -77,10 +81,10 @@ Visit the site [here](https://vxwilson.github.io).
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] VEIS - A section of blogpost cataloguing Very Exciting ItemS (VEIS). 
 - [ ] YarnSpinner - An anonymous storywriting collaboration, where each user can contribute a sentence in a daily manner to a preexisting story-line, and watch it unfold!
-- [ ] Emotional Earth - Catalogue your emotions each day with a short text entry, and see how others around the globe are doing!
-    - [ ] Going back in time in search for trends in worldwide happiness.
+  - [ ] rework it to make the storytelling more cohesive.
+  - [ ] reduce failure rate.
+- [ ] Emotional Earth - Catalogue your emotions each day with a short text entry, and see how others around the globe are doing! Features include: going back in time in search for trends in worldwide happiness.
 
 See the [open issues](https://github.com/github_username/repo_name/issues) for a full list of proposed features (and known issues).
 
