@@ -238,7 +238,8 @@ input {
   border: 1.5px solid #4d465f9b;
   background-color: var(--base-01);
   width: 100%;
-  height: 5em;
+  height: 4.9em;
+  /* height:10em; */
   position: relative;
   outline-offset: -0.0625rem;
   outline-style: solid;
@@ -247,6 +248,10 @@ input {
   transition: outline 0.1s ease;
   /* text-align: center;
   align-items: center; */
+}
+
+#sentence{
+  height:50px;
 }
 
 textarea {

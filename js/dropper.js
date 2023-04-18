@@ -23,6 +23,7 @@ const db = getFirestore(app);
 hljs.addPlugin(new CopyButtonPlugin());
 
 setCollapsible();
+setTextBoxExpandable();
 // var user = null;
 var code = '';
 
@@ -677,6 +678,41 @@ function setCollapsible() {
                 content.style.maxHeight = (content.scrollHeight) + "px";
             }
         });
+    }
+}
+
+function setTextBoxExpandable() {
+    const tx = document.getElementById("sentence");
+    const coll = document.getElementById("collapsibleButton");
+
+    //set min height
+    const minHeight = 50;
+    //set max height
+    const maxHeight = 230;
+    tx.setAttribute("style", "height:" +  minHeight + "px;overflow-y:hidden;");
+
+    tx.addEventListener("input", onInput, false);
+
+    function onInput() {
+        this.style.height = 0;
+        var finalH = (Math.min(maxHeight, this.scrollHeight))
+        
+        if(finalH < minHeight){
+            finalH = minHeight;
+        }
+
+        this.style.height = (finalH) + "px";
+
+        //show/hide scroll bar if needed
+        if (this.scrollHeight > maxHeight) {
+            this.style.overflowY = "scroll";
+        } else {
+            this.style.overflowY = "hidden";
+        }
+
+        //expand the collapsible
+        let h = parseInt(coll.nextElementSibling.style.maxHeight);
+        coll.nextElementSibling.style.maxHeight = (h + finalH) + "px";
     }
 }
 

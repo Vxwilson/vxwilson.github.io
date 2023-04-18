@@ -39,7 +39,7 @@ await get_gpt_api_key().then(api => {
 
 setupHeaderButtons();
 setUpGenerateButton();
-
+setTextBoxExpandable();
 hljs.addPlugin(new CopyButtonPlugin());
 
 window.onload = function () {
@@ -374,5 +374,35 @@ function setUpGenerateButton() {
             button.click(); // trigger click event on the button
         }
     });
+}
+
+function setTextBoxExpandable() {
+    const tx = document.getElementById("prompt");
+
+    //set min height
+    const minHeight = 50;
+    //set max height
+    const maxHeight = 300;
+    tx.setAttribute("style", "height:" + minHeight + "px;overflow-y:hidden;");
+    // tx.setAttribute("style", "height:" + (Math.min(maxHeight, tx.scrollHeight)) + "px;overflow-y:hidden;");
+    
+    tx.addEventListener("input", onInput, false);
+
+    function onInput() {
+        this.style.height = 0;
+        var finalH = (Math.min(maxHeight, this.scrollHeight))
+
+        if(finalH < minHeight){
+            finalH = minHeight;
+        }
+        this.style.height = (finalH) + "px";
+
+        //show/hide scroll bar if needed
+        if (this.scrollHeight > maxHeight) {
+            this.style.overflowY = "scroll";
+        } else {
+            this.style.overflowY = "hidden";
+        }
+    }
 }
 
