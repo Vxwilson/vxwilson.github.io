@@ -40,6 +40,8 @@ await get_gpt_api_key().then(api => {
 setupHeaderButtons();
 setUpGenerateButton();
 
+hljs.addPlugin(new CopyButtonPlugin());
+
 window.onload = function () {
     var text = document.getElementById('prompt');
     text.focus();
@@ -373,3 +375,4 @@ function setUpGenerateButton() {
         }
     });
 }
+

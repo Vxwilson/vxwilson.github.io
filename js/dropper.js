@@ -20,6 +20,8 @@ const storage = getStorage(app);
 const db = getFirestore(app);
 
 /////init
+hljs.addPlugin(new CopyButtonPlugin());
+
 setCollapsible();
 // var user = null;
 var code = '';
