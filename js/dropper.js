@@ -420,9 +420,31 @@ function textProcessor(text) {
         outputDict["pin"] = true;
     }
     // add more tags
-    // if(output.includes("-pin-")){
-    //     output = output.replace("-pin-", "");
+    // if(output.includes("")){
     // }
+
+
+    // automatic code detection for hljs, and adding of code tags
+    // splitting text by two line breaks into blocks
+
+    let languages = ["cpp", "javascript", "java", "php", "python", "sql", "autohotkey", "ruby", "kotlin", "markdown", "csharp", "go"];
+    // let languages = hljs.listLanguages();
+    console.log(hljs.listLanguages());
+    var blocks = output.split("\n\n\n");
+
+    var lastBlockIsCode = false;
+    for (var i = 0; i < blocks.length; i++) {
+        let highlightResult = hljs.highlightAuto(blocks[i], languages);
+
+        if (typeof highlightResult.language != 'undefined' && highlightResult.relevance > 5) {
+            // console.log('language detected: ' + highlightResult.language + 'relevance: ' + highlightResult.relevance + '');
+            //add pre code tags
+            blocks[i] = '<pre><code class="' + highlightResult.language + '">' + blocks[i] + '</code></pre>';
+            lastBlockIsCode = true;
+        }
+    }
+    output = blocks.join("\n\n");
+
 
     outputDict['output'] = output;
 
