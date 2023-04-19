@@ -412,7 +412,8 @@ function _addText(item) {
 //urlify text, then process it by:
 //checking for tags, marked by -tag-
 function textProcessor(text) {
-    var output = urlify4(text);
+    // var output = urlify4(text);
+    var output = text;
 
     var outputDict = { "output": '', "pin": false };
     // pinned text cant be deleted
@@ -437,17 +438,22 @@ function textProcessor(text) {
     for (var i = 0; i < blocks.length; i++) {
         let highlightResult = hljs.highlightAuto(blocks[i], languages);
 
-        if (typeof highlightResult.language != 'undefined' && highlightResult.relevance > 5) {
-            // console.log('language detected: ' + highlightResult.language + 'relevance: ' + highlightResult.relevance + '');
+        if (typeof highlightResult.language != 'undefined' && highlightResult.relevance >= 20) {
+            console.log('language detected: ' + highlightResult.language + 'relevance: ' + highlightResult.relevance + '');
             //add pre code tags
             blocks[i] = '<pre><code class="' + highlightResult.language + '">' + blocks[i] + '</code></pre>';
             lastBlockIsCode = true;
+        }else if(typeof highlightResult.language != 'undefined'){
+            console.log('language detected: ' + highlightResult.language + 'relevance: ' + highlightResult.relevance + '');
+
         }
     }
     output = blocks.join("\n\n");
 
-
+    output = urlify4(output);
     outputDict['output'] = output;
+
+
 
     return outputDict;
 }
