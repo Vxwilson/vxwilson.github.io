@@ -143,8 +143,15 @@ window.generateFromPrompt = async function () {
         conversation = [];
     }
 
+    //get temperature and top_p from slider and convert to number
+    var temp = parseInt(document.getElementById("tempSlider").value);
+    var p = parseInt(document.getElementById("topPSlider").value);
+
+    console.log('temperature: ' + temp);
+    console.log('top_p: ' + p);
+
     //max tokens is 600
-    await getPrompt(user_prompt, assistant_prompt, system_prompt, 700).then(async message => {
+    await getPrompt(user_prompt, assistant_prompt, system_prompt, 700, temp, p).then(async message => {
         result = message['choices'][0]['message']['content'];
 
 
@@ -171,7 +178,7 @@ window.generateFromPrompt = async function () {
 
 }
 
-async function getPrompt(user_prompt = '', assistant_prompt = '', system_prompt = '', max_tokens = 350, temperature = 1, top_p = 0.4) {
+async function getPrompt(user_prompt = '', assistant_prompt = '', system_prompt = '', max_tokens = 350, temperature = 1.2, top_p = 0.8) {
     if (user_prompt === '') {
         user_prompt = 'Write a sad poem about my border collie, Pepper';
     }

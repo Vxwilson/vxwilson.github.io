@@ -36,12 +36,42 @@ window.get_gpt_api_key = async function () {
 
 // set up luck button
 window.getLuck = async function () {
-    var input = "Write a couple of creative sentences to predict my luck of the day (from 0 to 10), \
-    make it specific and fantasy-themed. Then on a new line rate the luck over 10.";
+    // var input = `
+    // Hi. What's my luck today?
+    // `
+
+    // var system_prompt = `
+    // You are a crazy but imaginative fortune teller.
+    // You first make up a customer's luck of the day (it can be anything) in one paragraph, then give luck rating out of 10.
+    // `
+    var input = ``;
+    var system_prompt = ``;
+    var assistant_prompt = ``;
+
+    input = `
+    Write 2-3 creative sentences to predict my luck of the day,
+    Then on a new line give the corresponding luck score (out of 10).
+    `
+
+    
+    // input = `
+    // Write a couple of creative sentences to predict luck of the day (it can be anything),
+    // make it specific and themed. Then on a new line rate the luck over 10.
+    // `
+
+    assistant_prompt = `
+    You must not mention explicitly, but your response should mix up two genres such as 
+    [fantasy, sci-fi, romance, surreal comedy, horror, mystery, thriller, unreliable narrative, etc.]
+    be creative.
+    `
+
+    system_prompt = `
+    `
+    ;
 
     document.getElementById("luck").innerHTML = "generating... ";
 
-    await getPrompt(input, '', '', 100).then(message => {
+    await getPrompt(input, system_prompt, assistant_prompt,130).then(message => {
         var result = message['choices'][0]['message']['content'];
         document.getElementById("luck").innerHTML = result;
     });
@@ -66,7 +96,7 @@ window.getLatestBlog = async function () {
 
 async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', max=100){
     if(user_prompt === ''){
-        user_prompt = 'Write a sad poem about my border collie, Pepper';
+        // user_prompt = 'Write a sad poem about my border collie, Pepper';
     }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -91,8 +121,9 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
                   'content': user_prompt
               }
           ],
-          temperature: 1,
-          top_p: 0.3,
+          temperature: 1.35 ,
+        //   top_p: 0.9,  // low value of this makes the generation repetitive
+          //frequency_penalty: 0.7,
           max_tokens: max
         })
       })
