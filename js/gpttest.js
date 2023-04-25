@@ -309,22 +309,46 @@ function addConversation(sender, content) {
 }
 
 function updateConversationUI() {
-
-
     let conversationUI = document.getElementById("conversation");
     conversationUI.innerHTML = "";
     conversation.forEach(message => {
         let processedMessage = processMessage(message.content);
-        conversationUI.innerHTML += `
+        var messageBox = _htmlToElement(`
         <div class="message">
+            
             <p class="message-sender" style="font-weight:bold; color:rgb(138, 133, 114)">${message.sender}</p>
             <span class="message-content"> <b style="color:rgb(74, 66, 78)">></b> ${processedMessage} \n\n</span>
-        </div>
-        `;
+        </div>`
+        );
+
+        var button = _htmlToElement(`<button class="copy-button">Copy</button>`);
+
+        button.addEventListener("click", function () {
+            console.log('hi');
+            copyToClipBoard(processedMessage);
+        });
+        messageBox.childNodes[0].after(button);
+        conversationUI.appendChild(messageBox);
     });
 
     //update code styling
     hljs.highlightAll();
+}
+
+function _htmlToElement(html) {
+    var template = document.createElement('template');
+    html = html.trim(); // Never return a text node of whitespace as the result
+    template.innerHTML = html;
+    return template.content.firstChild;
+}
+
+async function copyToClipBoard(t) {
+    try {
+        await navigator.clipboard.writeText(t);
+    }
+    catch (err) {
+        console.error('Could not write to clipboard', err);
+    }
 }
 
 function processMessage(message) {
