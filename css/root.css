@@ -246,27 +246,7 @@ a {
   background-repeat: no-repeat;
   background-position: center;
   transition: background-color 200ms ease, transform 200ms ease-out
-}
-
-.copy-button:hover {
-  border-color: #ffffff44
-}
-
-.copy-button:active {
-  border-color: #ffffff66
-}
-
-.copy-button[data-copied="true"] {
-  text-indent: 0;
-  width: auto;
-  background-image: none
-}
-
-@media(prefers-reduced-motion) {
-  .copy-button {
-    transition: none
-  }
-}
+} 
 
 .copy-alert {
   clip: rect(0 0 0 0);
@@ -296,4 +276,25 @@ a {
   background-repeat: no-repeat;
   background-position: center;
   /* transition: background-color 200ms ease, transform 200ms ease-out */
+}
+
+.copy-button:hover {
+  border-color: #ffffff44;
+  cursor: pointer;
+}
+
+.copy-button:active {
+  border-color: #ffffff66
+}
+
+.copy-button[data-copied="true"] {
+  text-indent: 0;
+  width: auto;
+  background-image: none
+}
+
+@media(prefers-reduced-motion) {
+  .copy-button {
+    transition: none
+  }
 }
