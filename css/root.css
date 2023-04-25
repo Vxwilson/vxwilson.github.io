@@ -282,8 +282,8 @@ a {
   display: none;
   position: absolute;
   /* transform: translateX(calc(100% + 1.125em)); */
-  top: auto;
-  right: 0em;
+  top: 0.5em;
+  right: 0.5em;
   width: 2rem;
   height: 2rem;
   text-indent: -9999px;

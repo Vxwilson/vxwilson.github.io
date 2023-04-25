@@ -324,7 +324,6 @@ function updateConversationUI() {
         var button = _htmlToElement(`<button class="copy-button">Copy</button>`);
 
         button.addEventListener("click", function () {
-            console.log('hi');
             copyToClipBoard(processedMessage);
         });
         messageBox.childNodes[0].after(button);

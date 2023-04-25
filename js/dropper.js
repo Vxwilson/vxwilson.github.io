@@ -346,7 +346,7 @@ function makeDownloadButton(item, parentEle, url) {
 
 // for clipboard
 function makeCopyButton(text, parentEle) {
-    var copy = _htmlToElement('<span class="close fa fa-copy"></span>');
+    var copy = _htmlToElement('<button class="copy-button">Copy</button>');
 
     copy.addEventListener("click", function () {
         copyToClipBoard(text);
@@ -386,14 +386,14 @@ function _addText(item) {
                         resultDict["output"] = pin + resultDict["output"];
                     }
 
-                    // makeCopyButton(t, buttonContainer);
+                    makeCopyButton(t, fig);
 
 
                     var textbutton = _htmlToElement('<span class="textspan" hover_text="Copy">' + resultDict["output"] + '</span>');
                     // var textbutton = _htmlToElement('<button>' + resultDict["output"] + '</button>');
-                    textbutton.addEventListener("click", function () {
-                        copyToClipBoard(t);
-                    })
+                    // textbutton.addEventListener("click", function () {
+                    //     copyToClipBoard(t);
+                    // })
                     fig.appendChild(textbutton);
                     fig.appendChild(buttonContainer);
 

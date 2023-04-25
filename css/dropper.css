@@ -391,7 +391,7 @@ textarea {
   color: #5d5984;
 }
 
-.textblock .textspan:hover:after {
+/* .textblock .textspan:hover:after {
   content: attr(hover_text);
   display: block;
   font-weight: bold;
@@ -414,7 +414,7 @@ textarea {
   content: 'Done';
   display: block;
   position: absolute;
-}
+} */
 
 .textblock:has(.textspan:hover) {
   background-color: #353239;
