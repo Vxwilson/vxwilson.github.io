@@ -48,10 +48,7 @@ window.getLuck = async function () {
     var system_prompt = ``;
     var assistant_prompt = ``;
 
-    input = `
-    Write 2-3 creative sentences to predict my luck of the day,
-    Then on a new line give the corresponding luck score (out of 10).
-    `
+
 
     
     // input = `
@@ -65,13 +62,26 @@ window.getLuck = async function () {
     be creative.
     `
 
+    
+
+
     system_prompt = `
+    you can predict anything, but make it bizarre, detailed, and themed. 
     `
-    ;
+
+    assistant_prompt = `
+    your prediction can range from very bad to very good, do not shy away from predicting bad luck.
+    `
+
+    input = `
+    Use 2 to 3 sentences to describe a prediction of my luck of the day,
+    Then on a new line give the corresponding luck score (out of 10).
+    `
+
 
     document.getElementById("luck").innerHTML = "generating... ";
 
-    await getPrompt(input, system_prompt, assistant_prompt,130).then(message => {
+    await getPrompt(input, system_prompt, assistant_prompt, 130, 1.4).then(message => {
         var result = message['choices'][0]['message']['content'];
         document.getElementById("luck").innerHTML = result;
     });
@@ -94,7 +104,7 @@ window.getLatestBlog = async function () {
     });
 }
 
-async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', max=100){
+async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', max=100, temperature=1.0){
     if(user_prompt === ''){
         // user_prompt = 'Write a sad poem about my border collie, Pepper';
     }
@@ -121,7 +131,7 @@ async function getPrompt(user_prompt='', system_prompt='', assistant_prompt='', 
                   'content': user_prompt
               }
           ],
-          temperature: 1.35 ,
+          temperature: 1.4 ,
         //   top_p: 0.9,  // low value of this makes the generation repetitive
           //frequency_penalty: 0.7,
           max_tokens: max

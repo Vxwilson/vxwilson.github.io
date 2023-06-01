@@ -12,76 +12,50 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway"> -->
     <!-- <link rel="stylesheet" href="/css/dropper.css"> -->
-    
+
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        .container {
-            width: 50vw;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-
-        .text-container {
-            display: flex;
-            flex-direction: column;
-            /* align-items: flex-end; */
-            margin-left: 10px;
-        }
-
-        .btn {
-            font-size: 18px;
-            padding: 10px 20px;
-        }
-
-        .text1,
-        .text2 {
-            display: block;
-        }
     </style>
 </head>
 
 <body>
-    <header class="w3-panel w3-center w3-opacity" style="padding:10px 16px">
-        <h1 class="w3-xlarge">Testing Grounds</h1>
-    </header>
 
-    <span class="fa fa-instagram"> hi
-        Continuation
-        fsfsf
-        sfsf
-        <span class="fa fa-instagram"></span>fsdsdf 
-        fssfsdfs
-    </span>
+    <label for="vet_book_start_time">Start Time:</label>
+    <input type="time" id="vet_book_start_time" name="vet_book_start_time" required><br><br>
+    <label for="vet_book_end_time">End Time:</label>
+    <input type="time" id="vet_book_end_time" name="vet_book_end_time" required><br><br>
 
-    <div class="container">
-        <button class="btn">Click me</button>
-        <div class="text-container">
-          <span class="text1">Text 1</span>
-          <span class="text2">Text 2</span>
-        </div>
-      </div>
+    <script>
+    
+        var start_time = document.getElementById("vet_book_start_time");
 
-    <div class="displayer">
-        <div class="content">
-            <span class="fa fa-instagram">
-                <h5>Continuation: </h5>
-            </span>
-            <div class="">
-                <p id="result"></p>
-            </div>
-        </div>
-        <div class="content">
-            <span>
-                <h5>Total tokens used: </h5>
-            </span>
-            <div class="">
-                <p id="token"></p>
-            </div>
-        </div>
-    </div>
+        var currentTime = new Date();
+        currentTime.setHours(currentTime.getHours() + 1);
+        // set the default start time to be the current time plus one hour, accounting for 23:59
+        const formattedTime = `${currentTime.getHours().toString().padStart(2, '0')}:${currentTime.getMinutes().toString().padStart(2, '0')}`;
+        start_time.value = formattedTime;
 
+
+        //make function to update endtime
+        function updateEndTime(){
+            var start_time_value_split = start_time.value.split(":");
+            var start_time_hour = start_time_value_split[0];
+            var start_time_minute = start_time_value_split[1];
+
+            var end_time_hour = (parseInt(start_time_hour) + 1) %24;
+
+            const formattedTime = `${end_time_hour.toString().padStart(2, '0')}:${start_time_minute.toString().padStart(2, '0')}`;
+            document.getElementById("vet_book_end_time").value = formattedTime;
+        } 
+        
+        updateEndTime();
+        start_time.addEventListener("change", function () {
+            updateEndTime();
+        });
+
+    
+    </script>
 </body>
 
 </html>
