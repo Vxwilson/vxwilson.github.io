@@ -41,10 +41,35 @@
     <script src="https://unpkg.com/highlightjs-copy/dist/highlightjs-copy.min.js"></script>
 
     <style>
-        /* header {
+        .blogInfo p{
+            display: inline;
+            /* display: inline-block; */
+            /* width: 100%; */
+            /* make it at the right side */
+            /* float: right; */
+            color: #6a6a6a;
+        }
+
+        .blogInfo{
             display: flex;
-            align-items: center;
-        } */
+            justify-content: flex-end;
+            align-content: stretch;
+            flex-direction: row;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .leftalign{
+            justify-content: flex-start;
+        }
+
+        .cat{
+            font-size: small;
+            padding: 3px;
+            /* margin-right: 5px; */
+            border-radius: 5px;
+            background-color:lightblue;
+        }
     </style>
 </head>
 
@@ -75,9 +100,13 @@
     <div class="blogHeader isBlog">
         <h2 id="blogTitle">Blog Title</h2>
         <h6 id="blogIntro">a short intro for the blog. haha.</h6>
+        <span class="blogInfo leftalign">
+
         <span class="fa fa-calendar"></span>
         <h5 id="blogDate" style="font-size: 0.95em;"> April 10, 2023</h5>
         <h5 id="blogAuthor" style="font-size: 0.95em;"> By Vei Xhen</h5>
+        <p id="blogCategory" class="cat">Tech</p>
+        </span>
         <hr>
     </div>
     <!-- <div class=""> -->

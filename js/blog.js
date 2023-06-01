@@ -70,6 +70,10 @@ function makeButtonForBlog(blogData) {
             <div>
                 <h3 class="blogTitle">${blogData['title']}</h3>
                 <span><p class="blogIntro">${blogData['intro']}</p></span>
+                <span class="blogInfo">
+                <p class="cat">${blogData['category']}</p>
+                <p>${blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p> 
+                </span>
             </div>
         </div>
         `
@@ -136,6 +140,7 @@ function loadBlog(blogData) {
     document.getElementById("blogIntro").innerHTML = blogData['intro'];
     document.getElementById("blogDate").innerHTML = blogData['date'].toDate().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     document.getElementById('blogContent').innerHTML = blogData['content'];
+    document.getElementById('blogCategory').innerHTML = blogData['category'];
 
 
     updateCodeStyle();
