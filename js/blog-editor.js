@@ -85,6 +85,7 @@ window.uploadBlog = async function () {
         title: title,
         intro: intro,
         content: data,
+        category: document.getElementById('editorCat').value,
         show: true,
         date: new Date()
     });
@@ -102,6 +103,7 @@ window.saveBlogData = function() {
     localStorage.setItem("blogContentUnfinished", editor.getData());
     localStorage.setItem("blogTitleUnfinished", document.getElementById('editorTitle').value);
     localStorage.setItem("blogIntroUnfinished", document.getElementById('editorIntro').value);
+    localStorage.setItem("blogCatUnfinished", document.getElementById('editorCat').value);
 }
 
 function loadBlogData() {
@@ -109,6 +111,7 @@ function loadBlogData() {
     if (text) {
         document.getElementById('editorTitle').value = localStorage.getItem("blogTitleUnfinished");
         document.getElementById('editorIntro').value = localStorage.getItem("blogIntroUnfinished");
+        document.getElementById('editorCat').value = localStorage.getItem("blogCatUnfinished");
         editor.setData(text);
     }
 }
