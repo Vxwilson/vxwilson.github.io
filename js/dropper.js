@@ -599,15 +599,76 @@ window.loadmodal = function (url) {
     const modal = document.querySelector(".modal");
     const overlay = document.querySelector(".overlay");
 
+    // overlay.addEventListener('click', function () {
+    //     modal.classList.add("hidden");
+    //     overlay.classList.add("hidden");
+    // })
+
+    modal.classList.remove("hidden");
+    overlay.classList.remove("hidden");
+
+    var model = document.getElementById("myModal");
+
+    overlay.addEventListener('wheel', function (event) {
+        event.preventDefault(); // Prevent default scroll behavior
+    });
+
     overlay.addEventListener('click', function () {
         modal.classList.add("hidden");
         overlay.classList.add("hidden");
     })
 
-    modal.classList.remove("hidden");
-    overlay.classList.remove("hidden");
+    modal.addEventListener('wheel', function (event) {
+        event.preventDefault(); // Prevent default scroll behavior
+    });
+
+    modal.addEventListener('click', function () {
+        modal.classList.add("hidden");
+        overlay.classList.add("hidden");
+    })
 
     var fig = document.getElementById("modal_img");
+
+    fig.style.transform = 'scale(' + 1 + ')';
+    var scale = 1;
+
+    fig.addEventListener('wheel', function(event) {
+        event.preventDefault(); // Prevent default scroll behavior
+        console.log('scrolling');
+        var delta = event.deltaY || event.detail || event.wheelDelta;
+        // Adjust the scale based on the scroll direction
+        if (delta < 0) {
+            if(scale <2){
+                scale += 0.05; // Increase scale for zooming in
+            }
+        } else {
+            if(scale > 0.5){
+                scale -= 0.05; // Decrease scale for zooming out
+            }
+        }
+        // get the current leftmost position of the image
+        // var left = fig.style.left;
+        
+        // console.log(left);
+      
+
+        fig.style.transform = `scale(${scale})`;
+        
+
+        // displacement of the image
+        var rect = fig.getBoundingClientRect();
+        console.log(rect.top, rect.right, rect.bottom, rect.left);  
+
+        var dx = (event.clientX - rect.left) * (scale - 1);
+
+        var dy = (event.clientY - rect.top) * (scale - 1);
+        
+        fig.style.left = rect.left - dx + 'px';
+        fig.style.top = rect.top - dy + 'px';
+
+
+        console.log(fig.style.left, fig.style.top);
+      });
 
     fig.src = url;
 }
