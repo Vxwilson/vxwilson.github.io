@@ -50,7 +50,7 @@
 
 
 ![image](https://user-images.githubusercontent.com/26194167/222962495-cc95707f-d7c0-405e-9a53-cb0bf06de893.png)
-
+This is a portfolio/personal site of mine to showcase my gallery and blog postings, along with other cool features such as file hosting/organizer. Built on the simplest webstack (HTML/CSS/JS/Firebase), it is exceptionally responsive, dynamic (in appearance, at least), and minimal.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -66,7 +66,7 @@
 <!-- USAGE EXAMPLES -->
 ## Usage
 - [Dropper](https://vxwilson.github.io/dropper) - a simple file hoster equipped with advanced clipboard support! Features include auto-formatting code snippet, pinning clips, and direct URL links.
-- GPT - integration with the famous ChatGPT API! Includes chatbots with personality, and adjustable parameters (to-come).
+- GPT - integration with the famous ChatGPT API! Includes chatbots with personality, and adjustable parameters (dev phase).
 - [VEIS](https://vxwilson.github.io/blog) - personal blogsite on some Very Exciting Items (VEIS).
 - [Gallery](https://vxwilson.github.io/gallery) - personal gallery.
 
