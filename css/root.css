@@ -141,7 +141,7 @@ a {
   margin-top: 1em;
 }
 
-#luckButton {
+.luck-button {
   color: rgb(110, 135, 156);
   font-size: 1.1em;
   text-align: left;

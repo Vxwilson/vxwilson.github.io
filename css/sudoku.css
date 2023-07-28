@@ -1,0 +1,124 @@
+/* css file for a sudoku grid */
+/* Set the font family and size for the grid */
+.sudoku {
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    margin: 0 auto;
+    /* margin-left: 20vw; */
+    /* display: block; */
+    width: 50%;
+    margin-bottom: 2.5%;
+  }
+
+/* mobile */
+@media only screen and (max-width: 600px) {
+    .sudoku {
+    
+      width: 80%;
+    
+    }
+  }
+  
+  /* Style the rows and cells of the grid */
+  .sudoku-row {
+    display: flex;
+    /* align center */
+    justify-content: center;
+  }
+  .sudoku-cell {
+    min-width: 40px;
+    min-height: 40px;
+    width: 40px;
+    height: 40px;
+    border: 1.3px solid rgb(70, 68, 68);
+    text-align: center;
+    line-height: 40px;
+    background-color:rgb(173, 189, 189);
+    background-color:rgb(217, 228, 228);
+    color: rgb(55, 53, 53);
+    /* background-color:rgb(238, 238, 200); */
+  }
+
+  
+  @media only screen and (max-width: 600px) {
+    .sudoku-cell{
+      min-width: 35px;
+      min-height: 35px;
+      width: 35px;
+      height: 35px;
+      font-size: 1em;
+    }
+  }
+
+  .sudoku-cell:hover{
+    background-color:rgb(238, 238, 200);
+  }
+
+  /* borders */
+
+  /* up */
+  .sudoku-cell[data-row="1"]{
+    border-top: 4px solid rgb(70, 68, 68);
+  }
+
+  .sudoku-cell[data-row="4"],
+  .sudoku-cell[data-row="7"] {
+    border-top: 2px solid rgb(70, 68, 68);
+  }
+
+  /* bottom */
+  .sudoku-cell[data-row="3"],
+  .sudoku-cell[data-row="6"]{
+    border-bottom: 2px solid rgb(70, 68, 68);
+  }
+  .sudoku-cell[data-row="9"]{
+    border-bottom: 4px solid rgb(70, 68, 68);
+  }
+
+  /* right */
+  .sudoku-cell[data-col="3"],
+  .sudoku-cell[data-col="6"]{
+    border-right: 2px solid rgb(70, 68, 68);
+  }
+
+  .sudoku-cell[data-col="9"]{
+    border-right: 4px solid rgb(70, 68, 68);
+  }
+
+  /* left */
+  .sudoku-cell[data-col="7"],
+  .sudoku-cell[data-col="4"]{
+    border-left: 2px solid rgb(70, 68, 68);
+  }
+  .sudoku-cell[data-col="1"]{
+    border-left: 4px solid rgb(70, 68, 68);
+  }
+
+  
+  /* Style the cells that are part of the same sub-grid */
+  /* .sudoku-cell:nth-child(3n+1),
+  .sudoku-cell:nth-child(3n+2),
+  .sudoku-cell:nth-child(3n+3) {
+    border-right: none;
+  }
+  .sudoku-cell:nth-child(9n+1),
+  .sudoku-cell:nth-child(9n+2),
+  .sudoku-cell:nth-child(9n+3) {
+    border-bottom: none;
+  }
+  .sudoku-cell:nth-child(9n+4),
+  .sudoku-cell:nth-child(9n+5),
+  .sudoku-cell:nth-child(9n+6) {
+    border-left: none;
+    border-right: none;
+  }
+  .sudoku-cell:nth-child(9n+7),
+  .sudoku-cell:nth-child(9n+8),
+  .sudoku-cell:nth-child(9n+9) {
+    border-bottom: none;
+  } */
+  
+  /* Style the cells that are pre-filled with numbers */
+  .sudoku-cell.prefilled {
+    background-color: #eee;
+  }
