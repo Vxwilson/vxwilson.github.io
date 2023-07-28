@@ -1,4 +1,19 @@
 /* css file for a sudoku grid */
+
+
+
+header{
+  padding: 20px 16px !important;
+}
+
+@media only screen and (max-width: 600px) {
+  header{
+    padding: 5px 0px !important;
+  }
+}
+
+
+
 /* Set the font family and size for the grid */
 .sudoku {
     font-family: Arial, sans-serif;
@@ -189,7 +204,7 @@
   }
 
   .bottom-row{
-    margin-bottom: 12.5%;
+    margin-bottom: 7.5%;
   }
 
   /* mobile */
@@ -201,7 +216,7 @@
     .sudoku-button{
       /* font-size: 0.9em; */
       /* height: 35px; */
-      width: 100%;
+      width: 90%;
       font-size: 0.95em;
     }
   }
