@@ -2,7 +2,7 @@
 
 // Sudoku board is a 9x9 grid
 // initialize board as a 9x9 array
-const sudokuBoard = [
+let sudokuBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 0
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 1
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 2
@@ -13,6 +13,10 @@ const sudokuBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 7
     [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
 ];
+
+// undostack and redostack
+let undoStack = [];
+let redoStack = [];
 
 function trySetValue(row, col, value){
     row = row - 1;
@@ -59,35 +63,145 @@ function checkValid(board, row, col, num){
     return true;
 }
 
-function generateBoard(){
+function solve(board){ // TODO show real time backtrack solving
+    // find empty cell
+    let emptyCell = findEmptyCell(board);
+    if (!emptyCell){
+        return true;
+    }
+    for (let i = 1; i <= 9; i++){
+        console.log(`Trying ${i} at ${emptyCell[0]}, ${emptyCell[1]}`);
+        if (checkValid(board, emptyCell[0], emptyCell[1], i)){
+            board[emptyCell[0]][emptyCell[1]] = i;
+            if (solve(board)){
+                return true;
+            }
+            board[emptyCell[0]][emptyCell[1]] = 0;
+        }
+    }
+    return false;
 
 }
 
-function displayBoard(){
+
+function findEmptyCell(board){
+    for (let i = 0; i < 9; i++){
+        for (let j = 0; j < 9; j++){
+            if (board[i][j] === 0){
+                return [i, j];
+            }
+        }
+    }
+    return null;
+}
+
+function try_solve(board){
+    board_temp = board;
+    result = solve(board);
+    if(!result){
+        board = board_temp;
+
+        // display error message
+        console.log("No solution found");
+    }else{
+        // do nothing
+    }
+}
+
+
+function generateBoard(){
+    for(let i = 0; i < 15; i++){
+        let row = Math.floor(Math.random() * 9);
+        let col = Math.floor(Math.random() * 9);
+        let value = Math.floor(Math.random() * 9) + 1;
+        // retry while the value is not valid or the cell is not empty
+        while (sudokuBoard[row][col] !== 0 || !checkValid(sudokuBoard, row, col, value)){
+            row = Math.floor(Math.random() * 9);
+            col = Math.floor(Math.random() * 9);
+            value = Math.floor(Math.random() * 9) + 1;
+        }
+        // if (i > 17 && solvable(board)){
+            sudokuBoard[row][col] = value;
+        // }
+    }
+}
+
+function displayBoard(prefilled=false){
     // Given the grid, display the board on the screen to correspond to the grid
+    for (let i = 0; i < 9; i++){
+        for (let j = 0; j < 9; j++){
+            // let cell = document.getElementById(`cell-${i + 1}-${j + 1}`);
+            let cell = document.querySelector(`.sudoku-cell[data-row="${i+1}"][data-col="${j+1}"]`);
+            if (sudokuBoard[i][j] !== 0){
+                cell.textContent = sudokuBoard[i][j];
+                if (prefilled){
+                    cell.classList.add('prefilled');
+                }
+            }else{
+                cell.textContent = '';
+                cell.classList.remove('prefilled');
+            }
+        }
+    }
 }
 
 
 
 // UI
-
 const sudokuCells = document.querySelectorAll('.sudoku-cell');
 
 let selectedCell = null;
 
+function undo(){
+
+}
+
+function redo(){
+
+}
+
+function clearboard(){
+    sudokuBoard = [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 0
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 1
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 2
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 3
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 4
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 5
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 6
+        [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 7
+        [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
+    ]
+    displayBoard();
+    // sudokuCells.forEach(cell => cell.textContent = '');
+}
+
+function randomboard(){
+    clearboard();
+    generateBoard();
+    displayBoard(prefilled=true);
+}
+
+function solveboard(){
+    try_solve(sudokuBoard);
+    displayBoard();
+}
+
+// listeners
 function handleCellClick(event){
     if (selectedCell){
-        selectedCell.style.backgroundColor = 'rgb(217, 228, 228)';
+        selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
     }
     selectedCell = event.target;
-    selectedCell.style.backgroundColor = 'rgb(173, 189, 189)';
+    selectedCell.style.backgroundColor = '#e5e2de';
 }
 
 sudokuCells.forEach(cell => cell.addEventListener('click', handleCellClick));
 
+
 function handleOutsideClick(event){
     if (selectedCell && !event.target.classList.contains('sudoku-cell')){
-        selectedCell.style.backgroundColor = 'rgb(217, 228, 228)';
+        selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
         selectedCell = null;
     }
 }
@@ -118,3 +232,7 @@ document.addEventListener('keydown', function(event){
         }
     }
 });
+
+
+// init
+randomboard();

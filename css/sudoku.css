@@ -30,12 +30,14 @@
     min-height: 40px;
     width: 40px;
     height: 40px;
-    border: 1.3px solid rgb(70, 68, 68);
+    border: 1.3px solid rgb(104, 101, 101);
     text-align: center;
     line-height: 40px;
     background-color:rgb(173, 189, 189);
-    background-color:rgb(217, 228, 228);
-    color: rgb(55, 53, 53);
+    background-color:rgba(217, 228, 228, 0.5);
+    color: rgb(86, 92, 89);
+    color: #261d2a;
+
     /* background-color:rgb(238, 238, 200); */
   }
 
@@ -50,15 +52,19 @@
     }
   }
 
-  .sudoku-cell:hover{
-    background-color:rgb(238, 238, 200);
+  /* not mobile */
+  @media only screen and (min-width: 600px) {
+    .sudoku-cell:hover{
+      background-color:#e5e2de;
+    }
   }
+
 
   /* borders */
 
   /* up */
   .sudoku-cell[data-row="1"]{
-    border-top: 4px solid rgb(70, 68, 68);
+    border-top: 3px solid rgb(70, 68, 68);
   }
 
   .sudoku-cell[data-row="4"],
@@ -69,20 +75,20 @@
   /* bottom */
   .sudoku-cell[data-row="3"],
   .sudoku-cell[data-row="6"]{
-    border-bottom: 2px solid rgb(70, 68, 68);
+    /* border-bottom: 2px solid rgb(70, 68, 68); */
   }
   .sudoku-cell[data-row="9"]{
-    border-bottom: 4px solid rgb(70, 68, 68);
+    border-bottom: 3px solid rgb(70, 68, 68);
   }
 
   /* right */
   .sudoku-cell[data-col="3"],
   .sudoku-cell[data-col="6"]{
-    border-right: 2px solid rgb(70, 68, 68);
+    /* border-right: 2px solid rgb(70, 68, 68); */
   }
 
   .sudoku-cell[data-col="9"]{
-    border-right: 4px solid rgb(70, 68, 68);
+    border-right: 3px solid rgb(70, 68, 68);
   }
 
   /* left */
@@ -91,34 +97,40 @@
     border-left: 2px solid rgb(70, 68, 68);
   }
   .sudoku-cell[data-col="1"]{
-    border-left: 4px solid rgb(70, 68, 68);
+    border-left: 3px solid rgb(70, 68, 68);
   }
 
-  
-  /* Style the cells that are part of the same sub-grid */
-  /* .sudoku-cell:nth-child(3n+1),
-  .sudoku-cell:nth-child(3n+2),
-  .sudoku-cell:nth-child(3n+3) {
-    border-right: none;
-  }
-  .sudoku-cell:nth-child(9n+1),
-  .sudoku-cell:nth-child(9n+2),
-  .sudoku-cell:nth-child(9n+3) {
-    border-bottom: none;
-  }
-  .sudoku-cell:nth-child(9n+4),
-  .sudoku-cell:nth-child(9n+5),
-  .sudoku-cell:nth-child(9n+6) {
-    border-left: none;
-    border-right: none;
-  }
-  .sudoku-cell:nth-child(9n+7),
-  .sudoku-cell:nth-child(9n+8),
-  .sudoku-cell:nth-child(9n+9) {
-    border-bottom: none;
-  } */
-  
   /* Style the cells that are pre-filled with numbers */
   .sudoku-cell.prefilled {
-    background-color: #eee;
+    color: rgb(86, 92, 89);
+
+  }
+
+  /* style buttons */
+  .sudoku-button{
+    color: rgb(110, 135, 156);
+    font-size: 1.1em;
+    display: flex;
+    width: 90%;
+    cursor: pointer;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    border-radius: 6px;
+    background-color: #e5e0d86c;
+    border: none;
+  }
+
+  .sudoku-button:active{
+    background-color: #e5e0d8;
+  }
+
+  .sudoku-button:focus{
+    background-color: #e5e0d86c;
+
+  }
+
+  .sudoku-button:hover{
+    background-color: #e5e2de;
   }
