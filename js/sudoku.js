@@ -19,6 +19,11 @@ let undoStack = [];
 let redoStack = [];
 
 function trySetValue(row, col, value) {
+    let prefilled = selectedCell.classList.contains('prefilled');
+    if (prefilled) {
+        return false;
+    }
+
     row = row - 1;
     col = col - 1;
     // if value is 0, then clearing the cell is always valid
@@ -217,13 +222,13 @@ function isValidCode(value) {
         return false;
     }
 
-    for (let i = 0; i < 162; i+=2){
+    for (let i = 0; i < 162; i += 2) {
         if (value[i] < '0' || value[i] > '9') {
             console.log("Not a number");
             return false;
         }
     }
-    for (let i = 1; i < 162; i+=2){
+    for (let i = 1; i < 162; i += 2) {
         if (value[i] !== '0' && value[i] !== '1') {
             console.log("Invalid prefilled value");
             return false;
@@ -232,7 +237,7 @@ function isValidCode(value) {
     return true;
 }
 
-function tryLoad(){
+function tryLoad() {
     document.getElementById("loadBox").classList.toggle('show');
 }
 
@@ -241,8 +246,8 @@ function loadBoard() {
     var value = document.getElementById('code').value;
     console.log(value);
 
-    if(!isValidCode(value)){
-        // display error message
+    // let decoded = base62.decode(value);
+    if (!isValidCode(value)) {
         console.log("Invalid code");
         return false;
     }
@@ -250,49 +255,70 @@ function loadBoard() {
     // clear the board
     clearboard();
 
-    for (let i = 0; i < 162; i+=2){
-        let row = Math.floor(i/2 / 9);
-        let col = i/2  % 9;
+    for (let i = 0; i < 162; i += 2) {
+        let row = Math.floor(i / 2 / 9);
+        let col = i / 2 % 9;
 
-        if(value[i+1] == '1'){
+        if (value[i + 1] == '1') {
             document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`).classList.add('prefilled');
         }
-        
-        console.log('this is row ' + row + ' and col ' + col + ' and value ' + value[i] + ' and prefilled ' + value[i+1]);
+
+        console.log('this is row ' + row + ' and col ' + col + ' and value ' + value[i] + ' and prefilled ' + value[i + 1]);
         sudokuBoard[row][col] = parseInt(value[i]);
-    }  
-    
+    }
+
     closeLoad();
     displayBoard();
 }
 
-function exportBoard(){
+const base62 = {
+    charset: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        .split(''),
+    encode: integer => {
+        if (integer === 0) {
+            return 0;
+        }
+        let s = [];
+        while (integer > 0) {
+            s = [base62.charset[integer % 62], ...s];
+            integer = Math.floor(integer / 62);
+        }
+        return s.join('');
+    },
+    decode: chars => chars.split('').reverse().reduce((prev, curr, i) =>
+        prev + (base62.charset.indexOf(curr) * (62 ** i)), 0)
+};
+
+
+function exportBoard() {
     // export the board to a string, remembering the prefilled cells
     // string is alternate of value pair of cell value and prefilled; such as 50 41 30 21 10 00 ... (no space in the real string)
     let boardString = '';
-    for (let i = 0; i < 9; i++){
-        for (let j = 0; j < 9; j++){
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
             boardString += sudokuBoard[i][j];
             // check if the cell is prefilled
-            if (document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`).classList.contains('prefilled')){
+            if (document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`).classList.contains('prefilled')) {
                 boardString += '1';
             } else {
                 boardString += '0';
             }
         }
     }
-    
+
+    // let encoded = base62.encode(parseInt(boardString));
     // console.log(boardString);
     document.getElementById("exportBox").classList.toggle("show");
 
+    // document.getElementById("exportcodedisplay").textContent = encoded;
     document.getElementById("exportcodedisplay").textContent = boardString;
 }
 
-function closeExport(){
+function closeExport() {
     document.getElementById("exportBox").classList.toggle("show");
 }
 
-function copyCode(){
+function copyCode() {
     var copyText = document.getElementById("exportcodedisplay");
     copyToClipboard(copyText.textContent);
 }
@@ -306,7 +332,7 @@ function copyToClipboard(text) {
     document.body.removeChild(textArea);
 }
 
-function closeLoad(){
+function closeLoad() {
     document.getElementById("loadBox").classList.toggle("show");
 }
 
@@ -362,7 +388,7 @@ let pausedTime = 0;
 function startStopwatch() {
     // start     
     let timer = document.querySelector(".timer .timer-text");
-    startTime = startTime === 0 ? new Date().getTime(): new Date().getTime() - pausedTime;
+    startTime = startTime === 0 ? new Date().getTime() : new Date().getTime() - pausedTime;
 
     button = document.querySelector(".play-pause i");
     button.classList.remove("fa-play");
@@ -424,7 +450,7 @@ function solveboard(visual = false) {
     }
 
     stopStopwatch();
-    
+
 }
 
 
@@ -437,6 +463,46 @@ function handleCellClick(event) {
     }
     selectedCell = event.target;
     selectedCell.style.backgroundColor = '#e5e2de';
+
+    updateNumButtons(selectedCell);
+}
+
+function updateNumButtons(cell) {
+    const row = cell.dataset.row - 1;
+    const col = cell.dataset.col - 1;
+
+    const numButtons = document.querySelectorAll('.num-button');
+
+    // check if cell is prefilled
+    let prefilled = selectedCell.classList.contains('prefilled');
+
+    numButtons.forEach(button => {
+
+        if (prefilled) {
+            button.disabled = true;
+            return;
+        }
+
+        const num_ = button.dataset.num;
+
+        // convert string to int
+        const num = parseInt(num_);
+        if (num === 0) {
+            if (getValue(row, col) === 0) {
+                button.disabled = true;
+            } else {
+                button.disabled = false;
+            }
+        }
+
+        else if (checkValid(sudokuBoard, row, col, num)) {
+            button.disabled = false;
+            console.log("button " + num + " is valid");
+        } else {
+            button.disabled = true;
+            console.log("button " + num + " is invalid");
+        }
+    });
 }
 
 sudokuCells.forEach(cell => cell.addEventListener('click', handleCellClick));
@@ -470,6 +536,8 @@ function press(num) {
             selectedCell.textContent = '';
             trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
         }
+
+        updateNumButtons(selectedCell);
     }
 }
 
@@ -482,6 +550,7 @@ document.addEventListener('keydown', function (event) {
             if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
                 // update UI
                 selectedCell.textContent = num;
+                updateNumButtons(selectedCell);
 
                 // check if board is solved
                 if (isBoardSolved(sudokuBoard)) {
@@ -499,9 +568,11 @@ document.addEventListener('keydown', function (event) {
 document.addEventListener('keydown', function (event) {
     if (selectedCell) {
         if (event.key === 'Backspace') {
-            trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
-            // update UI
-            selectedCell.textContent = '';
+            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0)) {
+                selectedCell.textContent = '';
+                updateNumButtons(selectedCell);
+
+            };
         }
     }
 });
