@@ -214,8 +214,6 @@ header{
     }
 
     .sudoku-button{
-      /* font-size: 0.9em; */
-      /* height: 35px; */
       width: 90%;
       font-size: 0.95em;
     }
@@ -227,9 +225,28 @@ header{
 
   .sudoku-button:focus{
     background-color: #e5e0d86c;
-
   }
 
   .sudoku-button:hover{
     background-color: #e5e2de;
+  }
+
+  .timer{
+    color: rgb(110, 135, 156);
+    font-size: 1.1em;
+    display: flex;
+    width: 90%;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    border-radius: 6px;
+    background-color: #e5e0d86c;
+    border: none;
+  }
+
+  .timer .timer-text{
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    font-style: normal !important;
+    margin-left: 0.5em;
   }

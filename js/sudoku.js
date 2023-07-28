@@ -63,6 +63,15 @@ function checkValid(board, row, col, num) {
     return true;
 }
 
+function isBoardSolved(board) {
+    // check if any cell is empty
+    let emptyCell = findEmptyCell(board);
+    if (emptyCell) {
+        return false;
+    }
+    return true;
+}
+
 function solve(board) { // TODO show real time backtrack solving
     // find empty cell
     let emptyCell = findEmptyCell(board);
@@ -112,13 +121,13 @@ async function solvevisual(board) {
                     if (checkValid(board, row, col, num)) {
                         board[row][col] = num;
                         displayBoard();
-                        await new Promise((resolve) => setTimeout(resolve, 100)); // Delay 0.1s
+                        await new Promise((resolve) => setTimeout(resolve, 75)); // Delay 0.1s
                         if (await solvevisual(board)) {
                             return true;
                         }
                         board[row][col] = 0;
                         displayBoard();
-                        await new Promise((resolve) => setTimeout(resolve, 100)); // Delay 0.1s
+                        await new Promise((resolve) => setTimeout(resolve, 3)); // Delay 0.1s
                     }
                 }
                 return false;
@@ -177,26 +186,10 @@ function betterGenerateBoard() {
     // solve the board
     randomized_solve(sudokuBoard, digitarray);
 
-    // remove 40 cells
-    generateChallengeFromBoard(sudokuBoard, 40);
+    // remove 42 cells
+    generateChallengeFromBoard(sudokuBoard, 42);
 }
 
-function generateBoard() {
-    for (let i = 0; i < 17; i++) {
-        let row = Math.floor(Math.random() * 9);
-        let col = Math.floor(Math.random() * 9);
-        let value = Math.floor(Math.random() * 9) + 1;
-        // retry while the value is not valid or the cell is not empty
-        while (sudokuBoard[row][col] !== 0 || !checkValid(sudokuBoard, row, col, value)) {
-            row = Math.floor(Math.random() * 9);
-            col = Math.floor(Math.random() * 9);
-            value = Math.floor(Math.random() * 9) + 1;
-        }
-        // if (i > 17 && solvable(board)){
-        sudokuBoard[row][col] = value;
-        // }
-    }
-}
 
 function displayBoard(prefilled = false) {
     // Given the grid, display the board on the screen to correspond to the grid
@@ -249,10 +242,44 @@ function clearboard() {
 }
 
 function randomboard() {
+    resetStopwatch();
     clearboard();
-    // generateBoard();
     betterGenerateBoard();
     displayBoard(prefilled = true);
+    startStopwatch();
+}
+
+let currentTime = 0;
+let interval = 0;
+
+function startStopwatch(){
+    // start 
+    currentTime = 0;   
+    
+    let timer = document.querySelector(".timer .timer-text");
+
+    start = new Date().getTime();
+    interval = setInterval(function(){
+        const time = new Date().getTime() - start;
+        const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((time % (1000 * 60)) / 1000);
+
+        // in the form of 00:00
+        timer.textContent = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+
+    }, 1000);
+
+}
+
+function resetStopwatch(){
+    // reset
+    clearInterval(interval);
+    document.querySelector(".timer .timer-text").textContent = "00:00";
+}
+
+function stopStopwatch(){
+    // stop
+    clearInterval(interval);
 }
 
 function solveboard(visual = false) {
@@ -274,8 +301,15 @@ function press(num) {
             if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
                 selectedCell.textContent = num;
             }
+
+            // check if the board is solved
+            if (isBoardSolved(sudokuBoard)) {
+                stopStopwatch();
+                // alert("You solved the board!");
+            }
         } else if (num === 0) {
             selectedCell.textContent = '';
+            trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
         }
     }
 }
@@ -310,6 +344,12 @@ document.addEventListener('keydown', function (event) {
             if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, event.key)) {
                 // update UI
                 selectedCell.textContent = event.key;
+
+                // check if board is solved
+                if (isBoardSolved(sudokuBoard)) {
+                    // alert("You solved the board!");
+                    stopStopwatch();
+                }
             } else {
                 // handle invalid input or ignore
             }
