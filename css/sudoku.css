@@ -7,7 +7,7 @@
     /* margin-left: 20vw; */
     /* display: block; */
     width: 50%;
-    margin-bottom: 2.5%;
+    margin-bottom: 1%;
   }
 
 /* mobile */
@@ -37,6 +37,7 @@
     background-color:rgba(217, 228, 228, 0.5);
     color: rgb(86, 92, 89);
     color: #261d2a;
+    color: rgb(110, 135, 156);
 
     /* background-color:rgb(238, 238, 200); */
   }
@@ -120,6 +121,20 @@
     border-radius: 6px;
     background-color: #e5e0d86c;
     border: none;
+  }
+
+  /* mobile */
+  @media only screen and (max-width: 600px) {
+    .game .col{
+      padding: 0 0.25em;
+    }
+
+    .sudoku-button{
+      /* font-size: 0.9em; */
+      /* height: 35px; */
+      width: 100%;
+      font-size: 0.95em;
+    }
   }
 
   .sudoku-button:active{

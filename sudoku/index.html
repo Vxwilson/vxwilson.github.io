@@ -61,7 +61,7 @@
 <body>
     <!-- !PAGE CONTENT! -->
     <div class="w3-content" style="max-width:1500px ">
-        <header class="w3-panel w3-center w3-opacity" style="padding:80px 16px">
+        <header class="w3-panel w3-center w3-opacity" style="padding:20px 16px">
             <h1 class="w3-xlarge">sudoku</h1>
         </header>
     </div>
@@ -70,8 +70,15 @@
     </div>
 
     <div class="game">
-
+        <div class="row">
+            <div class="col l1 offset-l7 s4 offset-s7">
+                <button class="sudoku-button" onclick="solveboard()">
+                    <i class="fa fa-lightbulb-o"></i>
+                </button>
+            </div>
+        </div>
         <div class="sudoku">
+
             <div class="sudoku-row">
                 <div class="sudoku-cell" data-row="1" data-col="1"></div>
                 <div class="sudoku-cell" data-row="1" data-col="2"></div>
@@ -177,30 +184,27 @@
             <!-- buttons -->
             <div class="col l1 offset-l4 offset-s2 s2">
                 <button class="sudoku-button" onclick="undo()">
-                    <i class="">undo</i>
+                    <i class="fa fa-undo"></i>
                 </button>
             </div>
             <div class="col l1 s2">
                 <button class="sudoku-button" onclick="redo()">
-                    <i class="">redo</i>
+                    <i class="fa fa-undo fa-flip-horizontal"></i>
                 </button>
             </div>
             <div class="col l1 s2">
                 <button class="sudoku-button" onclick="clearboard()">
-                    <i class="">clear</i>
+                    <i class="fa fa-trash"></i>
                 </button>
             </div>
             <div class="col l1 s2">
                 <button class="sudoku-button" onclick="randomboard()">
-                    <i class="">random</i>
+                    <i class="fa fa-random"></i>
                 </button>
             </div>
-            <div class="col l1 s2">
-                <button class="sudoku-button" onclick="solveboard()">
-                    <i class="">solve</i>
-                </button>
-            </div>
+
         </div>
+
     </div>
 
 
