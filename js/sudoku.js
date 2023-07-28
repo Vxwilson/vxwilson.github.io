@@ -171,6 +171,7 @@ function generateChallengeFromBoard(board, num) {
         }
         board[row][col] = 0;
     }
+    return board;
 }
 
 
@@ -185,7 +186,7 @@ function betterGenerateBoard() {
     randomized_solve(sudokuBoard, digitarray);
 
     // remove 42 cells
-    generateChallengeFromBoard(sudokuBoard, 42);
+    sudokuBoard = generateChallengeFromBoard(sudokuBoard, 42);
 }
 
 
@@ -236,7 +237,6 @@ function clearboard() {
         [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
     ]
     displayBoard();
-    // sudokuCells.forEach(cell => cell.textContent = '');
 }
 
 function randomboard() {
@@ -321,25 +321,7 @@ function solveboard(visual = false) {
 }
 
 
-// mobile num press
-function press(num) {
-    if (selectedCell) {
-        if (num >= 1 && num <= 9) {
-            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
-                selectedCell.textContent = num;
-            }
 
-            // check if the board is solved
-            if (isBoardSolved(sudokuBoard)) {
-                stopStopwatch();
-                // alert("You solved the board!");
-            }
-        } else if (num === 0) {
-            selectedCell.textContent = '';
-            trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
-        }
-    }
-}
 
 // listeners
 function handleCellClick(event) {
@@ -364,13 +346,35 @@ function handleOutsideClick(event) {
 
 document.addEventListener("click", handleOutsideClick);
 
+// mobile num press
+function press(num) {
+    if (selectedCell) {
+        if (num >= 1 && num <= 9) {
+            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
+                selectedCell.textContent = num;
+            }
+
+            // check if the board is solved
+            if (isBoardSolved(sudokuBoard)) {
+                stopStopwatch();
+                // alert("You solved the board!");
+            }
+        } else if (num === 0) {
+            selectedCell.textContent = '';
+            trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
+        }
+    }
+}
+
 // listener for numbers 1-9
 document.addEventListener('keydown', function (event) {
     if (selectedCell) {
         if (event.key >= 1 && event.key <= 9) {
-            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, event.key)) {
+            // convert to number
+            num = parseInt(event.key);
+            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
                 // update UI
-                selectedCell.textContent = event.key;
+                selectedCell.textContent = num;
 
                 // check if board is solved
                 if (isBoardSolved(sudokuBoard)) {
