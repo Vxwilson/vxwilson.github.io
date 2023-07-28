@@ -8,8 +8,90 @@ header{
 
 @media only screen and (max-width: 600px) {
   header{
-    padding: 5px 0px !important;
+    padding: 15px 0px !important;
+    padding: 100px 0px 15px 0px !important;
   }
+}
+
+
+/* loading */
+.floatingBox {
+  /* display at center */
+
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #f9f9f9;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+  padding: 10px;
+  width:400px;
+}
+
+/* mobile */
+@media only screen and (max-width: 600px) {
+  .floatingBox {
+    width: 90%;
+  }
+}
+
+.floatingBox .boxtitle{
+  font-size: 1.4em;
+  font-weight: 600;
+  margin-bottom: 0em;
+  color: rgb(110, 135, 156);
+}
+
+button{
+  color: rgb(110, 135, 156);
+  font-size: 1.5em;
+  /* width: 100%; */
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  background-color: #e5e0d86c;
+  background-color: #f7f3eb;
+  border: none;
+}
+
+.floatingBox button{
+  color: rgb(110, 135, 156);
+  font-size: 1.1em;
+  /* display: flex; */
+  width: 100%;
+  cursor: pointer;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  background-color: #e5e0d86c;
+  border: none;
+}
+
+.codebox{
+  /* display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; */
+  background-color: #81807e17;
+  border-radius: 10px;
+  margin-left: 5% !important;
+  width: 90% !important;
+}
+
+#exportcodedisplay{
+  overflow-wrap: break-word;
+}
+
+.floatingBox.show {
+  display: block;
 }
 
 
@@ -231,6 +313,12 @@ header{
     background-color: #e5e2de;
   }
 
+  .sudoku-button:disabled{
+    /* background-color: #e5e0d8; */
+    color: rgba(76, 81, 85, 0.44);
+    cursor: not-allowed;
+  }
+
   .timer{
     color: rgb(110, 135, 156);
     font-size: 1.1em;
@@ -260,6 +348,7 @@ header{
     align-items: center;
     justify-content: center;
     display: flex;
+    font-size: 0.9em;
   }
 
   /* mobile */

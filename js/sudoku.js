@@ -210,6 +210,107 @@ function displayBoard(prefilled = false) {
 }
 
 
+function isValidCode(value) {
+    // check if the code is valid
+    if (value.length != 162) {
+        console.log("Invalid length");
+        return false;
+    }
+
+    for (let i = 0; i < 162; i+=2){
+        if (value[i] < '0' || value[i] > '9') {
+            console.log("Not a number");
+            return false;
+        }
+    }
+    for (let i = 1; i < 162; i+=2){
+        if (value[i] !== '0' && value[i] !== '1') {
+            console.log("Invalid prefilled value");
+            return false;
+        }
+    }
+    return true;
+}
+
+function tryLoad(){
+    document.getElementById("loadBox").classList.toggle('show');
+}
+
+function loadBoard() {
+    // load the board from a string
+    var value = document.getElementById('code').value;
+    console.log(value);
+
+    if(!isValidCode(value)){
+        // display error message
+        console.log("Invalid code");
+        return false;
+    }
+
+    // clear the board
+    clearboard();
+
+    for (let i = 0; i < 162; i+=2){
+        let row = Math.floor(i/2 / 9);
+        let col = i/2  % 9;
+
+        if(value[i+1] == '1'){
+            document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`).classList.add('prefilled');
+        }
+        
+        console.log('this is row ' + row + ' and col ' + col + ' and value ' + value[i] + ' and prefilled ' + value[i+1]);
+        sudokuBoard[row][col] = parseInt(value[i]);
+    }  
+    
+    closeLoad();
+    displayBoard();
+}
+
+function exportBoard(){
+    // export the board to a string, remembering the prefilled cells
+    // string is alternate of value pair of cell value and prefilled; such as 50 41 30 21 10 00 ... (no space in the real string)
+    let boardString = '';
+    for (let i = 0; i < 9; i++){
+        for (let j = 0; j < 9; j++){
+            boardString += sudokuBoard[i][j];
+            // check if the cell is prefilled
+            if (document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`).classList.contains('prefilled')){
+                boardString += '1';
+            } else {
+                boardString += '0';
+            }
+        }
+    }
+    
+    // console.log(boardString);
+    document.getElementById("exportBox").classList.toggle("show");
+
+    document.getElementById("exportcodedisplay").textContent = boardString;
+}
+
+function closeExport(){
+    document.getElementById("exportBox").classList.toggle("show");
+}
+
+function copyCode(){
+    var copyText = document.getElementById("exportcodedisplay");
+    copyToClipboard(copyText.textContent);
+}
+
+function copyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+}
+
+function closeLoad(){
+    document.getElementById("loadBox").classList.toggle("show");
+}
+
+
 
 // UI
 const sudokuCells = document.querySelectorAll('.sudoku-cell');
@@ -242,9 +343,15 @@ function clearboard() {
 function randomboard() {
     resetStopwatch();
     clearboard();
+    disableundoredo();
     betterGenerateBoard();
     displayBoard(prefilled = true);
     startStopwatch();
+}
+
+function disableundoredo() {
+    document.getElementById("undo").disabled = true;
+    document.getElementById("redo").disabled = true;
 }
 
 let paused = false;

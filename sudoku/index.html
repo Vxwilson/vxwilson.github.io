@@ -66,7 +66,74 @@
         </header>
     </div>
     <div class="header-button-container">
-        <a href="/" class="fa fa-home fa-2x"></a>
+        <button class="" onclick="window.location.href='/';">
+            <i class="fa fa-home"></i>
+        </button>
+        <!-- <a href="/" class="fa fa-home fa-2x"></a> -->
+
+        <button class="" onclick="exportBoard()">
+            <i class="fa fa-download"></i>
+        </button>
+
+        <!-- floating export -->
+        <div class="floatingBox" id="exportBox">
+            <div class="row">
+                <div class="col l10 offset-l1">
+                    <p class="boxtitle">board code</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col l12 codebox">
+                    <p id="exportcodedisplay">code</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col l4 offset-l2 s5 offset-s1">
+                    <button class="floating-button" onclick="copyCode()">
+                        <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+                <div class="col l4 s5">
+                    
+                    <button class="floating-button" onclick="closeExport()">
+                        <i class="fa fa-close"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button class="" onclick="tryLoad()">
+            <i class="fa fa-upload"></i>
+        </button>
+
+        <!-- floating load -->
+        <div class="floatingBox" id="loadBox">
+            <div class="row">
+                <div class="col l10 offset-l1">
+                    <p class="boxtitle">enter code</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col l10 offset-l1">
+                    <input type="text" id="code" placeholder="code">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col l4 offset-l2 s5 offset-s1">
+                    <button class="floating-button" onclick="loadBoard()">
+                        <i class="fa fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="col l4 s5">
+                    
+                    <button class="floating-button" onclick="closeLoad()">
+                        <i class="fa fa-close"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <div class="game">
@@ -77,7 +144,7 @@
                     <button class="play-pause" onclick="togglepause()"><i class="fa fa-pause"></i></button>
                 </div>
             </div>
-           
+
             <div class="col l1 s2 offset-s1">
                 <button class="sudoku-button" onclick="solveboard(true)">
                     <i class="fa fa-bicycle"></i>
@@ -250,12 +317,12 @@
         <div class="section row buttons">
             <!-- buttons -->
             <div class="col l1 offset-l4 offset-s2 s2">
-                <button class="sudoku-button" onclick="undo()">
+                <button class="sudoku-button undo" id="undo" onclick="undo()">
                     <i class="fa fa-undo"></i>
                 </button>
             </div>
             <div class="col l1 s2">
-                <button class="sudoku-button" onclick="redo()">
+                <button class="sudoku-button" id="redo" onclick="redo()">
                     <i class="fa fa-undo fa-flip-horizontal"></i>
                 </button>
             </div>
