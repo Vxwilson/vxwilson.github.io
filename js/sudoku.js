@@ -317,6 +317,7 @@ function solveboard(visual = false) {
     }
 
     stopStopwatch();
+    
 }
 
 
