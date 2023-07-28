@@ -250,3 +250,25 @@ header{
     font-style: normal !important;
     margin-left: 0.5em;
   }
+
+  .play-pause{
+    background-color: #ffff0000;
+    border: none;
+    cursor: pointer;
+    color: rgb(110, 135, 156);
+    margin-left: 35%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+  }
+
+  /* mobile */
+  @media only screen and (max-width: 600px) {
+    .play-pause{
+      margin-left: 5%;
+    }
+  }
+
+  .play-pause:focus{
+    background-color: #ffff0000;
+  }

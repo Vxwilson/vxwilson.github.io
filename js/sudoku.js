@@ -92,14 +92,12 @@ function solve(board) { // TODO show real time backtrack solving
 }
 
 function randomized_solve(board, digitarray) { // digit array is an array of 9 digits, in random order
-    console.log(digitarray);
     // find empty cell
     let emptyCell = findEmptyCell(board);
     if (!emptyCell) {
         return true;
     }
     for (let i = 0; i < 9; i++) {
-        console.log(`Trying ${digitarray[i]} at ${emptyCell[0]}, ${emptyCell[1]}`);
         if (checkValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
             board[emptyCell[0]][emptyCell[1]] = digitarray[i];
 
@@ -249,18 +247,22 @@ function randomboard() {
     startStopwatch();
 }
 
-let currentTime = 0;
+let paused = false;
+let startTime = 0;
 let interval = 0;
+let pausedTime = 0;
 
-function startStopwatch(){
-    // start 
-    currentTime = 0;   
-    
+function startStopwatch() {
+    // start     
     let timer = document.querySelector(".timer .timer-text");
+    startTime = startTime === 0 ? new Date().getTime(): new Date().getTime() - pausedTime;
 
-    start = new Date().getTime();
-    interval = setInterval(function(){
-        const time = new Date().getTime() - start;
+    button = document.querySelector(".play-pause i");
+    button.classList.remove("fa-play");
+    button.classList.add("fa-pause");
+
+    interval = setInterval(function () {
+        const time = new Date().getTime() - startTime;
         const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((time % (1000 * 60)) / 1000);
 
@@ -271,16 +273,37 @@ function startStopwatch(){
 
 }
 
-function resetStopwatch(){
+function resetStopwatch() {
     // reset
-    clearInterval(interval);
+    stopStopwatch();
+    pausedTime = 0;
+    paused = false;
+
     document.querySelector(".timer .timer-text").textContent = "00:00";
 }
 
-function stopStopwatch(){
+function stopStopwatch() {
     // stop
+    pausedTime = new Date().getTime() - startTime;
     clearInterval(interval);
+    interval = 0;
+    button = document.querySelector(".play-pause i");
+    button.classList.remove("fa-pause");
+    button.classList.add("fa-play");
 }
+
+function togglepause() {
+    if (paused) {
+        paused = false;
+        startStopwatch();
+    }
+    else {
+        paused = true;
+        stopStopwatch();
+
+    }
+}
+
 
 function solveboard(visual = false) {
     if (visual) {
@@ -292,7 +315,10 @@ function solveboard(visual = false) {
         try_solve(sudokuBoard);
         displayBoard();
     }
+
+    stopStopwatch();
 }
+
 
 // mobile num press
 function press(num) {
