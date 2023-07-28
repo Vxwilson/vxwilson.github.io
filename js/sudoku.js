@@ -187,6 +187,19 @@ function solveboard(){
     displayBoard();
 }
 
+// mobile num press
+function press(num){
+    if (selectedCell){
+        if (num >= 1 && num <= 9){
+            if(trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)){
+                selectedCell.textContent = num;
+            }
+        }else if (num === 0){
+            selectedCell.textContent = '';
+        }
+    }
+}   
+
 // listeners
 function handleCellClick(event){
     if (selectedCell){
@@ -200,7 +213,9 @@ sudokuCells.forEach(cell => cell.addEventListener('click', handleCellClick));
 
 
 function handleOutsideClick(event){
-    if (selectedCell && !event.target.classList.contains('sudoku-cell')){
+    // list out classlist
+    console.log(event.target.classList);
+    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.classList.contains('num-button')) &&!event.target.closest('.num-button') ){
         selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
         selectedCell = null;
     }

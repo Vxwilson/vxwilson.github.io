@@ -71,7 +71,7 @@
 
     <div class="game">
         <div class="row">
-            <div class="col l1 offset-l7 s4 offset-s7">
+            <div class="col l1 offset-l7 s3 offset-s8">
                 <button class="sudoku-button" onclick="solveboard()">
                     <i class="fa fa-lightbulb-o"></i>
                 </button>
@@ -179,8 +179,63 @@
                 <div class="sudoku-cell" data-row="9" data-col="9"></div>
             </div>
         </div>
+        <div class="section row mobile-numpad">
+            <!-- mobile number pad -->
+            <div class="col top offset-numpad">
+                <button class="sudoku-button num-button" onclick="press(1)">
+                    <i class="">1</i>
+                </button>
+            </div>
+            <div class="col top">
+                <button class="sudoku-button num-button" onclick="press(2)">
+                    <i class="">2</i>
+                </button>
+            </div>
+            <div class="col top">
+                <button class="sudoku-button num-button" onclick="press(3)">
+                    <i class="">3</i>
+                </button>
+            </div>
+            <div class="col top">
+                <button class="sudoku-button num-button" onclick="press(4)">
+                    <i class="">4</i>
+                </button>
+            </div>
+            <div class="col top">
+                <button class="sudoku-button num-button" onclick="press(5)">
+                    <i class="">5</i>
+                </button>
+            </div>
+        </div>
+        <div class="row mobile-numpad bottom-row">
+            <div class="col bottom">
+                <button class="sudoku-button num-button" onclick="press(6)">
+                    <i class="">6</i>
+                </button>
+            </div>
+            <div class="col bottom">
+                <button class="sudoku-button num-button" onclick="press(7)">
+                    <i class="">7</i>
+                </button>
+            </div>
+            <div class="col bottom">
+                <button class="sudoku-button num-button" onclick="press(8)">
+                    <i class="">8</i>
+                </button>
+            </div>
+            <div class="col bottom">
+                <button class="sudoku-button num-button" onclick="press(9)">
+                    <i class="">9</i>
+                </button>
+            </div>
+            <div class="col bottom">
+                <button class="sudoku-button num-button" onclick="press(0)">
+                    <i class="fa fa-eraser"></i>
+                </button>
+            </div>
+        </div>
         <!-- <div class="divider"></div> -->
-        <div class="section row">
+        <div class="section row buttons">
             <!-- buttons -->
             <div class="col l1 offset-l4 offset-s2 s2">
                 <button class="sudoku-button" onclick="undo()">
