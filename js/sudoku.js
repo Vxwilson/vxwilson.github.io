@@ -343,6 +343,11 @@ const sudokuCells = document.querySelectorAll('.sudoku-cell');
 
 let selectedCell = null;
 
+
+function addToUndoStack() {
+
+}
+
 function undo() {
 
 }
@@ -549,9 +554,17 @@ document.addEventListener('keydown', function (event) {
             num = parseInt(event.key);
             if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
                 // update UI
+
+
+
                 selectedCell.textContent = num;
                 updateNumButtons(selectedCell);
 
+                // try to resume stopwatch
+                if (paused) {
+                    paused = false;
+                    startStopwatch();
+                }
                 // check if board is solved
                 if (isBoardSolved(sudokuBoard)) {
                     // alert("You solved the board!");
