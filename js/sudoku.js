@@ -14,9 +14,40 @@ let sudokuBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
 ];
 
+// we need to keep track of the initial state of the board
+let startingBoard = [];
+
 // undostack and redostack
 let undoStack = [];
 let redoStack = [];
+
+function updateStack(row, col, new_value, initial_value=0) {
+    undoStack.push([row, col, new_value, initial_value]);
+    redoStack = [];
+}
+
+function undo(){
+    if (undoStack.length > 0){
+        let [row, col, new_value, initial_value] = undoStack.pop();
+        redoStack.push([row, col, initial_value, new_value]);
+        sudokuBoard[row][col] = initial_value;
+        displayBoard();
+    }
+}
+
+function redo(){
+    if (redoStack.length > 0){
+        let [row, col, new_value, initial_value] = redoStack.pop();
+        undoStack.push([row, col, initial_value, new_value]);
+        sudokuBoard[row][col] = initial_value;
+        displayBoard();
+
+        // debug
+        console.log("redoing");
+        // log the coordinates and the value
+        console.log(row, col, new_value, initial_value);
+    }
+}
 
 function trySetValue(row, col, value) {
     let prefilled = selectedCell.classList.contains('prefilled');
@@ -28,7 +59,11 @@ function trySetValue(row, col, value) {
     col = col - 1;
     // if value is 0, then clearing the cell is always valid
     if (value === 0 || checkValid(sudokuBoard, row, col, value)) {
+        // now save the state
+        updateStack(row, col, value, getValue(row, col));
+
         sudokuBoard[row][col] = value;
+
         return true;
     }
     // handle invalid input
@@ -192,6 +227,10 @@ function betterGenerateBoard() {
 
     // remove 42 cells
     sudokuBoard = generateChallengeFromBoard(sudokuBoard, 42);
+
+    // save the starting state
+    startingBoard = JSON.parse(JSON.stringify(sudokuBoard));
+
 }
 
 
@@ -344,19 +383,8 @@ const sudokuCells = document.querySelectorAll('.sudoku-cell');
 let selectedCell = null;
 
 
-function addToUndoStack() {
-
-}
-
-function undo() {
-
-}
-
-function redo() {
-
-}
-
 function clearboard() {
+    // only used new board; not used for reset
     sudokuBoard = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 0
         [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 1
@@ -368,21 +396,35 @@ function clearboard() {
         [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 7
         [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
     ]
+    
+    // Clear the undo and redo stacks
+    undoStack = [];
+    redoStack = [];
+}
+
+function resetboard() {
+    // Reset the board to the starting state, keeping prefilled cells
+    sudokuBoard = JSON.parse(JSON.stringify(startingBoard));
+
+    // Clear the undo and redo stacks
+    undoStack = [];
+    redoStack = [];
+
     displayBoard();
 }
+
 
 function randomboard() {
     resetStopwatch();
     clearboard();
-    disableundoredo();
     betterGenerateBoard();
     displayBoard(prefilled = true);
     startStopwatch();
 }
 
 function disableundoredo() {
-    document.getElementById("undo").disabled = true;
-    document.getElementById("redo").disabled = true;
+    // document.getElementById("undo").disabled = true;
+    // document.getElementById("redo").disabled = true;
 }
 
 let paused = false;
