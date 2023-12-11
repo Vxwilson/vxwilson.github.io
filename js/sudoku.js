@@ -32,6 +32,9 @@ function undo(){
         redoStack.push([row, col, initial_value, new_value]);
         sudokuBoard[row][col] = initial_value;
         displayBoard();
+
+        // update the selected cell
+        replaceSelection(getCellFromCoords(row, col));
     }
 }
 
@@ -42,10 +45,8 @@ function redo(){
         sudokuBoard[row][col] = initial_value;
         displayBoard();
 
-        // debug
-        console.log("redoing");
-        // log the coordinates and the value
-        console.log(row, col, new_value, initial_value);
+        // update the selected cell
+        replaceSelection(getCellFromCoords(row, col));
     }
 }
 
@@ -507,16 +508,26 @@ function solveboard(visual = false) {
 
 // listeners
 function handleCellClick(event) {
+    replaceSelection(event.target)
+    updateNumButtons(selectedCell);
+}
+
+// helper function to get cell from row and col
+function getCellFromCoords(row, col) {
+    return document.querySelector(`.sudoku-cell[data-row="${row+1}"][data-col="${col+1}"]`);
+}
+
+function replaceSelection(newCell){
+    // simply handles the graphical changes of selecting a new cell
     if (selectedCell) {
-        // selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
         // add class selected to the cell
         selectedCell.classList.remove('selected');
     }
-    selectedCell = event.target;
+    selectedCell = newCell;
     selectedCell.classList.add('selected');
-    // selectedCell.style.backgroundColor = '#e5e2de';
 
-    updateNumButtons(selectedCell);
+    // debug
+    console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
 }
 
 function updateNumButtons(cell) {
@@ -561,10 +572,9 @@ sudokuCells.forEach(cell => cell.addEventListener('click', handleCellClick));
 
 
 function handleOutsideClick(event) {
-    // list out classlist
-    console.log(event.target.classList);
-    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.classList.contains('num-button')) && !event.target.closest('.num-button')) {
-        // selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
+    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.classList.closest('num-button')) && (!event.target.classList.contains('sudoku-button')) && !event.target.closest('.num-button')) {
+        console.log(event.target.classList);
+
         selectedCell.classList.remove('selected');
         selectedCell = null;
     }
