@@ -3,7 +3,9 @@
 * Dropper:
   * Sort by Date Added
   
-* YarnSpinner
-  * Make AI Smarter
+* Sudoku:
+  * Add a "TimeMarker" feature.
+
+
 
 
