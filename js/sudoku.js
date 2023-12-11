@@ -479,14 +479,26 @@ function togglepause() {
     if (paused) {
         paused = false;
         startStopwatch();
+        toggleHideDigits(hide=false);
     }
     else {
         paused = true;
         stopStopwatch();
-
+        toggleHideDigits(hide=true);
     }
 }
 
+// Function to hide all digits
+function toggleHideDigits(hide=true) {
+    if (hide) {
+        let cells = document.querySelectorAll('.sudoku-cell');
+        cells.forEach(cell => cell.classList.add('paused'));
+    }else
+    {
+        let cells = document.querySelectorAll('.sudoku-cell');
+        cells.forEach(cell => cell.classList.remove('paused'));
+    }
+}
 
 function solveboard(visual = false) {
     if (visual) {

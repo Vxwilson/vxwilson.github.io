@@ -207,14 +207,19 @@ button{
 
   /* default class for selected cell */
   .sudoku-cell.default {
-    /* background-color: #e5e0d8; */
     color: #465b6e;
+    font-size: initial;
   }
 
   /* class for selected cell */
   .sudoku-cell.selected {
     background-color: #c6af7a30;
-    /* color: rgb(110, 135, 156); */
+  }
+
+  /* class for when pause button is clicked */
+  .sudoku-cell.paused {
+    /* background-color: #c6af7a30; */
+    font-size: 0;
   }
 
   /* style buttons */
