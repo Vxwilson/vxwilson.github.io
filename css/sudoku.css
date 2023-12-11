@@ -130,10 +130,10 @@ button{
     border: 1.3px solid rgb(104, 101, 101);
     text-align: center;
     line-height: 40px;
-    background-color:rgb(173, 189, 189);
+    /* background-color:rgb(173, 189, 189); */
     background-color:rgba(217, 228, 228, 0.5);
-    color: rgb(86, 92, 89);
-    color: #261d2a;
+    /* color: rgb(86, 92, 89); */
+    /* color: #261d2a; */
     color: rgb(110, 135, 156);
 
     /* background-color:rgb(238, 238, 200); */
@@ -153,7 +153,8 @@ button{
   /* not mobile */
   @media only screen and (min-width: 600px) {
     .sudoku-cell:hover{
-      background-color:#e5e2de;
+      /* background-color:#e5e2de; */
+      background-color: #c6af7a4b;
     }
   }
 
@@ -200,8 +201,20 @@ button{
 
   /* Style the cells that are pre-filled with numbers */
   .sudoku-cell.prefilled {
-    color: rgb(86, 92, 89);
+    color: rgba(86, 92, 89, 0.902);
 
+  }
+
+  /* default class for selected cell */
+  .sudoku-cell.default {
+    /* background-color: #e5e0d8; */
+    color: #465b6e;
+  }
+
+  /* class for selected cell */
+  .sudoku-cell.selected {
+    background-color: #c6af7a4b;
+    /* color: rgb(110, 135, 156); */
   }
 
   /* style buttons */

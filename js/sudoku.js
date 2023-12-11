@@ -244,10 +244,12 @@ function displayBoard(prefilled = false) {
                 cell.textContent = sudokuBoard[i][j];
                 if (prefilled) {
                     cell.classList.add('prefilled');
+                    cell.classList.remove('default');
                 }
             } else {
                 cell.textContent = '';
                 cell.classList.remove('prefilled');
+                cell.classList.add('default');
             }
         }
     }
@@ -506,10 +508,13 @@ function solveboard(visual = false) {
 // listeners
 function handleCellClick(event) {
     if (selectedCell) {
-        selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
+        // selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
+        // add class selected to the cell
+        selectedCell.classList.remove('selected');
     }
     selectedCell = event.target;
-    selectedCell.style.backgroundColor = '#e5e2de';
+    selectedCell.classList.add('selected');
+    // selectedCell.style.backgroundColor = '#e5e2de';
 
     updateNumButtons(selectedCell);
 }
@@ -559,7 +564,8 @@ function handleOutsideClick(event) {
     // list out classlist
     console.log(event.target.classList);
     if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.classList.contains('num-button')) && !event.target.closest('.num-button')) {
-        selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
+        // selectedCell.style.backgroundColor = 'rgba(217, 228, 228, 0.5)';
+        selectedCell.classList.remove('selected');
         selectedCell = null;
     }
 }
