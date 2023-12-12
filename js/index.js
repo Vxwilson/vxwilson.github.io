@@ -33,6 +33,85 @@ window.get_gpt_api_key = async function () {
     return api;
 }
 
+window.showChangeLog = async function () {
+    // find the element with id "changelog" and set display to block
+    //calls the function to parse the changelog text file
+    await parseChangelog();
+
+    document.getElementById("changelogModal").style.display = "block";
+    document.getElementById("changelogModal").style.opacity = "1";
+}
+
+
+// function to parse the changelog text file
+// finds a div with id changelogContent and sets the innerHTML to the parsed changelog
+window.parseChangelog = async function () {
+    // first clear the changelogContent div
+    document.getElementById("changelogContent").innerHTML = "";
+
+    var changelog = await fetch('assets/changelog.txt').then(r => r.text());
+
+    // process changelog; first split by our symbol $$ to get date
+    changelog = changelog.split("$$");
+
+    // remove the first element, which is empty
+    changelog.shift();
+    // print out to console
+    console.log(changelog);
+
+    // now we have an array of strings, each string is a date following by the changelog for that date
+    // we want, for each element, to create a <span> element with the date, and a <ul> element with the changelog
+    // then we want to append these to the changelogContent div
+
+    // create a new div to hold the changelog
+    var changelogDiv = document.createElement("div");
+    changelogDiv.id = "changelogDiv";
+
+    // reverse the changelog array so that the most recent date is first
+    changelog.reverse();
+
+    // for each element in the changelog array
+    for (var i = 0; i < changelog.length; i++) {
+        // get the first split by \n, which is the date, and remove it from the string
+        var date = changelog[i].split("\n")[0];
+        changelog[i] = changelog[i].replace(date, "");
+
+        // trim the string
+        changelog[i] = changelog[i].trim();
+
+        // create a new span element with the date
+        var dateSpan = document.createElement("span");
+        dateSpan.classList.add("dateSpan");
+        dateSpan.innerHTML = date;
+
+        // create a new ul element with the changelog
+        var changelogUl = document.createElement("ul");
+        changelogUl.classList.add("changelogUl");
+        
+        for (var j = 0; j < changelog[i].split("\n").length; j++) {
+            var changelogLi = document.createElement("li");
+            changelogLi.id = "changelogLi";
+            changelogLi.innerHTML = changelog[i].split("\n")[j];
+
+            // append the li to the ul
+            changelogUl.appendChild(changelogLi);
+        }
+
+        // append the span and ul to the div
+        changelogDiv.appendChild(dateSpan);
+        changelogDiv.appendChild(changelogUl);
+
+        // add a line break
+        var lineBreak = document.createElement("br");
+        changelogDiv.appendChild(lineBreak);
+    }
+
+    // append the div to the changelogContent div
+    document.getElementById("changelogContent").appendChild(changelogDiv);
+
+    // document.getElementById("changelogContent").innerHTML = changelog;
+    console.log(changelog);
+}
 
 // set up luck button
 window.getLuck = async function () {

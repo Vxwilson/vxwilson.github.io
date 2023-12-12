@@ -57,7 +57,9 @@
 <body>
     <!-- !PAGE CONTENT! -->
     <div class="w3-content" style="max-width:1500px">
-
+        <div class="topleft w3-button">
+            <button type="button" class="button-11 w3-button " onclick="showChangeLog()">log</button>
+        </div>
         <header class="w3-panel w3-center w3-opacity" style="padding:80px 16px">
             <h1 class="w3-xlarge">VX's</h1>
             <!-- <h1>:)</h1> -->
@@ -72,6 +74,20 @@
             </div>
         </header>
     </div>
+
+    <!-- Popup Modal to show Changelog -->
+    <div id="changelogModal">
+        <div class="modal-content w3-animate-top">
+            <header class="w3-container changelogHeader w3-center w3-padding-16">
+                <span onclick="document.getElementById('changelogModal').style.display='none'"
+                    class="w3-button w3-xlarge w3-display-topright">×</span>
+                <h3 class=""><i class="fa fa-suitcase w3-margin-right"></i>changelog</h3>
+            </header>
+            <div class="w3-container" id="changelogContent">
+            </div>
+        </div>
+    </div>
+
 
     <div class="maindiv">
         <div id="blogRedirect" >
