@@ -207,7 +207,7 @@ button{
 
   /* default class for selected cell */
   .sudoku-cell.default {
-    color: #465b6e;
+    color: #407eb7;
     font-size: 24px;
   }
 

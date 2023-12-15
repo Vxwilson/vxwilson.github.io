@@ -120,7 +120,7 @@ function solve(board) { // TODO show real time backtrack solving
         return true;
     }
     for (let i = 1; i <= 9; i++) {
-        console.log(`Trying ${i} at ${emptyCell[0]}, ${emptyCell[1]}`);
+        // console.log(`Trying ${i} at ${emptyCell[0]}, ${emptyCell[1]}`);
         if (checkValid(board, emptyCell[0], emptyCell[1], i)) {
             board[emptyCell[0]][emptyCell[1]] = i;
             if (solve(board)) {
@@ -223,14 +223,89 @@ function betterGenerateBoard() {
     let digitarray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     digitarray.sort(() => Math.random() - 0.5);
 
-    // solve the board
+    // create a board, then remove some numbers
     randomized_solve(sudokuBoard, digitarray);
-
-    // remove 42 cells
-    sudokuBoard = generateChallengeFromBoard(sudokuBoard, 42);
+    sudokuBoard = betterCreateChallenge();
 
     // save the starting state
     startingBoard = JSON.parse(JSON.stringify(sudokuBoard));
+}
+
+function getSolutions(board) {
+    // find empty cell
+    let digitarray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    let emptyCell = findEmptyCell(board);
+
+    let solutions = 0;
+
+    if (!emptyCell) {
+        return 1;
+    }
+
+    for (let i = 0; i < 9; i++) {
+        if (checkValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
+            board[emptyCell[0]][emptyCell[1]] = digitarray[i];
+
+            let result = getSolutions(board);
+            solutions += result;
+
+            // at any point if we have more than 1 solution, we can stop
+            // remove below line to find all solutions
+            if (solutions > 1) {
+                return 2;
+            }
+
+            board[emptyCell[0]][emptyCell[1]] = 0;
+        }
+    }
+    return solutions;
+}
+
+function betterCreateChallenge(max = 42) {
+    // for each cell, try to remove it and see if the board is still solvable with only 1 solution
+    // first we generate list of all cells, and shuffle it
+
+    let cells = [];
+    for (let i = 0; i < 81; i++) {
+        cells.push(i);
+    }
+
+    // shuffle the array
+    cells.sort(() => Math.random() - 0.5);
+    console.log(cells);
+
+    // now we try to remove each cell
+    var removed = 0;
+
+    for (let i = 0; i < 81; i++) {
+        // check if we have removed enough cells
+        if (removed >= max) {
+            break;
+        }
+
+        let row = Math.floor(cells[i] / 9);
+        let col = cells[i] % 9;
+
+
+        // save the value of the cell
+        let temp = sudokuBoard[row][col];
+        sudokuBoard[row][col] = 0;
+
+
+        // check if the board is still solvable
+        var board_temp = JSON.parse(JSON.stringify(sudokuBoard));
+        if (getSolutions(board_temp) > 1) {
+            // console.log("we have more than 1 solution after removing cell " + row + ", " + col + "");
+            // if not, restore the cell value
+            sudokuBoard[row][col] = temp;
+        }
+        else{
+            removed++;
+        }
+
+    }
+    // console.log("done, with the board: " + sudokuBoard + " and we removed " + removed + " cells");
+    return sudokuBoard;
 
 }
 
@@ -539,7 +614,7 @@ function replaceSelection(newCell){
     selectedCell.classList.add('selected');
 
     // debug
-    console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
+    // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
 }
 
 function updateNumButtons(cell) {
@@ -572,10 +647,10 @@ function updateNumButtons(cell) {
 
         else if (checkValid(sudokuBoard, row, col, num)) {
             button.disabled = false;
-            console.log("button " + num + " is valid");
+            // console.log("button " + num + " is valid");
         } else {
             button.disabled = true;
-            console.log("button " + num + " is invalid");
+            // console.log("button " + num + " is invalid");
         }
     });
 }
