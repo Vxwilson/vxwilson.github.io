@@ -21,6 +21,14 @@ let startingBoard = [];
 let undoStack = [];
 let redoStack = [];
 
+const Difficulty = {
+    EASY: 46,
+    MEDIUM: 37,
+    HARD: 32
+};
+
+let difficulty = Difficulty.EASY;
+
 function updateStack(row, col, new_value, initial_value=0) {
     undoStack.push([row, col, new_value, initial_value]);
     redoStack = [];
@@ -201,6 +209,7 @@ function try_solve(board) {
     }
 }
 
+// obsolete
 function generateChallengeFromBoard(board, num) {
     for (let i = 0; i < num; i++) {
         let row = Math.floor(Math.random() * 9);
@@ -225,7 +234,10 @@ function betterGenerateBoard() {
 
     // create a board, then remove some numbers
     randomized_solve(sudokuBoard, digitarray);
-    sudokuBoard = betterCreateChallenge();
+
+    // remove some numbers based on difficulty
+    sudokuBoard = betterCreateChallenge(difficulty);
+    // sudokuBoard = betterCreateChallenge();
 
     // save the starting state
     startingBoard = JSON.parse(JSON.stringify(sudokuBoard));
@@ -261,18 +273,15 @@ function getSolutions(board) {
     return solutions;
 }
 
-function betterCreateChallenge(max = 42) {
+function betterCreateChallenge(clues = 40) {
     // for each cell, try to remove it and see if the board is still solvable with only 1 solution
     // first we generate list of all cells, and shuffle it
 
-    let cells = [];
-    for (let i = 0; i < 81; i++) {
-        cells.push(i);
-    }
+    let max = 81 - clues;
 
-    // shuffle the array
-    cells.sort(() => Math.random() - 0.5);
-    console.log(cells);
+    let cells = [];
+    for (let i = 0; i < 81; i++) { cells.push(i); }
+    cells.sort(() => Math.random() - 0.5); // randomize the array
 
     // now we try to remove each cell
     var removed = 0;
@@ -560,6 +569,23 @@ function togglepause() {
         paused = true;
         stopStopwatch();
         toggleHideDigits(hide=true);
+    }
+}
+
+function toggleDifficulty() {
+    let button = document.getElementById("difficultyButton");
+    
+    if (difficulty === Difficulty.EASY) {
+        difficulty = Difficulty.MEDIUM;
+        button.textContent = "medium";
+    }
+    else if (difficulty === Difficulty.MEDIUM) {
+        difficulty = Difficulty.HARD;
+        button.textContent = "hard";
+    }
+    else if (difficulty === Difficulty.HARD) {
+        difficulty = Difficulty.EASY;
+        button.textContent = "easy";
     }
 }
 
