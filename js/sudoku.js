@@ -24,7 +24,8 @@ let redoStack = [];
 const Difficulty = {
     EASY: 46,
     MEDIUM: 37,
-    HARD: 32
+    HARD: 32,
+    IMPOSSIBLE: -1 // impossible means all cells that can be removed, are removed
 };
 
 let difficulty = Difficulty.EASY;
@@ -584,6 +585,10 @@ function toggleDifficulty() {
         button.textContent = "hard";
     }
     else if (difficulty === Difficulty.HARD) {
+        difficulty = Difficulty.IMPOSSIBLE;
+        button.textContent = "x";
+    }
+    else if (difficulty === Difficulty.IMPOSSIBLE) {
         difficulty = Difficulty.EASY;
         button.textContent = "easy";
     }
