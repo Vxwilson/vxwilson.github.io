@@ -146,8 +146,9 @@
             </div>
 
             <div class="col l1 s2 offset-s1">
-                <button class="sudoku-button" onclick="solveboard(true)">
-                    <i class="fa fa-bicycle"></i>
+                <button class="sudoku-button" id="pencil_button" onclick="toggleMarkingMode()">
+                <!-- <button class="sudoku-button" onclick="solveboard(true)"> -->
+                    <i class="fa fa-pencil" id="fa-pencil_mark"></i>
                 </button>
             </div>
             <div class="col l1 s2">
@@ -159,7 +160,11 @@
         <div class="sudoku">
 
             <div class="sudoku-row">
-                <div class="sudoku-cell" data-row="1" data-col="1"></div>
+                
+
+                <div class="sudoku-cell" data-row="1" data-col="1">
+                    <!-- <span class="pencilmark"> 13</span> -->
+                </div>
                 <div class="sudoku-cell" data-row="1" data-col="2"></div>
                 <div class="sudoku-cell" data-row="1" data-col="3"></div>
                 <div class="sudoku-cell" data-row="1" data-col="4"></div>
@@ -317,12 +322,12 @@
         <div class="section row buttons">
             <!-- buttons -->
             <div class="col l1 offset-l4 offset-s2 s2">
-                <button class="sudoku-button undo" id="undo" onclick="undo()">
+                <button class="sudoku-button undo" disabled id="undo" onclick="undo()">
                     <i class="fa fa-undo"></i>
                 </button>
             </div>
             <div class="col l1 s2">
-                <button class="sudoku-button" id="redo" onclick="redo()">
+                <button class="sudoku-button" disabled id="redo" onclick="redo()">
                     <i class="fa fa-undo fa-flip-horizontal"></i>
                 </button>
             </div>
@@ -352,6 +357,7 @@
         <!-- <p><span id="time-now"></span></p> -->
     </footer>
 
+    <script src="/js/jquery.js"></script>
     <script src="js/firebase-init.js" type="module"></script>
     <script src="js/main.js" type="module"></script>
     <script src="js/index.js" type="module"></script>

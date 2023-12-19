@@ -28,15 +28,115 @@ const Difficulty = {
     IMPOSSIBLE: -1 // impossible means all cells that can be removed, are removed
 };
 
+// modes
+const Modes = {
+    NORMAL: 0,
+    MARKING: 1
+};
+
+const PlayingMode = {
+    Mobile: 0,
+    Desktop: 1
+}
+let playingMode = PlayingMode.Desktop;
+
+const sudokuCells = document.querySelectorAll('.sudoku-cell');
+let selectedCell = null;
+
+// determine playing mode
+function checkPlayingMode() {
+    if (window.innerWidth < 600) {
+        playingMode = PlayingMode.Mobile;
+        if (selectedCell) {
+            updateNumButtons(selectedCell);
+        }
+    }
+    else {
+        playingMode = PlayingMode.Desktop;
+    }
+
+    console.log("playing mode is " + playingMode);
+}
+
+// check playing mode on load
+checkPlayingMode();
+
+let mode = Modes.NORMAL;
+
 let difficulty = Difficulty.EASY;
 
-function updateStack(row, col, new_value, initial_value=0) {
+
+// pencilmarks
+let pencilMarks = new Array(9);
+for (let i = 0; i < 9; i++) {
+    pencilMarks[i] = new Array(9);
+    for (let j = 0; j < 9; j++) {
+        pencilMarks[i][j] = new Array(9).fill(false); // Initialize all values as false
+    }
+}
+
+
+function createTextGrid() {
+    //in each grid, create a text span
+    const cells = document.querySelectorAll('.sudoku-cell');
+    cells.forEach(cell => {
+        const cellText = document.createElement('span');
+        cellText.className = 'cell-text';
+        cell.appendChild(cellText);
+    });
+
+}
+function createPencilGrid() {
+    // Select all sudoku cells
+    const cells = document.querySelectorAll('.sudoku-cell');
+
+    // Iterate over each cell
+
+    cells.forEach(cell => {
+        // Create pencil marks div
+        const pencilMarks = document.createElement('div');
+        pencilMarks.className = 'pencil-marks';
+
+        // disable mouse events for pencil marks
+        pencilMarks.style.pointerEvents = 'none';
+
+        // Create 3 pencil rows
+        for (let i = 0; i < 3; i++) {
+            const pencilRow = document.createElement('div');
+            pencilRow.className = 'pencil-row';
+
+            // Create 3 pencil marks in each row
+            for (let j = 0; j < 3; j++) {
+                const pencilMark = document.createElement('div');
+                pencilMark.className = 'pencil-mark';
+                pencilRow.appendChild(pencilMark);
+
+                // add data attribute (row and col)to pencil mark
+                pencilMark.dataset.num = i * 3 + j + 1;
+
+                // set pencil mark text to the correct number
+                pencilMark.textContent = i * 3 + j + 1;
+
+            }
+
+            pencilMarks.appendChild(pencilRow);
+        }
+
+        // Append pencil marks to cell
+        cell.append(pencilMarks);
+    });
+}
+
+createTextGrid();
+createPencilGrid();
+
+function updateStack(row, col, new_value, initial_value = 0) {
     undoStack.push([row, col, new_value, initial_value]);
     redoStack = [];
 }
 
-function undo(){
-    if (undoStack.length > 0){
+function undo() {
+    if (undoStack.length > 0) {
         let [row, col, new_value, initial_value] = undoStack.pop();
         redoStack.push([row, col, initial_value, new_value]);
         sudokuBoard[row][col] = initial_value;
@@ -47,8 +147,8 @@ function undo(){
     }
 }
 
-function redo(){
-    if (redoStack.length > 0){
+function redo() {
+    if (redoStack.length > 0) {
         let [row, col, new_value, initial_value] = redoStack.pop();
         undoStack.push([row, col, initial_value, new_value]);
         sudokuBoard[row][col] = initial_value;
@@ -185,7 +285,6 @@ async function solvevisual(board) {
     return true;
 }
 
-
 function findEmptyCell(board) {
     for (let i = 0; i < 9; i++) {
         for (let j = 0; j < 9; j++) {
@@ -208,21 +307,6 @@ function try_solve(board) {
     } else {
         // do nothing
     }
-}
-
-// obsolete
-function generateChallengeFromBoard(board, num) {
-    for (let i = 0; i < num; i++) {
-        let row = Math.floor(Math.random() * 9);
-        let col = Math.floor(Math.random() * 9);
-        // retry while the cell is not empty
-        while (board[row][col] === 0) {
-            row = Math.floor(Math.random() * 9);
-            col = Math.floor(Math.random() * 9);
-        }
-        board[row][col] = 0;
-    }
-    return board;
 }
 
 
@@ -284,6 +368,7 @@ function betterCreateChallenge(clues = 40) {
     for (let i = 0; i < 81; i++) { cells.push(i); }
     cells.sort(() => Math.random() - 0.5); // randomize the array
 
+
     // now we try to remove each cell
     var removed = 0;
 
@@ -309,7 +394,7 @@ function betterCreateChallenge(clues = 40) {
             // if not, restore the cell value
             sudokuBoard[row][col] = temp;
         }
-        else{
+        else {
             removed++;
         }
 
@@ -327,13 +412,15 @@ function displayBoard(prefilled = false) {
             // let cell = document.getElementById(`cell-${i + 1}-${j + 1}`);
             let cell = document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`);
             if (sudokuBoard[i][j] !== 0) {
-                cell.textContent = sudokuBoard[i][j];
+                // cell.textContent = sudokuBoard[i][j];
+                setCellText(cell, sudokuBoard[i][j]);
                 if (prefilled) {
                     cell.classList.add('prefilled');
                     cell.classList.remove('default');
                 }
             } else {
-                cell.textContent = '';
+                // cell.textContent = '';
+                setCellText(cell, '');
                 cell.classList.remove('prefilled');
                 cell.classList.add('default');
             }
@@ -466,11 +553,6 @@ function closeLoad() {
 
 
 // UI
-const sudokuCells = document.querySelectorAll('.sudoku-cell');
-
-let selectedCell = null;
-
-
 function clearboard() {
     // only used new board; not used for reset
     sudokuBoard = [
@@ -484,7 +566,7 @@ function clearboard() {
         [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 7
         [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
     ]
-    
+
     // Clear the undo and redo stacks
     undoStack = [];
     redoStack = [];
@@ -564,18 +646,51 @@ function togglepause() {
     if (paused) {
         paused = false;
         startStopwatch();
-        toggleHideDigits(hide=false);
+        toggleHideDigits(hide = false);
     }
     else {
         paused = true;
         stopStopwatch();
-        toggleHideDigits(hide=true);
+        toggleHideDigits(hide = true);
+    }
+}
+
+
+
+function toggleMarkingMode() {
+    // button press to toggle between normal (default) and marking mode, which is used to mark cells with pencil marks
+    // get with id fa-pencil_mark
+
+    let button_icon = document.getElementById("fa-pencil_mark");
+    let button = document.getElementById("pencil_button");
+    if (mode === Modes.NORMAL) {
+        mode = Modes.MARKING;
+        // set color to red
+        button_icon.style.color = "rgb(158, 91, 91)";
+
+        // add border to button
+        button.style.border = "2px solid rgb(158, 91, 91)";
+    }
+    else if (mode === Modes.MARKING) {
+        mode = Modes.NORMAL;
+
+        // try to update number if on mobile
+
+        // set color to default
+        button_icon.style.color = "rgb(110, 135, 156)";
+
+        // remove border from button
+        button.style.border = "0px solid rgb(110, 135, 156)";
+    }
+
+    if (playingMode === PlayingMode.Mobile) {
+        updateNumButtons(selectedCell);
     }
 }
 
 function toggleDifficulty() {
     let button = document.getElementById("difficultyButton");
-    
+
     if (difficulty === Difficulty.EASY) {
         difficulty = Difficulty.MEDIUM;
         button.textContent = "medium";
@@ -586,7 +701,7 @@ function toggleDifficulty() {
     }
     else if (difficulty === Difficulty.HARD) {
         difficulty = Difficulty.IMPOSSIBLE;
-        button.textContent = "x";
+        button.textContent = "!?";
     }
     else if (difficulty === Difficulty.IMPOSSIBLE) {
         difficulty = Difficulty.EASY;
@@ -595,12 +710,11 @@ function toggleDifficulty() {
 }
 
 // Function to hide all digits
-function toggleHideDigits(hide=true) {
+function toggleHideDigits(hide = true) {
     if (hide) {
         let cells = document.querySelectorAll('.sudoku-cell');
         cells.forEach(cell => cell.classList.add('paused'));
-    }else
-    {
+    } else {
         let cells = document.querySelectorAll('.sudoku-cell');
         cells.forEach(cell => cell.classList.remove('paused'));
     }
@@ -621,21 +735,140 @@ function solveboard(visual = false) {
 
 }
 
+// helper functions
+function setCellText(cell, value) {
+    let cellText = cell.querySelector('.cell-text');
+    cellText.textContent = value;
+
+    // unmark all pencil marks in the cell
+    let pencilMarks = cell.querySelectorAll('.pencil-mark');
+    pencilMarks.forEach(mark => mark.classList.remove('marked'));
+}
+
+
+function markToggleSelectedCell(value) {
+    // try to remove cell value 
+    trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
+    selectedCell.querySelector('.cell-text').textContent = "";
+
+    // if value is 0, clear all pencil marks
+    if (value === 0) {
+        let pencilMarks = selectedCell.querySelectorAll('.pencil-mark');
+        pencilMarks.forEach(mark => mark.classList.remove('marked'));
+        return;
+    }
+
+    let row = selectedCell.dataset.row - 1;
+    let col = selectedCell.dataset.col - 1;
+    pencilMarks[row][col][value - 1] = !pencilMarks[row][col][value - 1];
+
+    let pencilMark = selectedCell.querySelector(`.pencil-mark[data-num="${value}"]`);
+    if (pencilMarks[row][col][value - 1]) {
+        pencilMark.classList.add('marked');
+    } else {
+        pencilMark.classList.remove('marked');
+    }
+}
+
+
+// helper function to get cell from row and col
+function getCellFromCoords(row, col) {
+    return document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
+}
+
 
 
 
 // listeners
+
+// listener for resize
+window.addEventListener('resize', function () {
+    checkPlayingMode();
+}, true);
+
+// shortcuts
+document.addEventListener('keydown', function (event) {
+    switch (event.key) {
+        case 'z':
+            // if ctrl is pressed
+            if (event.ctrlKey) {
+                undo();
+            }
+            break;
+        case 'y':
+            if (event.ctrlKey) {
+                redo();
+            }
+            break;
+        // s for shuffle
+        case 'n':
+            // randomboard();
+            break;
+        // r for reset
+        case 'r':
+            // if (event.ctrlKey) {
+            // resetboard();
+            // }
+            break;
+        // m for marking mode
+        case 'm':
+            toggleMarkingMode();
+            break;
+        // arrow keys to navigate the selected cell
+        // case 'w':
+        //     if (selectedCell) {
+        //         let row = selectedCell.dataset.row;
+        //         let col = selectedCell.dataset.col;
+        //         if (row > 1) {
+        //             replaceSelection(getCellFromCoords(row - 2, col - 1));
+        //         }
+        //     }
+        //     break;
+        // case 's':
+        //     if (selectedCell) {
+        //         let row = selectedCell.dataset.row;
+        //         let col = selectedCell.dataset.col;
+        //         if (row < 9) {
+        //             replaceSelection(getCellFromCoords(row, col - 1));
+        //         }
+        //     }
+        //     break;
+        // case 'a':
+        //     if (selectedCell) {
+        //         let row = selectedCell.dataset.row;
+        //         let col = selectedCell.dataset.col;
+        //         if (col > 1) {
+        //             replaceSelection(getCellFromCoords(row - 1, col - 2));
+        //         }
+        //     }
+        //     break;
+        // case 'd':
+        //     if (selectedCell) {
+        //         let row = selectedCell.dataset.row;
+        //         let col = selectedCell.dataset.col;
+        //         if (col < 9) {
+        //             replaceSelection(getCellFromCoords(row - 1, col));
+        //         }
+        //     }
+        //     break;
+        // space to pause
+        case ' ':
+            // prevent scrolling
+            event.preventDefault();
+            togglepause();
+            break;
+    }
+});
+
+// updates selected cell
 function handleCellClick(event) {
     replaceSelection(event.target)
-    updateNumButtons(selectedCell);
+    if (playingMode === PlayingMode.Mobile) {
+        updateNumButtons(selectedCell);
+    }
 }
 
-// helper function to get cell from row and col
-function getCellFromCoords(row, col) {
-    return document.querySelector(`.sudoku-cell[data-row="${row+1}"][data-col="${col+1}"]`);
-}
-
-function replaceSelection(newCell){
+function replaceSelection(newCell) {
     // simply handles the graphical changes of selecting a new cell
     if (selectedCell) {
         // add class selected to the cell
@@ -648,11 +881,74 @@ function replaceSelection(newCell){
     // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
 }
 
+$('.sudoku-cell').on('click', function (e) {
+    handleCellClick(e);
+});
+
+
+function handleOutsideClick(event) {
+    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.closest('num-button')) && (!event.target.classList.contains('sudoku-button')) && !event.target.closest('.num-button')) {
+        console.log(event.target.classList);
+
+        selectedCell.classList.remove('selected');
+        selectedCell = null;
+    }
+}
+
+document.addEventListener("click", handleOutsideClick);
+
+
+//MOBILE section//
+function press(num) {
+    // check if we are in marking mode
+
+    if (selectedCell) {
+        if (mode === Modes.MARKING) {
+            if (num !== 0) {
+                markToggleSelectedCell(num);
+            }
+        } else {
+            if (num >= 1 && num <= 9) {
+                if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
+                    // selectedCell.textContent = num;
+                    setCellText(selectedCell, num);
+                }
+
+                // check if the board is solved
+                if (isBoardSolved(sudokuBoard)) {
+                    stopStopwatch();
+                    // alert("You solved the board!");
+                }
+            } else if (num === 0) {
+                // selectedCell.textContent = '';
+                setCellText(selectedCell, '');
+                trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
+            }
+        }
+
+        updateNumButtons(selectedCell);
+    }
+}
+
 function updateNumButtons(cell) {
     const row = cell.dataset.row - 1;
     const col = cell.dataset.col - 1;
 
     const numButtons = document.querySelectorAll('.num-button');
+    // check if marking mode is on
+    if (mode === Modes.MARKING) {
+        numButtons.forEach(button => {
+            if (button.dataset.num === '0') {
+                // button.disabled = true;
+
+                // commented because erase can be used to clear all markings
+            } else {
+                button.disabled = false;
+            }
+        });
+        return;
+    }
+
 
     // check if cell is prefilled
     let prefilled = selectedCell.classList.contains('prefilled');
@@ -686,68 +982,42 @@ function updateNumButtons(cell) {
     });
 }
 
-sudokuCells.forEach(cell => cell.addEventListener('click', handleCellClick));
+//MOBILE end///
 
 
-function handleOutsideClick(event) {
-    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.classList.closest('num-button')) && (!event.target.classList.contains('sudoku-button')) && !event.target.closest('.num-button')) {
-        console.log(event.target.classList);
-
-        selectedCell.classList.remove('selected');
-        selectedCell = null;
-    }
-}
-
-document.addEventListener("click", handleOutsideClick);
-
-// mobile num press
-function press(num) {
-    if (selectedCell) {
-        if (num >= 1 && num <= 9) {
-            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
-                selectedCell.textContent = num;
-            }
-
-            // check if the board is solved
-            if (isBoardSolved(sudokuBoard)) {
-                stopStopwatch();
-                // alert("You solved the board!");
-            }
-        } else if (num === 0) {
-            selectedCell.textContent = '';
-            trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
-        }
-
-        updateNumButtons(selectedCell);
-    }
-}
-
-// listener for numbers 1-9
+// DESKTOP, listener for numbers 1-9
 document.addEventListener('keydown', function (event) {
     if (selectedCell) {
-        if (event.key >= 1 && event.key <= 9) {
-            // convert to number
-            num = parseInt(event.key);
-            if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
-                // update UI
+        if (mode === Modes.MARKING) {
+            if (event.key >= 1 && event.key <= 9) {
+                markToggleSelectedCell(parseInt(event.key));
+            }
 
 
+        } else {
+            if (event.key >= 1 && event.key <= 9) {
+                // convert to number
+                num = parseInt(event.key);
+                if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
+                    // update UI
 
-                selectedCell.textContent = num;
-                updateNumButtons(selectedCell);
+                    // selectedCell.textContent = num;
+                    setCellText(selectedCell, num);
+                    updateNumButtons(selectedCell);
 
-                // try to resume stopwatch
-                if (paused) {
-                    paused = false;
-                    startStopwatch();
+                    // try to resume stopwatch
+                    if (paused) {
+                        paused = false;
+                        startStopwatch();
+                    }
+                    // check if board is solved
+                    if (isBoardSolved(sudokuBoard)) {
+                        // alert("You solved the board!");
+                        stopStopwatch();
+                    }
+                } else {
+                    // handle invalid input or ignore
                 }
-                // check if board is solved
-                if (isBoardSolved(sudokuBoard)) {
-                    // alert("You solved the board!");
-                    stopStopwatch();
-                }
-            } else {
-                // handle invalid input or ignore
             }
         }
     }
@@ -756,9 +1026,15 @@ document.addEventListener('keydown', function (event) {
 // listener for delete key
 document.addEventListener('keydown', function (event) {
     if (selectedCell) {
+
         if (event.key === 'Backspace') {
+            if (mode === Modes.MARKING) {
+                markToggleSelectedCell(0);
+                return;
+            }
             if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0)) {
-                selectedCell.textContent = '';
+                // selectedCell.textContent = '';
+                setCellText(selectedCell, '');
                 updateNumButtons(selectedCell);
 
             };

@@ -94,7 +94,12 @@ button{
   display: block;
 }
 
+/* set header margin */
+.w3-panel{
+  margin-top: 6px !important;
+  margin-bottom: 6px !important;
 
+}
 
 /* Set the font family and size for the grid */
 .sudoku {
@@ -103,7 +108,7 @@ button{
     margin: 0 auto;
     /* margin-left: 20vw; */
     /* display: block; */
-    width: 50%;
+    /* width: 70%; */
     margin-bottom: 1%;
   }
 
@@ -119,24 +124,68 @@ button{
   /* Style the rows and cells of the grid */
   .sudoku-row {
     display: flex;
+    /* display: flex; */
     /* align center */
     justify-content: center;
   }
   .sudoku-cell {
     min-width: 40px;
     min-height: 40px;
-    width: 40px;
-    height: 40px;
+    width: 43px;
+    height: 43px;
     border: 1.3px solid rgb(104, 101, 101);
     text-align: center;
+    align-items: center;
     line-height: 40px;
     /* background-color:rgb(173, 189, 189); */
     background-color:rgba(217, 228, 228, 0.5);
+    position: relative;
     /* color: rgb(86, 92, 89); */
     /* color: #261d2a; */
     color: rgb(110, 135, 156);
 
     /* background-color:rgb(238, 238, 200); */
+  }
+
+  .cell-text{
+    position:absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  /* pencilmarks */
+
+  .pencil-marks{
+    position:absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 15px !important;
+
+    /* padding: 5%; */
+
+  }
+  .pencil-row{
+    display: flex;
+    justify-content: center;
+  }
+  .pencil-mark{
+   
+    width: 13px;
+    height: 13px;
+    font-size: 0.45em !important;
+    text-align: center;
+    color: rgba(129, 148, 161, 0);
+    font-weight: bolder;
+    /* display: none; */
+  }
+
+  .pencil-mark.marked{
+    display: block;
+    color: rgb(129, 148, 161);
+
   }
 
   
@@ -147,6 +196,16 @@ button{
       width: 35px;
       height: 35px;
       font-size: 0.9em;
+    }
+
+    .pencil-mark{
+      width: 10.5px;
+      height: 10.5px;
+      font-size: 0.375em !important;
+    }
+
+    .pencil-marks{
+      line-height: 13px !important;
     }
   }
 
@@ -337,7 +396,19 @@ button{
     cursor: not-allowed;
   }
 
+  #difficultyButton{
+    /* width: 100%; */
+    /* margin-bottom: 1em; */
+    /* align-items: left; */
+    background-color: #407eb700;
+    /* text-align: left; */
+    font-weight: bolder;
+    height: 30px;
+
+  }
+
   .timer{
+    /* color: rgb(158, 91, 91); */
     color: rgb(110, 135, 156);
     font-size: 1.1em;
     display: flex;
