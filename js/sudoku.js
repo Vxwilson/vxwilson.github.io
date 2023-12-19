@@ -160,7 +160,7 @@ function redo() {
 }
 
 function trySetValue(row, col, value) {
-    let prefilled = selectedCell.classList.contains('prefilled');
+    let prefilled = getCellFromCoords(row - 1, col - 1).classList.contains('prefilled');
     if (prefilled) {
         return false;
     }
@@ -746,30 +746,75 @@ function setCellText(cell, value) {
 }
 
 
-function markToggleSelectedCell(value) {
+function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false) {
+    // addmark is only considered if toggle is false
+    // if toggle is false, then addmark determines whether to add or remove the mark
+
     // try to remove cell value 
-    trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, 0);
-    selectedCell.querySelector('.cell-text').textContent = "";
+    trySetValue(cell.dataset.row, cell.dataset.col, 0);
+    cell.querySelector('.cell-text').textContent = "";
 
     // if value is 0, clear all pencil marks
     if (value === 0) {
-        let pencilMarks = selectedCell.querySelectorAll('.pencil-mark');
+        let pencilMarks = cell.querySelectorAll('.pencil-mark');
         pencilMarks.forEach(mark => mark.classList.remove('marked'));
         return;
     }
 
-    let row = selectedCell.dataset.row - 1;
-    let col = selectedCell.dataset.col - 1;
+    let row = cell.dataset.row - 1;
+    let col = cell.dataset.col - 1;
     pencilMarks[row][col][value - 1] = !pencilMarks[row][col][value - 1];
 
-    let pencilMark = selectedCell.querySelector(`.pencil-mark[data-num="${value}"]`);
-    if (pencilMarks[row][col][value - 1]) {
+    let pencilMark = cell.querySelector(`.pencil-mark[data-num="${value}"]`);
+
+    if (toggle) {
+
+        if (pencilMarks[row][col][value - 1]) {
+            pencilMark.classList.add('marked');
+        } else {
+            pencilMark.classList.remove('marked');
+        }
+        return;
+    }
+
+    if (addMark) {
         pencilMark.classList.add('marked');
-    } else {
+    }
+    else {
         pencilMark.classList.remove('marked');
     }
 }
 
+function autoMarkAll() {
+    // auto mark all cells with basic exclusion method
+    // for each cell, determine which numbers are possible
+
+    let cells = document.querySelectorAll('.sudoku-cell');
+    cells.forEach(cell => {
+        // check if the cell has no value
+        if (sudokuBoard[cell.dataset.row - 1][cell.dataset.col - 1] !== 0) {
+            return;
+        }
+
+        let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+        // use checkValid to determine which numbers are possible
+        nums = nums.filter(num => checkValid(sudokuBoard, cell.dataset.row - 1, cell.dataset.col - 1, num));
+        console.log(`Cell ${cell.dataset.row}, ${cell.dataset.col} can be ${nums}`);
+
+        // now mark the numbers
+        nums.forEach(num => {
+            markToggleSelectedCell(num, cell, toggle=false, addMark=true);
+        });
+
+        // unmark all other numbers
+        let filteredNums = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(num => !nums.includes(num));
+        filteredNums.forEach(num => {
+            markToggleSelectedCell(num, cell, toggle=false, addMark=false);
+        });
+
+    });
+}
 
 // helper function to get cell from row and col
 function getCellFromCoords(row, col) {
@@ -812,7 +857,11 @@ document.addEventListener('keydown', function (event) {
             break;
         // m for marking mode
         case 'm':
-            toggleMarkingMode();
+            if (event.ctrlKey) {
+                autoMarkAll();
+            } else {
+                toggleMarkingMode();
+            }
             break;
         // arrow keys to navigate the selected cell
         // case 'w':
