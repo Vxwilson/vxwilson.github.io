@@ -101,6 +101,17 @@ button{
 
 }
 
+/* mobile */
+@media only screen and (max-width: 600px) {
+  .w3-panel{
+    margin-top: 0px !important;
+    margin-bottom: 0px !important;
+  }
+  .w3-xlarge{
+    margin: 0.5rem 0 1.5rem 0 !important;
+  }
+}
+
 /* Set the font family and size for the grid */
 .sudoku {
     font-family: Arial, sans-serif;
@@ -129,22 +140,19 @@ button{
     justify-content: center;
   }
   .sudoku-cell {
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 43px;
+    min-height: 43px;
     width: 43px;
     height: 43px;
     border: 1.3px solid rgb(104, 101, 101);
     text-align: center;
     align-items: center;
     line-height: 40px;
-    /* background-color:rgb(173, 189, 189); */
     background-color:rgba(217, 228, 228, 0.5);
     position: relative;
-    /* color: rgb(86, 92, 89); */
-    /* color: #261d2a; */
     color: rgb(110, 135, 156);
 
-    /* background-color:rgb(238, 238, 200); */
+    font-size: 1.05em;
   }
 
   .cell-text{
@@ -173,9 +181,9 @@ button{
   }
   .pencil-mark{
    
-    width: 13px;
-    height: 13px;
-    font-size: 0.45em !important;
+    width: 12.3px;
+    height: 12.3px;
+    font-size: 0.525em !important;
     text-align: center;
     color: rgba(129, 148, 161, 0);
     font-weight: bolder;
@@ -191,17 +199,17 @@ button{
   
   @media only screen and (max-width: 600px) {
     .sudoku-cell{
-      min-width: 35px;
-      min-height: 35px;
-      width: 35px;
-      height: 35px;
-      font-size: 0.9em;
+      min-width: 38px;
+      min-height: 38px;
+      width: 38px;
+      height: 38px;
+      font-size: 0.95em;
     }
 
     .pencil-mark{
-      width: 10.5px;
-      height: 10.5px;
-      font-size: 0.375em !important;
+      width: 12.25px;
+      height: 12.25px;
+      font-size: 0.45em !important;
     }
 
     .pencil-marks{
@@ -363,7 +371,7 @@ button{
   }
 
   .bottom-row{
-    margin-bottom: 7.5%;
+    margin-bottom: 3.5%;
   }
 
   /* mobile */
