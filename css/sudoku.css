@@ -28,6 +28,8 @@ header{
   border-radius: 5px;
   padding: 10px;
   width:400px;
+
+  z-index: 1000;
 }
 
 /* mobile */
