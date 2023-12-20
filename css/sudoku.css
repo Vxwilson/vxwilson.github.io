@@ -46,6 +46,7 @@ header{
   color: rgb(110, 135, 156);
 }
 
+
 button{
   color: rgb(110, 135, 156);
   font-size: 1.5em;
@@ -224,6 +225,10 @@ button{
     .sudoku-cell:hover{
       /* background-color:#e5e2de; */
       background-color: #c6af7a1e;
+    }
+
+    .floating-button:hover{
+      background-color: #e5e2de;
     }
   }
 

@@ -316,6 +316,49 @@ function addHolesToBoard(clues = 40) {
 // #endregion SUDOKU-LOGIC
 
 // #region LOAD-SAVE 
+
+// auto save and load
+// window.onload = function () {
+//     //check if previous data exists
+//     loadSavedData();
+//     // updatePreview();
+// }
+
+window.saveData = function () {
+    console.log("saving data");
+    localStorage.setItem("hasSavedData", true);
+    localStorage.setItem("sudokuBoardString", exportBoard());
+
+    // store time data
+    let timeElapsed = new Date().getTime() - startTime;
+    console.log(timeElapsed);
+    localStorage.setItem("timeElapsed", timeElapsed);
+}
+
+// calls saveData every 5 seconds
+setInterval(saveData, 5000);
+
+function loadSavedData() {
+    var hasSavedData = localStorage.getItem("hasSavedData");
+    if (hasSavedData) {
+        // load sudoku board string
+        sudokuBoardString = localStorage.getItem("sudokuBoardString");
+
+        // rebuild the board from string
+        loadBoard(sudokuBoardString);
+
+        // load time data in seconds
+        let timeElapsed = localStorage.getItem("timeElapsed");
+        // sets start time to be current time minus time elapsed
+        // startTime = new Date().getTime() - timeElapsed;
+        pausedTime = timeElapsed;
+
+        return true;
+    }
+    return false;
+}
+
+
 function tryLoad() {
     // called by user button press
     document.getElementById("loadBox").classList.toggle('show');
@@ -325,10 +368,12 @@ function closeLoad() {
     document.getElementById("loadBox").classList.toggle("show");
 }
 
-function loadBoard() {
+function loadBoard(value = null) {
     // load the board from a string
-    var value = document.getElementById('code').value;
-    console.log(value);
+    if (!value) {
+        var value = document.getElementById('code').value;
+        console.log(value);
+    }
 
     // let decoded = base62.decode(value);
     if (!isValidCode(value)) {
@@ -342,16 +387,21 @@ function loadBoard() {
     for (let i = 0; i < 162; i += 2) {
         let row = Math.floor(i / 2 / 9);
         let col = i / 2 % 9;
+        
+        let cell = document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
 
         if (value[i + 1] == '1') {
-            document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`).classList.add('prefilled');
+            cell.classList.add('prefilled');
+            cell.classList.remove('default');
+        }else{
+            cell.classList.remove('prefilled');
+            cell.classList.add('default');
         }
 
-        console.log('this is row ' + row + ' and col ' + col + ' and value ' + value[i] + ' and prefilled ' + value[i + 1]);
+        // console.log('this is row ' + row + ' and col ' + col + ' and value ' + value[i] + ' and prefilled ' + value[i + 1]);
         sudokuBoard[row][col] = parseInt(value[i]);
     }
 
-    closeLoad();
     displayBoard();
 }
 
@@ -394,6 +444,10 @@ const base62 = {
         prev + (base62.charset.indexOf(curr) * (62 ** i)), 0)
 };
 
+function tryExport() {
+    document.getElementById("exportBox").classList.toggle("show");
+}
+
 function exportBoard() {
     // export the board to a string, remembering the prefilled cells
     // string is alternate of value pair of cell value and prefilled; such as 50 41 30 21 10 00 ... (no space in the real string)
@@ -412,10 +466,11 @@ function exportBoard() {
 
     // let encoded = base62.encode(parseInt(boardString));
     // console.log(boardString);
-    document.getElementById("exportBox").classList.toggle("show");
 
     // document.getElementById("exportcodedisplay").textContent = encoded;
     document.getElementById("exportcodedisplay").textContent = boardString;
+
+    return boardString;
 }
 
 function closeExport() {
@@ -435,7 +490,6 @@ function copyToClipboard(text) {
     document.execCommand('copy');
     document.body.removeChild(textArea);
 }
-
 
 // #endregion LOAD-SAVE
 
@@ -468,14 +522,6 @@ function resetboard() {
     redoStack = [];
 
     displayBoard();
-}
-
-function randomboard() {
-    resetStopwatch();
-    clearboard();
-    generateNewBoard();
-    displayBoard(prefilled = true);
-    startStopwatch();
 }
 
 function displayBoard(prefilled = false) {
@@ -516,7 +562,7 @@ function resetStopwatch() {
 function startStopwatch() {
     // start     
     let timer = document.querySelector(".timer .timer-text");
-    startTime = startTime === 0 ? new Date().getTime() : new Date().getTime() - pausedTime;
+    startTime = pausedTime === 0 ? new Date().getTime() : new Date().getTime() - pausedTime;
 
     button = document.querySelector(".play-pause i");
     button.classList.remove("fa-play");
@@ -530,7 +576,7 @@ function startStopwatch() {
         // in the form of 00:00
         timer.textContent = `${minutes < 10 ? '0' + minutes : minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
 
-    }, 1000);
+    }, 250);
 
 }
 
@@ -553,7 +599,7 @@ function togglepause() {
     else {
         paused = true;
         stopStopwatch();
-        toggleHideDigits(hide = true);
+        // toggleHideDigits(hide = true);
     }
 }
 
@@ -659,8 +705,9 @@ function getValueAtCell(row, col) {
     return sudokuBoard[row][col];
 }
 
-// goes through each neighbor of the cell and checks if the input is valid
 function checkInputValid(board, row, col, input) {
+    // goes through each neighbor of the cell and checks if the input is valid
+
     // check row
     for (let i = 0; i < 9; i++) {
         if (board[row][i] === input) {
@@ -717,8 +764,8 @@ function replaceSelectedCell(newCell) {
     // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
 }
 
-// determine playing mode
 function checkPlayingMode() {
+    // determine playing mode
     if (window.innerWidth < 600) {
         platformMode = Platform.Mobile;
         if (selectedCell) {
@@ -728,8 +775,6 @@ function checkPlayingMode() {
     else {
         platformMode = Platform.Desktop;
     }
-
-    console.log("playing mode is " + platformMode);
 }
 
 function toggleMarkingMode() {
@@ -1037,6 +1082,14 @@ document.addEventListener('keydown', function (event) {
 
 //#endregion
 
+function randomboard(){
+    // generate a random board
+    clearboard();
+    resetStopwatch();
+    generateNewBoard();
+    displayBoard(prefilled = true);
+    startStopwatch();
+}
 function initializePage() {
     // check playing mode on load
     checkPlayingMode();
@@ -1052,7 +1105,18 @@ function initializePage() {
     createTextGrid();
     createPencilGrid();
 
-    randomboard();
-}
+    resetStopwatch();
+    clearboard();
 
+    // check if we have saved data
+    if (loadSavedData()) {
+        displayBoard();
+    }
+    else {
+        generateNewBoard();
+        displayBoard(prefilled = true);
+    }
+
+    startStopwatch();
+}
 initializePage();

@@ -71,15 +71,15 @@
         </button>
         <!-- <a href="/" class="fa fa-home fa-2x"></a> -->
 
-        <button class="" onclick="exportBoard()">
+        <button class="" onclick="exportBoard(); tryExport()">
             <i class="fa fa-download"></i>
         </button>
 
         <!-- floating export -->
         <div class="floatingBox" id="exportBox">
             <div class="row">
-                <div class="col l10 offset-l1">
-                    <p class="boxtitle">board code</p>
+                <div class="col l10">
+                    <p class="boxtitle">export code</p>
                 </div>
             </div>
             <div class="row">
@@ -88,17 +88,17 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col l4 offset-l2 s5 offset-s1">
-                    <button class="floating-button" onclick="copyCode()">
+                <div class="col l12 s12">
+                    <button class="floating-button" onclick="copyCode(); closeExport()">
                         <i class="fa fa-copy"></i>
                     </button>
                 </div>
-                <div class="col l4 s5">
+                <!-- <div class="col l4 s5">
                     
                     <button class="floating-button" onclick="closeExport()">
                         <i class="fa fa-close"></i>
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
 
@@ -109,7 +109,7 @@
         <!-- floating load -->
         <div class="floatingBox" id="loadBox">
             <div class="row">
-                <div class="col l10 offset-l1">
+                <div class="col l10">
                     <p class="boxtitle">enter code</p>
                 </div>
             </div>
@@ -121,7 +121,7 @@
 
             <div class="row">
                 <div class="col l4 offset-l2 s5 offset-s1">
-                    <button class="floating-button" onclick="loadBoard()">
+                    <button class="floating-button" onclick="loadBoard(); closeLoad()">
                         <i class="fa fa-arrow-right"></i>
                     </button>
                 </div>
