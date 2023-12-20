@@ -163,6 +163,12 @@ function trySetValue(row, col, value) {
         // now save the state
         updateStack(row, col, value, getValueAtCell(row, col));
         sudokuBoard[row][col] = value;
+
+        // succeded, now update markings
+        if (value !== 0) {
+            updateMarkings(row, col, value);
+        }
+
         return true;
     }
 
@@ -339,8 +345,7 @@ window.saveData = function () {
     localStorage.setItem("timeElapsed", timeElapsed);
 
     // store settings
-    localStorage.setItem("autoPencilMarks", JSON.stringify(autoPencilMarks));
-    localStorage.setItem("saveDifficulty", JSON.stringify(saveDifficulty));
+    // saveSettings();
 
     // store difficulty's key
     // Get the key of the enum you want to update;
@@ -352,7 +357,7 @@ window.saveData = function () {
 // calls saveData every 5 seconds
 setInterval(saveData, 2000);
 
-function saveSettings(){
+function saveSettings() {
     localStorage.setItem("autoPencilMarks", JSON.stringify(autoPencilMarks));
     localStorage.setItem("saveDifficulty", JSON.stringify(saveDifficulty));
 }
@@ -377,11 +382,10 @@ function loadSavedData() {
         // update checkbox
         document.getElementById("pencilmark-toggle").checked = autoPencilMarks;
         document.getElementById("save-difficulty-toggle").checked = saveDifficulty;
-        
-        if(saveDifficulty){
+
+        if (saveDifficulty) {
             difficulty = JSON.parse(localStorage.getItem("difficulty"));
             console.log("difficulty is " + difficulty);
-            // update the button
             updateDifficultyButton();
         }
         return true;
@@ -418,13 +422,13 @@ function loadBoard(value = null) {
     for (let i = 0; i < 162; i += 2) {
         let row = Math.floor(i / 2 / 9);
         let col = i / 2 % 9;
-        
+
         let cell = document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
 
         if (value[i + 1] == '1') {
             cell.classList.add('prefilled');
             cell.classList.remove('default');
-        }else{
+        } else {
             cell.classList.remove('prefilled');
             cell.classList.add('default');
         }
@@ -527,11 +531,11 @@ function copyToClipboard(text) {
 // #region UI
 
 // settings menu
-function openSettingsPanel(){
+function openSettingsPanel() {
     document.getElementById("settingsPanel").classList.toggle("show");
 }
 
-function closeAndSaveSettings(){
+function closeAndSaveSettings() {
     document.getElementById("settingsPanel").classList.toggle("show");
     saveSettings();
     // save settings
@@ -539,39 +543,41 @@ function closeAndSaveSettings(){
 
 var checkboxSettings = document.querySelectorAll("input[type='checkbox']");
 
-checkboxSettings.forEach(checkbox => { checkbox.addEventListener('change', function () {
-    var option = this.dataset.option;
-    console.log(option);
+checkboxSettings.forEach(checkbox => {
+    checkbox.addEventListener('change', function () {
+        var option = this.dataset.option;
+        console.log(option);
 
-    switch (Number(option)) {
-        case 1:
-            // auto pencil marks
-            autoPencilMarks = this.checked;
-            // console.log("auto pencil marks is " + autoPencilMarks);
-            break;
-        case 2:
-            // save difficulty
-            saveDifficulty = this.checked;
-            // console.log("save difficulty is " + saveDifficulty);
-            break;
-        default:
-            console.log(option);
-            break;
-    }
+        switch (Number(option)) {
+            case 1:
+                // auto pencil marks
+                autoPencilMarks = this.checked;
+                // console.log("auto pencil marks is " + autoPencilMarks);
+                break;
+            case 2:
+                // save difficulty
+                saveDifficulty = this.checked;
+                // console.log("save difficulty is " + saveDifficulty);
+                break;
+            default:
+                console.log(option);
+                break;
+        }
 
 
-    // if (this.checked) {
-    //     // Checkbox is checked..
-    //     console.log("checked");
-    //     // print data-option of the checkbox
+        // if (this.checked) {
+        //     // Checkbox is checked..
+        //     console.log("checked");
+        //     // print data-option of the checkbox
 
-    // } else {
-    //     // Checkbox is not checked..
-    //     console.log("unchecked");
-    // }
+        // } else {
+        //     // Checkbox is not checked..
+        //     console.log("unchecked");
+        // }
 
-    saveSettings();
-})});
+        saveSettings();
+    })
+});
 
 function clearboard() {
     // only used new board; not used for reset
@@ -704,13 +710,14 @@ function setCellText(cell, value) {
     pencilMarks.forEach(mark => mark.classList.remove('marked'));
 }
 
-function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false) {
+function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false, clearCell=true) {
     // addmark is only considered if toggle is false
     // if toggle is false, then addmark determines whether to add or remove the mark
 
     // try to remove cell value 
-    trySetValue(cell.dataset.row, cell.dataset.col, 0);
-    cell.querySelector('.cell-text').textContent = "";
+    if (clearCell && trySetValue(cell.dataset.row, cell.dataset.col, 0)) {
+        cell.querySelector('.cell-text').textContent = "";
+    }
 
     // if value is 0, clear all pencil marks
     if (value === 0) {
@@ -772,6 +779,32 @@ function autoMarkAll() {
         });
 
     });
+}
+
+function updateMarkings(row, col, value) {
+    // update the pencil marks of the neighboring cells of the given cell
+    // used when the value of the cell is changed
+    if (!autoPencilMarks) return;
+
+    // for all neighbors in the same row, remove the pencil mark
+    for (let i = 0; i < 9; i++) {
+        markToggleSelectedCell(value, getCellFromCoords(row, i), toggle = false, addMark = false, clearCell=false);
+    }
+
+    // for all neighbors in the same column, remove the pencil mark
+    for (let i = 0; i < 9; i++) {
+        markToggleSelectedCell(value, getCellFromCoords(i, col), toggle = false, addMark = false, clearCell=false);
+    }
+
+    // for all neighbors in the same box, remove the pencil mark
+    let boxRow = Math.floor(row / 3) * 3; // 0, 3, 6
+    let boxCol = Math.floor(col / 3) * 3; // 0, 3, 6
+    for (let i = boxRow; i < boxRow + 3; i++) {
+        for (let j = boxCol; j < boxCol + 3; j++) {
+            markToggleSelectedCell(value, getCellFromCoords(i, j), toggle = false, addMark = false, clearCell=false);
+        }
+    }
+
 }
 
 // get cell from row and col
@@ -908,7 +941,7 @@ function toggleDifficulty() {
     }
 }
 
-function updateDifficultyButton(){
+function updateDifficultyButton() {
     let button = document.getElementById("difficultyButton");
 
     if (difficulty === Difficulty.EASY) {
@@ -1179,7 +1212,7 @@ document.addEventListener('keydown', function (event) {
 
 //#endregion
 
-function randomboard(){
+function randomboard() {
     // generate a random board
     clearboard();
     resetStopwatch();
