@@ -1,7 +1,11 @@
-// INTERNAL: Sudoku game logic
 
-// Sudoku board is a 9x9 grid
-// initialize board as a 9x9 array
+// #region HEADER
+// Sudoku game
+// Author: VeiXhen
+// #endregion HEADER
+
+// #region INITIALIZATION
+
 let sudokuBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 0
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 1
@@ -13,6 +17,7 @@ let sudokuBoard = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0], // row 7
     [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
 ];
+let pencilMarks = new Array(9); // each cell has a 9x9 array of pencil marks
 
 // we need to keep track of the initial state of the board
 let startingBoard = [];
@@ -21,6 +26,13 @@ let startingBoard = [];
 let undoStack = [];
 let redoStack = [];
 
+// pause and timer
+let paused = false;
+let startTime = 0;
+let interval = 0;
+let pausedTime = 0;
+
+// enums
 const Difficulty = {
     EASY: 46,
     MEDIUM: 37,
@@ -28,54 +40,26 @@ const Difficulty = {
     IMPOSSIBLE: -1 // impossible means all cells that can be removed, are removed
 };
 
-// modes
 const Modes = {
     NORMAL: 0,
     MARKING: 1
 };
 
-const PlayingMode = {
+const Platform = {
     Mobile: 0,
     Desktop: 1
 }
-let playingMode = PlayingMode.Desktop;
-
-const sudokuCells = document.querySelectorAll('.sudoku-cell');
-let selectedCell = null;
-
-// determine playing mode
-function checkPlayingMode() {
-    if (window.innerWidth < 600) {
-        playingMode = PlayingMode.Mobile;
-        if (selectedCell) {
-            updateNumButtons(selectedCell);
-        }
-    }
-    else {
-        playingMode = PlayingMode.Desktop;
-    }
-
-    console.log("playing mode is " + playingMode);
-}
-
-// check playing mode on load
-checkPlayingMode();
 
 let mode = Modes.NORMAL;
-
 let difficulty = Difficulty.EASY;
+let platformMode = Platform.Desktop;
 
+// get cells and markings
+const sudokuCells = document.querySelectorAll('.sudoku-cell');
 
-// pencilmarks
-let pencilMarks = new Array(9);
-for (let i = 0; i < 9; i++) {
-    pencilMarks[i] = new Array(9);
-    for (let j = 0; j < 9; j++) {
-        pencilMarks[i][j] = new Array(9).fill(false); // Initialize all values as false
-    }
-}
+let selectedCell = null;
 
-
+// modify HTML to create child elements in our sudoku grid
 function createTextGrid() {
     //in each grid, create a text span
     const cells = document.querySelectorAll('.sudoku-cell');
@@ -126,10 +110,9 @@ function createPencilGrid() {
         cell.append(pencilMarks);
     });
 }
+// #endregion INITIALIZATION
 
-createTextGrid();
-createPencilGrid();
-
+// #region UNDO-REDO
 function updateStack(row, col, new_value, initial_value = 0) {
     undoStack.push([row, col, new_value, initial_value]);
     redoStack = [];
@@ -143,7 +126,7 @@ function undo() {
         displayBoard();
 
         // update the selected cell
-        replaceSelection(getCellFromCoords(row, col));
+        replaceSelectedCell(getCellFromCoords(row, col));
     }
 }
 
@@ -155,103 +138,47 @@ function redo() {
         displayBoard();
 
         // update the selected cell
-        replaceSelection(getCellFromCoords(row, col));
+        replaceSelectedCell(getCellFromCoords(row, col));
     }
 }
 
+// #endregion UNDO-REDO
+
+// #region SUDOKU-LOGIC
+
 function trySetValue(row, col, value) {
+    // sets value if valid, returns a boolean indicating if successful
     let prefilled = getCellFromCoords(row - 1, col - 1).classList.contains('prefilled');
-    if (prefilled) {
-        return false;
-    }
+
+    if (prefilled) return false;
 
     row = row - 1;
     col = col - 1;
     // if value is 0, then clearing the cell is always valid
-    if (value === 0 || checkValid(sudokuBoard, row, col, value)) {
+    if (value === 0 || checkInputValid(sudokuBoard, row, col, value)) {
         // now save the state
-        updateStack(row, col, value, getValue(row, col));
-
+        updateStack(row, col, value, getValueAtCell(row, col));
         sudokuBoard[row][col] = value;
-
         return true;
     }
+
     // handle invalid input
     return false;
 }
 
-function getValue(row, col) {
-    return sudokuBoard[row][col];
-}
+function solve(board, digitarray = [1, 2, 3, 4, 5, 6, 7, 8, 9]) {
+    // if the parameter digitarray is provided, it acts as a seed and can be used as a part of generating a random board
 
-function checkValid(board, row, col, num) {
-    // check row
-    for (let i = 0; i < 9; i++) {
-        if (board[row][i] === num) {
-            return false;
-        }
-    }
-
-    // check column
-    for (let j = 0; j < 9; j++) {
-        if (board[j][col] === num) {
-            return false;
-        }
-    }
-
-    // check 3x3 box
-    let boxRow = Math.floor(row / 3) * 3; // 0, 3, 6
-    let boxCol = Math.floor(col / 3) * 3; // 0, 3, 6
-    for (let i = boxRow; i < boxRow + 3; i++) {
-        for (let j = boxCol; j < boxCol + 3; j++) {
-            if (board[i][j] === num) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-function isBoardSolved(board) {
-    // check if any cell is empty
-    let emptyCell = findEmptyCell(board);
-    if (emptyCell) {
-        return false;
-    }
-    return true;
-}
-
-function solve(board) { // TODO show real time backtrack solving
-    // find empty cell
-    let emptyCell = findEmptyCell(board);
+    let emptyCell = findNextEmptyCell(board);
     if (!emptyCell) {
         return true;
     }
-    for (let i = 1; i <= 9; i++) {
-        // console.log(`Trying ${i} at ${emptyCell[0]}, ${emptyCell[1]}`);
-        if (checkValid(board, emptyCell[0], emptyCell[1], i)) {
-            board[emptyCell[0]][emptyCell[1]] = i;
-            if (solve(board)) {
-                return true;
-            }
-            board[emptyCell[0]][emptyCell[1]] = 0;
-        }
-    }
-    return false;
-}
 
-function randomized_solve(board, digitarray) { // digit array is an array of 9 digits, in random order
-    // find empty cell
-    let emptyCell = findEmptyCell(board);
-    if (!emptyCell) {
-        return true;
-    }
     for (let i = 0; i < 9; i++) {
-        if (checkValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
+        if (checkInputValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
             board[emptyCell[0]][emptyCell[1]] = digitarray[i];
 
-            if (randomized_solve(board, digitarray)) {
+            if (solve(board, digitarray)) {
                 return true;
             }
             board[emptyCell[0]][emptyCell[1]] = 0;
@@ -260,17 +187,16 @@ function randomized_solve(board, digitarray) { // digit array is an array of 9 d
     return false;
 }
 
-// Backtracking algorithm
-async function solvevisual(board) {
+async function solveInRealTime(board) {
     for (let row = 0; row < 9; row++) {
         for (let col = 0; col < 9; col++) {
             if (board[row][col] === 0) {
                 for (let num = 1; num <= 9; num++) {
-                    if (checkValid(board, row, col, num)) {
+                    if (checkInputValid(board, row, col, num)) {
                         board[row][col] = num;
                         displayBoard();
                         await new Promise((resolve) => setTimeout(resolve, 75)); // Delay 0.1s
-                        if (await solvevisual(board)) {
+                        if (await solveInRealTime(board)) {
                             return true;
                         }
                         board[row][col] = 0;
@@ -285,53 +211,42 @@ async function solvevisual(board) {
     return true;
 }
 
-function findEmptyCell(board) {
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            if (board[i][j] === 0) {
-                return [i, j];
-            }
+// called by user button press
+function trySolveBoard(visual = false) {
+    if (visual) {
+        solveInRealTime(sudokuBoard);
+    }
+    else {
+        board_temp = sudokuBoard;
+        if (!solve(sudokuBoard)) { // no solution found, restore the board
+            sudokuBoard = board_temp;
+            // console.log("No solution found");
         }
+        displayBoard();
     }
-    return null;
+
+    stopStopwatch();
+
 }
 
-function try_solve(board) {
-    board_temp = board;
-    result = solve(board);
-    if (!result) {
-        board = board_temp;
-
-        // display error message
-        console.log("No solution found");
-    } else {
-        // do nothing
-    }
-}
-
-
-function betterGenerateBoard() {
-    clearboard();
-
+function generateNewBoard() {
     // generate a random array of 9 digits
     let digitarray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
     digitarray.sort(() => Math.random() - 0.5);
 
-    // create a board, then remove some numbers
-    randomized_solve(sudokuBoard, digitarray);
+    solve(sudokuBoard, digitarray);
 
     // remove some numbers based on difficulty
-    sudokuBoard = betterCreateChallenge(difficulty);
-    // sudokuBoard = betterCreateChallenge();
+    sudokuBoard = addHolesToBoard(difficulty);
 
     // save the starting state
     startingBoard = JSON.parse(JSON.stringify(sudokuBoard));
 }
 
-function getSolutions(board) {
-    // find empty cell
+function getSolutionCount(board) {
+    // helper function to get number of solutions in current board
     let digitarray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    let emptyCell = findEmptyCell(board);
+    let emptyCell = findNextEmptyCell(board);
 
     let solutions = 0;
 
@@ -340,10 +255,10 @@ function getSolutions(board) {
     }
 
     for (let i = 0; i < 9; i++) {
-        if (checkValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
+        if (checkInputValid(board, emptyCell[0], emptyCell[1], digitarray[i])) {
             board[emptyCell[0]][emptyCell[1]] = digitarray[i];
 
-            let result = getSolutions(board);
+            let result = getSolutionCount(board);
             solutions += result;
 
             // at any point if we have more than 1 solution, we can stop
@@ -358,16 +273,14 @@ function getSolutions(board) {
     return solutions;
 }
 
-function betterCreateChallenge(clues = 40) {
+function addHolesToBoard(clues = 40) {
     // for each cell, try to remove it and see if the board is still solvable with only 1 solution
-    // first we generate list of all cells, and shuffle it
 
     let max = 81 - clues;
 
     let cells = [];
     for (let i = 0; i < 81; i++) { cells.push(i); }
-    cells.sort(() => Math.random() - 0.5); // randomize the array
-
+    cells.sort(() => Math.random() - 0.5); // randomize the cells position array
 
     // now we try to remove each cell
     var removed = 0;
@@ -381,15 +294,13 @@ function betterCreateChallenge(clues = 40) {
         let row = Math.floor(cells[i] / 9);
         let col = cells[i] % 9;
 
-
         // save the value of the cell
         let temp = sudokuBoard[row][col];
         sudokuBoard[row][col] = 0;
 
-
         // check if the board is still solvable
         var board_temp = JSON.parse(JSON.stringify(sudokuBoard));
-        if (getSolutions(board_temp) > 1) {
+        if (getSolutionCount(board_temp) > 1) {
             // console.log("we have more than 1 solution after removing cell " + row + ", " + col + "");
             // if not, restore the cell value
             sudokuBoard[row][col] = temp;
@@ -399,60 +310,19 @@ function betterCreateChallenge(clues = 40) {
         }
 
     }
-    // console.log("done, with the board: " + sudokuBoard + " and we removed " + removed + " cells");
     return sudokuBoard;
-
 }
 
+// #endregion SUDOKU-LOGIC
 
-function displayBoard(prefilled = false) {
-    // Given the grid, display the board on the screen to correspond to the grid
-    for (let i = 0; i < 9; i++) {
-        for (let j = 0; j < 9; j++) {
-            // let cell = document.getElementById(`cell-${i + 1}-${j + 1}`);
-            let cell = document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`);
-            if (sudokuBoard[i][j] !== 0) {
-                // cell.textContent = sudokuBoard[i][j];
-                setCellText(cell, sudokuBoard[i][j]);
-                if (prefilled) {
-                    cell.classList.add('prefilled');
-                    cell.classList.remove('default');
-                }
-            } else {
-                // cell.textContent = '';
-                setCellText(cell, '');
-                cell.classList.remove('prefilled');
-                cell.classList.add('default');
-            }
-        }
-    }
-}
-
-
-function isValidCode(value) {
-    // check if the code is valid
-    if (value.length != 162) {
-        console.log("Invalid length");
-        return false;
-    }
-
-    for (let i = 0; i < 162; i += 2) {
-        if (value[i] < '0' || value[i] > '9') {
-            console.log("Not a number");
-            return false;
-        }
-    }
-    for (let i = 1; i < 162; i += 2) {
-        if (value[i] !== '0' && value[i] !== '1') {
-            console.log("Invalid prefilled value");
-            return false;
-        }
-    }
-    return true;
-}
-
+// #region LOAD-SAVE 
 function tryLoad() {
+    // called by user button press
     document.getElementById("loadBox").classList.toggle('show');
+}
+
+function closeLoad() {
+    document.getElementById("loadBox").classList.toggle("show");
 }
 
 function loadBoard() {
@@ -485,6 +355,27 @@ function loadBoard() {
     displayBoard();
 }
 
+function isValidCode(value) {
+    // check if the code is valid
+    if (value.length != 162) {
+        console.log("Invalid length");
+        return false;
+    }
+
+    for (let i = 0; i < 162; i += 2) {
+        if (value[i] < '0' || value[i] > '9') {
+            console.log("Not a number");
+            return false;
+        }
+    }
+    for (let i = 1; i < 162; i += 2) {
+        if (value[i] !== '0' && value[i] !== '1') {
+            console.log("Invalid prefilled value");
+            return false;
+        }
+    }
+    return true;
+}
 const base62 = {
     charset: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
         .split(''),
@@ -502,7 +393,6 @@ const base62 = {
     decode: chars => chars.split('').reverse().reduce((prev, curr, i) =>
         prev + (base62.charset.indexOf(curr) * (62 ** i)), 0)
 };
-
 
 function exportBoard() {
     // export the board to a string, remembering the prefilled cells
@@ -546,13 +436,10 @@ function copyToClipboard(text) {
     document.body.removeChild(textArea);
 }
 
-function closeLoad() {
-    document.getElementById("loadBox").classList.toggle("show");
-}
 
+// #endregion LOAD-SAVE
 
-
-// UI
+// #region UI
 function clearboard() {
     // only used new board; not used for reset
     sudokuBoard = [
@@ -583,24 +470,48 @@ function resetboard() {
     displayBoard();
 }
 
-
 function randomboard() {
     resetStopwatch();
     clearboard();
-    betterGenerateBoard();
+    generateNewBoard();
     displayBoard(prefilled = true);
     startStopwatch();
 }
 
-function disableundoredo() {
-    // document.getElementById("undo").disabled = true;
-    // document.getElementById("redo").disabled = true;
+function displayBoard(prefilled = false) {
+    // Given the grid, display the board on the screen to correspond to the grid
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            // let cell = document.getElementById(`cell-${i + 1}-${j + 1}`);
+            let cell = document.querySelector(`.sudoku-cell[data-row="${i + 1}"][data-col="${j + 1}"]`);
+            if (sudokuBoard[i][j] !== 0) {
+                // cell.textContent = sudokuBoard[i][j];
+                setCellText(cell, sudokuBoard[i][j]);
+                if (prefilled) {
+                    cell.classList.add('prefilled');
+                    cell.classList.remove('default');
+                }
+            } else {
+                // cell.textContent = '';
+                setCellText(cell, '');
+                cell.classList.remove('prefilled');
+                cell.classList.add('default');
+            }
+        }
+    }
 }
 
-let paused = false;
-let startTime = 0;
-let interval = 0;
-let pausedTime = 0;
+// #endregion UI
+
+// #region PAUSE and TIMER
+function resetStopwatch() {
+    // reset
+    stopStopwatch();
+    pausedTime = 0;
+    paused = false;
+
+    document.querySelector(".timer .timer-text").textContent = "00:00";
+}
 
 function startStopwatch() {
     // start     
@@ -621,15 +532,6 @@ function startStopwatch() {
 
     }, 1000);
 
-}
-
-function resetStopwatch() {
-    // reset
-    stopStopwatch();
-    pausedTime = 0;
-    paused = false;
-
-    document.querySelector(".timer .timer-text").textContent = "00:00";
 }
 
 function stopStopwatch() {
@@ -655,61 +557,7 @@ function togglepause() {
     }
 }
 
-
-
-function toggleMarkingMode() {
-    // button press to toggle between normal (default) and marking mode, which is used to mark cells with pencil marks
-    // get with id fa-pencil_mark
-
-    let button_icon = document.getElementById("fa-pencil_mark");
-    let button = document.getElementById("pencil_button");
-    if (mode === Modes.NORMAL) {
-        mode = Modes.MARKING;
-        // set color to red
-        button_icon.style.color = "rgb(158, 91, 91)";
-
-        // add border to button
-        button.style.border = "2px solid rgb(158, 91, 91)";
-    }
-    else if (mode === Modes.MARKING) {
-        mode = Modes.NORMAL;
-
-        // try to update number if on mobile
-
-        // set color to default
-        button_icon.style.color = "rgb(110, 135, 156)";
-
-        // remove border from button
-        button.style.border = "0px solid rgb(110, 135, 156)";
-    }
-
-    if (playingMode === PlayingMode.Mobile) {
-        updateNumButtons(selectedCell);
-    }
-}
-
-function toggleDifficulty() {
-    let button = document.getElementById("difficultyButton");
-
-    if (difficulty === Difficulty.EASY) {
-        difficulty = Difficulty.MEDIUM;
-        button.textContent = "medium";
-    }
-    else if (difficulty === Difficulty.MEDIUM) {
-        difficulty = Difficulty.HARD;
-        button.textContent = "hard";
-    }
-    else if (difficulty === Difficulty.HARD) {
-        difficulty = Difficulty.IMPOSSIBLE;
-        button.textContent = "!?";
-    }
-    else if (difficulty === Difficulty.IMPOSSIBLE) {
-        difficulty = Difficulty.EASY;
-        button.textContent = "easy";
-    }
-}
-
-// Function to hide all digits
+// Function to hide all digits when paused
 function toggleHideDigits(hide = true) {
     if (hide) {
         let cells = document.querySelectorAll('.sudoku-cell');
@@ -719,23 +567,9 @@ function toggleHideDigits(hide = true) {
         cells.forEach(cell => cell.classList.remove('paused'));
     }
 }
+// #endregion  
 
-function solveboard(visual = false) {
-    if (visual) {
-        // console.log("visual");
-        solvevisual(sudokuBoard);
-    }
-    else {
-        // console.log("non-visual");
-        try_solve(sudokuBoard);
-        displayBoard();
-    }
-
-    stopStopwatch();
-
-}
-
-// helper functions
+// #region HELPER
 function setCellText(cell, value) {
     let cellText = cell.querySelector('.cell-text');
     cellText.textContent = value;
@@ -744,7 +578,6 @@ function setCellText(cell, value) {
     let pencilMarks = cell.querySelectorAll('.pencil-mark');
     pencilMarks.forEach(mark => mark.classList.remove('marked'));
 }
-
 
 function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false) {
     // addmark is only considered if toggle is false
@@ -799,34 +632,161 @@ function autoMarkAll() {
         let nums = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
         // use checkValid to determine which numbers are possible
-        nums = nums.filter(num => checkValid(sudokuBoard, cell.dataset.row - 1, cell.dataset.col - 1, num));
+        nums = nums.filter(num => checkInputValid(sudokuBoard, cell.dataset.row - 1, cell.dataset.col - 1, num));
         console.log(`Cell ${cell.dataset.row}, ${cell.dataset.col} can be ${nums}`);
 
         // now mark the numbers
         nums.forEach(num => {
-            markToggleSelectedCell(num, cell, toggle=false, addMark=true);
+            markToggleSelectedCell(num, cell, toggle = false, addMark = true);
         });
 
         // unmark all other numbers
         let filteredNums = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(num => !nums.includes(num));
         filteredNums.forEach(num => {
-            markToggleSelectedCell(num, cell, toggle=false, addMark=false);
+            markToggleSelectedCell(num, cell, toggle = false, addMark = false);
         });
 
     });
 }
 
-// helper function to get cell from row and col
+// get cell from row and col
 function getCellFromCoords(row, col) {
     return document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
 }
 
+// get cell value from row and col
+function getValueAtCell(row, col) {
+    return sudokuBoard[row][col];
+}
 
+// goes through each neighbor of the cell and checks if the input is valid
+function checkInputValid(board, row, col, input) {
+    // check row
+    for (let i = 0; i < 9; i++) {
+        if (board[row][i] === input) {
+            return false;
+        }
+    }
 
+    // check column
+    for (let j = 0; j < 9; j++) {
+        if (board[j][col] === input) {
+            return false;
+        }
+    }
 
-// listeners
+    // check 3x3 box
+    let boxRow = Math.floor(row / 3) * 3; // 0, 3, 6
+    let boxCol = Math.floor(col / 3) * 3; // 0, 3, 6
+    for (let i = boxRow; i < boxRow + 3; i++) {
+        for (let j = boxCol; j < boxCol + 3; j++) {
+            if (board[i][j] === input) {
+                return false;
+            }
+        }
+    }
 
-// listener for resize
+    return true;
+}
+
+function findNextEmptyCell(board) {
+    // finds the next empty cell, following the order of row 0, 1, 2, ... 8
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            if (board[i][j] === 0) {
+                return [i, j];
+            }
+        }
+    }
+    return null;
+}
+
+// wrapper function to check if the player has won
+const hasPlayerWon = (board) => !findNextEmptyCell(board);
+
+function replaceSelectedCell(newCell) {
+    // simply handles the graphical changes of selecting a new cell
+    if (selectedCell) {
+        // add class selected to the cell
+        selectedCell.classList.remove('selected');
+    }
+    selectedCell = newCell;
+    selectedCell.classList.add('selected');
+
+    // debug
+    // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
+}
+
+// determine playing mode
+function checkPlayingMode() {
+    if (window.innerWidth < 600) {
+        platformMode = Platform.Mobile;
+        if (selectedCell) {
+            updateNumButtons(selectedCell);
+        }
+    }
+    else {
+        platformMode = Platform.Desktop;
+    }
+
+    console.log("playing mode is " + platformMode);
+}
+
+function toggleMarkingMode() {
+    // button press to toggle between normal (default) and marking mode, which is used to mark cells with pencil marks
+    // get with id fa-pencil_mark
+
+    let button_icon = document.getElementById("fa-pencil_mark");
+    let button = document.getElementById("pencil_button");
+    if (mode === Modes.NORMAL) {
+        mode = Modes.MARKING;
+        // set color to red
+        button_icon.style.color = "rgb(158, 91, 91)";
+
+        // add border to button
+        button.style.border = "2px solid rgb(158, 91, 91)";
+    }
+    else if (mode === Modes.MARKING) {
+        mode = Modes.NORMAL;
+
+        // try to update number if on mobile
+
+        // set color to default
+        button_icon.style.color = "rgb(110, 135, 156)";
+
+        // remove border from button
+        button.style.border = "0px solid rgb(110, 135, 156)";
+    }
+
+    if (platformMode === Platform.Mobile) {
+        updateNumButtons(selectedCell);
+    }
+}
+
+function toggleDifficulty() {
+    let button = document.getElementById("difficultyButton");
+
+    if (difficulty === Difficulty.EASY) {
+        difficulty = Difficulty.MEDIUM;
+        button.textContent = "medium";
+    }
+    else if (difficulty === Difficulty.MEDIUM) {
+        difficulty = Difficulty.HARD;
+        button.textContent = "hard";
+    }
+    else if (difficulty === Difficulty.HARD) {
+        difficulty = Difficulty.IMPOSSIBLE;
+        button.textContent = "!?";
+    }
+    else if (difficulty === Difficulty.IMPOSSIBLE) {
+        difficulty = Difficulty.EASY;
+        button.textContent = "easy";
+    }
+}
+
+// #endregion HELPER
+
+// #region LISTENERS
 window.addEventListener('resize', function () {
     checkPlayingMode();
 }, true);
@@ -911,29 +871,11 @@ document.addEventListener('keydown', function (event) {
 
 // updates selected cell
 function handleCellClick(event) {
-    replaceSelection(event.target)
-    if (playingMode === PlayingMode.Mobile) {
+    replaceSelectedCell(event.target)
+    if (platformMode === Platform.Mobile) {
         updateNumButtons(selectedCell);
     }
 }
-
-function replaceSelection(newCell) {
-    // simply handles the graphical changes of selecting a new cell
-    if (selectedCell) {
-        // add class selected to the cell
-        selectedCell.classList.remove('selected');
-    }
-    selectedCell = newCell;
-    selectedCell.classList.add('selected');
-
-    // debug
-    // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
-}
-
-$('.sudoku-cell').on('click', function (e) {
-    handleCellClick(e);
-});
-
 
 function handleOutsideClick(event) {
     if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.closest('num-button')) && (!event.target.classList.contains('sudoku-button')) && !event.target.closest('.num-button')) {
@@ -944,8 +886,11 @@ function handleOutsideClick(event) {
     }
 }
 
-document.addEventListener("click", handleOutsideClick);
+$('.sudoku-cell').on('click', function (e) {
+    handleCellClick(e);
+});
 
+document.addEventListener("click", handleOutsideClick);
 
 //MOBILE section//
 function press(num) {
@@ -964,7 +909,7 @@ function press(num) {
                 }
 
                 // check if the board is solved
-                if (isBoardSolved(sudokuBoard)) {
+                if (hasPlayerWon(sudokuBoard)) {
                     stopStopwatch();
                     // alert("You solved the board!");
                 }
@@ -1014,14 +959,14 @@ function updateNumButtons(cell) {
         // convert string to int
         const num = parseInt(num_);
         if (num === 0) {
-            if (getValue(row, col) === 0) {
+            if (getValueAtCell(row, col) === 0) {
                 button.disabled = true;
             } else {
                 button.disabled = false;
             }
         }
 
-        else if (checkValid(sudokuBoard, row, col, num)) {
+        else if (checkInputValid(sudokuBoard, row, col, num)) {
             button.disabled = false;
             // console.log("button " + num + " is valid");
         } else {
@@ -1030,7 +975,6 @@ function updateNumButtons(cell) {
         }
     });
 }
-
 //MOBILE end///
 
 
@@ -1060,7 +1004,7 @@ document.addEventListener('keydown', function (event) {
                         startStopwatch();
                     }
                     // check if board is solved
-                    if (isBoardSolved(sudokuBoard)) {
+                    if (hasPlayerWon(sudokuBoard)) {
                         // alert("You solved the board!");
                         stopStopwatch();
                     }
@@ -1091,6 +1035,24 @@ document.addEventListener('keydown', function (event) {
     }
 });
 
+//#endregion
 
-// init
-randomboard();
+function initializePage() {
+    // check playing mode on load
+    checkPlayingMode();
+
+    // pencilmarks
+    for (let i = 0; i < 9; i++) {
+        pencilMarks[i] = new Array(9);
+        for (let j = 0; j < 9; j++) {
+            pencilMarks[i][j] = new Array(9).fill(false); // Initialize all values as false
+        }
+    }
+
+    createTextGrid();
+    createPencilGrid();
+
+    randomboard();
+}
+
+initializePage();
