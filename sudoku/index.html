@@ -69,7 +69,67 @@
         <button class="" onclick="window.location.href='/';">
             <i class="fa fa-home"></i>
         </button>
-        <!-- <a href="/" class="fa fa-home fa-2x"></a> -->
+        
+        <button class="" onclick="openSettingsPanel()">
+            <i class="fa fa-cog"></i>
+        </button>
+        
+        <!-- settings -->
+        <div class="floatingBox" id="settingsPanel">
+            <div class="row">
+                <div class="col l10">
+                    <p class="boxtitle">settings</p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col l12 settings-toggle switch">
+                    <label class="">
+                        <input type="checkbox" class="setting" id="pencilmark-toggle" data-option="1" checked>
+                        <span class="lever"></span>
+                        <span class="">update pencilmark automatically</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col l12 settings-toggle switch">
+                    <label class="">
+                        <input type="checkbox" class="setting" id="save-difficulty-toggle" data-option="2" checked>
+                        <span class="lever"></span>
+                        <span class="">save difficulty option</span>
+                    </label>
+                </div>
+                <!-- <div class="col l2 s2 offset-s1">
+                    <button class="sudoku-button" id="pencil_button" onclick="toggleMarkingMode()">
+                        <i class="fa fa-pencil" id="fa-pencil_mark"></i>
+                    </button> -->
+
+                <!-- </div>
+                <div class="col l5 s2 offset-s1">
+                    <span class="">save difficulty option</span>
+                </div> -->
+                <!-- <div class="col l12 settings-toggle switch">
+                    <label class="">
+                        <input type="checkbox" id="settings2-toggle">
+                        <span class="lever"></span>
+                        <span class="">save difficulty option</span>
+                    </label>
+                </div> -->
+            </div>
+            <div class="row">
+                <div class="col l12 s12">
+                    <button class="floating-button" onclick="closeAndSaveSettings()">
+                        <i class="fa fa-floppy-o"></i>
+                    </button>
+                </div>
+                <!-- <div class="col l4 s5">
+                    
+                    <button class="floating-button" onclick="closeExport()">
+                        <i class="fa fa-close"></i>
+                    </button>
+                </div> -->
+            </div>
+        </div>
 
         <button class="" onclick="exportBoard(); tryExport()">
             <i class="fa fa-download"></i>

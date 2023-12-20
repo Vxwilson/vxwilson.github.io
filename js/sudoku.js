@@ -54,6 +54,10 @@ let mode = Modes.NORMAL;
 let difficulty = Difficulty.EASY;
 let platformMode = Platform.Desktop;
 
+// settings to store boolean values
+let autoPencilMarks = true;
+let saveDifficulty = true;
+
 // get cells and markings
 const sudokuCells = document.querySelectorAll('.sudoku-cell');
 
@@ -331,12 +335,27 @@ window.saveData = function () {
 
     // store time data
     let timeElapsed = new Date().getTime() - startTime;
-    console.log(timeElapsed);
+    // console.log(timeElapsed);
     localStorage.setItem("timeElapsed", timeElapsed);
+
+    // store settings
+    localStorage.setItem("autoPencilMarks", JSON.stringify(autoPencilMarks));
+    localStorage.setItem("saveDifficulty", JSON.stringify(saveDifficulty));
+
+    // store difficulty's key
+    // Get the key of the enum you want to update;
+
+    // Set the new value in the localStorage
+    localStorage.setItem("difficulty", JSON.stringify(difficulty));
 }
 
 // calls saveData every 5 seconds
-setInterval(saveData, 5000);
+setInterval(saveData, 2000);
+
+function saveSettings(){
+    localStorage.setItem("autoPencilMarks", JSON.stringify(autoPencilMarks));
+    localStorage.setItem("saveDifficulty", JSON.stringify(saveDifficulty));
+}
 
 function loadSavedData() {
     var hasSavedData = localStorage.getItem("hasSavedData");
@@ -349,10 +368,22 @@ function loadSavedData() {
 
         // load time data in seconds
         let timeElapsed = localStorage.getItem("timeElapsed");
-        // sets start time to be current time minus time elapsed
-        // startTime = new Date().getTime() - timeElapsed;
         pausedTime = timeElapsed;
 
+        // set settings
+        autoPencilMarks = JSON.parse(localStorage.getItem("autoPencilMarks"));
+        saveDifficulty = JSON.parse(localStorage.getItem("saveDifficulty"));
+
+        // update checkbox
+        document.getElementById("pencilmark-toggle").checked = autoPencilMarks;
+        document.getElementById("save-difficulty-toggle").checked = saveDifficulty;
+        
+        if(saveDifficulty){
+            difficulty = JSON.parse(localStorage.getItem("difficulty"));
+            console.log("difficulty is " + difficulty);
+            // update the button
+            updateDifficultyButton();
+        }
         return true;
     }
     return false;
@@ -494,6 +525,54 @@ function copyToClipboard(text) {
 // #endregion LOAD-SAVE
 
 // #region UI
+
+// settings menu
+function openSettingsPanel(){
+    document.getElementById("settingsPanel").classList.toggle("show");
+}
+
+function closeAndSaveSettings(){
+    document.getElementById("settingsPanel").classList.toggle("show");
+    saveSettings();
+    // save settings
+}
+
+var checkboxSettings = document.querySelectorAll("input[type='checkbox']");
+
+checkboxSettings.forEach(checkbox => { checkbox.addEventListener('change', function () {
+    var option = this.dataset.option;
+    console.log(option);
+
+    switch (Number(option)) {
+        case 1:
+            // auto pencil marks
+            autoPencilMarks = this.checked;
+            // console.log("auto pencil marks is " + autoPencilMarks);
+            break;
+        case 2:
+            // save difficulty
+            saveDifficulty = this.checked;
+            // console.log("save difficulty is " + saveDifficulty);
+            break;
+        default:
+            console.log(option);
+            break;
+    }
+
+
+    // if (this.checked) {
+    //     // Checkbox is checked..
+    //     console.log("checked");
+    //     // print data-option of the checkbox
+
+    // } else {
+    //     // Checkbox is not checked..
+    //     console.log("unchecked");
+    // }
+
+    saveSettings();
+})});
+
 function clearboard() {
     // only used new board; not used for reset
     sudokuBoard = [
@@ -829,6 +908,24 @@ function toggleDifficulty() {
     }
 }
 
+function updateDifficultyButton(){
+    let button = document.getElementById("difficultyButton");
+
+    if (difficulty === Difficulty.EASY) {
+        button.textContent = "easy";
+    }
+    else if (difficulty === Difficulty.MEDIUM) {
+        button.textContent = "medium";
+    }
+    else if (difficulty === Difficulty.HARD) {
+        button.textContent = "hard";
+    }
+    else if (difficulty === Difficulty.IMPOSSIBLE) {
+        button.textContent = "!?";
+    }
+
+}
+
 // #endregion HELPER
 
 // #region LISTENERS
@@ -1090,6 +1187,7 @@ function randomboard(){
     displayBoard(prefilled = true);
     startStopwatch();
 }
+
 function initializePage() {
     // check playing mode on load
     checkPlayingMode();
