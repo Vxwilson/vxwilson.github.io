@@ -593,6 +593,7 @@ function clearboard() {
         [0, 0, 0, 0, 0, 0, 0, 0, 0]  // row 8
     ]
 
+    clearAllMarkings();
     // Clear the undo and redo stacks
     undoStack = [];
     redoStack = [];
@@ -606,6 +607,7 @@ function resetboard() {
     undoStack = [];
     redoStack = [];
 
+    clearAllMarkings();
     displayBoard();
 }
 
@@ -624,7 +626,7 @@ function displayBoard(prefilled = false) {
                 }
             } else {
                 // cell.textContent = '';
-                setCellText(cell, '');
+                setCellText(cell, '', unmark = false);
                 cell.classList.remove('prefilled');
                 cell.classList.add('default');
             }
@@ -701,18 +703,25 @@ function toggleHideDigits(hide = true) {
 // #endregion  
 
 // #region HELPER
-function setCellText(cell, value) {
+function setCellText(cell, value, unmark = true) {
     let cellText = cell.querySelector('.cell-text');
     cellText.textContent = value;
 
     // unmark all pencil marks in the cell
-    let pencilMarks = cell.querySelectorAll('.pencil-mark');
-    pencilMarks.forEach(mark => mark.classList.remove('marked'));
+    if (unmark) {
+        let pencilMarks = cell.querySelectorAll('.pencil-mark');
+        pencilMarks.forEach(mark => mark.classList.remove('marked'));
+    }
 }
 
-function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false, clearCell=true) {
+function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false, clearCell = true) {
     // addmark is only considered if toggle is false
     // if toggle is false, then addmark determines whether to add or remove the mark
+
+
+    // return if cell is prefilled
+    if (cell.classList.contains('prefilled')) return;
+
 
     // try to remove cell value 
     if (clearCell && trySetValue(cell.dataset.row, cell.dataset.col, 0)) {
@@ -788,12 +797,12 @@ function updateMarkings(row, col, value) {
 
     // for all neighbors in the same row, remove the pencil mark
     for (let i = 0; i < 9; i++) {
-        markToggleSelectedCell(value, getCellFromCoords(row, i), toggle = false, addMark = false, clearCell=false);
+        markToggleSelectedCell(value, getCellFromCoords(row, i), toggle = false, addMark = false, clearCell = false);
     }
 
     // for all neighbors in the same column, remove the pencil mark
     for (let i = 0; i < 9; i++) {
-        markToggleSelectedCell(value, getCellFromCoords(i, col), toggle = false, addMark = false, clearCell=false);
+        markToggleSelectedCell(value, getCellFromCoords(i, col), toggle = false, addMark = false, clearCell = false);
     }
 
     // for all neighbors in the same box, remove the pencil mark
@@ -801,10 +810,28 @@ function updateMarkings(row, col, value) {
     let boxCol = Math.floor(col / 3) * 3; // 0, 3, 6
     for (let i = boxRow; i < boxRow + 3; i++) {
         for (let j = boxCol; j < boxCol + 3; j++) {
-            markToggleSelectedCell(value, getCellFromCoords(i, j), toggle = false, addMark = false, clearCell=false);
+            markToggleSelectedCell(value, getCellFromCoords(i, j), toggle = false, addMark = false, clearCell = false);
         }
     }
 
+}
+
+function clearAllMarkings() {
+    // clear all pencil marks
+    let cells = document.querySelectorAll('.sudoku-cell');
+    cells.forEach(cell => {
+        let pencilMarks = cell.querySelectorAll('.pencil-mark');
+        pencilMarks.forEach(mark => mark.classList.remove('marked'));
+    });
+
+    // update the pencil marks array
+    pencilMarks = new Array(9);
+    for (let i = 0; i < 9; i++) {
+        pencilMarks[i] = new Array(9);
+        for (let j = 0; j < 9; j++) {
+            pencilMarks[i][j] = [false, false, false, false, false, false, false, false, false];
+        }
+    }
 }
 
 // get cell from row and col
