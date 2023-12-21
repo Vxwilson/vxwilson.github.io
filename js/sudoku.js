@@ -1130,7 +1130,7 @@ document.addEventListener('keydown', function (event) {
 function handleCellClick(event) {
     // replaceSelectedCell(event.target)
     replaceSelectedCell(event);
-    if (platformMode === Platform.Mobile) {
+    if (platformMode === Platform.Mobile && mode === Modes.NORMAL) {
         updateNumButtons(selectedCell);
     }
 }
