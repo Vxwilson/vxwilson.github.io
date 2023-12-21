@@ -42,7 +42,8 @@ const Difficulty = {
 
 const Modes = {
     NORMAL: 0,
-    MARKING: 1
+    MARKING: 1,
+    FOCUS: 2
 };
 
 const Platform = {
@@ -563,18 +564,6 @@ checkboxSettings.forEach(checkbox => {
                 console.log(option);
                 break;
         }
-
-
-        // if (this.checked) {
-        //     // Checkbox is checked..
-        //     console.log("checked");
-        //     // print data-option of the checkbox
-
-        // } else {
-        //     // Checkbox is not checked..
-        //     console.log("unchecked");
-        // }
-
         saveSettings();
     })
 });
@@ -702,18 +691,7 @@ function toggleHideDigits(hide = true) {
 }
 // #endregion  
 
-// #region HELPER
-function setCellText(cell, value, unmark = true) {
-    let cellText = cell.querySelector('.cell-text');
-    cellText.textContent = value;
-
-    // unmark all pencil marks in the cell
-    if (unmark) {
-        let pencilMarks = cell.querySelectorAll('.pencil-mark');
-        pencilMarks.forEach(mark => mark.classList.remove('marked'));
-    }
-}
-
+// #region MARKING
 function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMark = false, clearCell = true) {
     // addmark is only considered if toggle is false
     // if toggle is false, then addmark determines whether to add or remove the mark
@@ -834,6 +812,106 @@ function clearAllMarkings() {
     }
 }
 
+function toggleMarkingMode() {
+    let button = document.getElementById("pencil_button");
+
+    if (mode === Modes.MARKING) {
+        mode = Modes.NORMAL;
+        button.classList.remove("selected");
+    }
+    else { // if normal or focus mode, go to marking mode 
+        mode = Modes.MARKING;
+
+        // try to unfocus
+        focusDigit(-1, clear = true);
+
+        // remove selected from all other .mode-button
+        let buttons = document.querySelectorAll(".mode-button");
+        buttons.forEach(button => {
+            button.classList.remove("selected");
+        });
+
+        button.classList.add("selected");
+    }
+
+    // try to update number if on mobile
+    if (platformMode === Platform.Mobile) {
+        updateNumButtons(selectedCell);
+    }
+}
+
+// focus
+function focusDigit(value, clear = false) {
+    if (clear) {
+        value = -1; // no cells has this value
+    }
+
+    // highlight all cell with the dights with red
+    sudokuCells.forEach(cell => {
+        let text = cell.querySelector('.cell-text');
+        if (parseInt(text.textContent) === value) {
+            cell.classList.add('focused');
+        } else {
+            cell.classList.remove('focused');
+        }
+    }
+    );
+    // go through every marking with data-num = value, and highlight all markings with the value with red
+    let pencilMarks = document.querySelectorAll('.pencil-mark');
+    let focusPencilMarks = document.querySelectorAll(`.pencil-mark[data-num="${value}"]`);
+
+    pencilMarks.forEach(mark => {
+        mark.classList.remove('focused');
+    });
+
+    focusPencilMarks.forEach(mark => {
+        mark.classList.add('focused');
+    });
+
+}
+
+function toggleFocusMode() {
+    let button = document.getElementById("focus_button");
+
+    if (mode === Modes.FOCUS) {
+        mode = Modes.NORMAL;
+        button.classList.remove("selected");
+
+        // remove all focused cells
+        focusDigit(-1, clear = true);
+    }
+    else { // if normal or marking mode, go to focus mode 
+        mode = Modes.FOCUS;
+        let buttons = document.querySelectorAll(".mode-button");
+        buttons.forEach(button => {
+            button.classList.remove("selected");
+        });
+
+        button.classList.add("selected");
+
+        // see if any cell is selected
+        if (selectedCell) {
+            console.log("focus mode on value " + selectedCell.querySelector('.cell-text').textContent);
+            let value = parseInt(selectedCell.querySelector('.cell-text').textContent);
+            focusDigit(value);
+        }
+    }
+}
+
+// #endregion MARKING
+
+// #region HELPER
+function setCellText(cell, value, unmark = true) {
+    let cellText = cell.querySelector('.cell-text');
+    cellText.textContent = value;
+
+    // unmark all pencil marks in the cell
+    if (unmark) {
+        let pencilMarks = cell.querySelectorAll('.pencil-mark');
+        pencilMarks.forEach(mark => mark.classList.remove('marked'));
+    }
+}
+
 // get cell from row and col
 function getCellFromCoords(row, col) {
     return document.querySelector(`.sudoku-cell[data-row="${row + 1}"][data-col="${col + 1}"]`);
@@ -899,6 +977,12 @@ function replaceSelectedCell(newCell) {
     selectedCell = newCell;
     selectedCell.classList.add('selected');
 
+    // try to focus if in focus mode
+    if (mode === Modes.FOCUS) {
+        let value = parseInt(selectedCell.querySelector('.cell-text').textContent);
+        focusDigit(value);
+    }
+
     // debug
     // console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col} replaced`);
 }
@@ -913,37 +997,6 @@ function checkPlayingMode() {
     }
     else {
         platformMode = Platform.Desktop;
-    }
-}
-
-function toggleMarkingMode() {
-    // button press to toggle between normal (default) and marking mode, which is used to mark cells with pencil marks
-    // get with id fa-pencil_mark
-
-    let button_icon = document.getElementById("fa-pencil_mark");
-    let button = document.getElementById("pencil_button");
-    if (mode === Modes.NORMAL) {
-        mode = Modes.MARKING;
-        // set color to red
-        button_icon.style.color = "rgb(158, 91, 91)";
-
-        // add border to button
-        button.style.border = "2px solid rgb(158, 91, 91)";
-    }
-    else if (mode === Modes.MARKING) {
-        mode = Modes.NORMAL;
-
-        // try to update number if on mobile
-
-        // set color to default
-        button_icon.style.color = "rgb(110, 135, 156)";
-
-        // remove border from button
-        button.style.border = "0px solid rgb(110, 135, 156)";
-    }
-
-    if (platformMode === Platform.Mobile) {
-        updateNumButtons(selectedCell);
     }
 }
 
@@ -1024,6 +1077,9 @@ document.addEventListener('keydown', function (event) {
             } else {
                 toggleMarkingMode();
             }
+            break;
+        case 'f':
+            toggleFocusMode();
             break;
         // arrow keys to navigate the selected cell
         // case 'w':
@@ -1182,14 +1238,20 @@ function updateNumButtons(cell) {
 
 // DESKTOP, listener for numbers 1-9
 document.addEventListener('keydown', function (event) {
-    if (selectedCell) {
+    if (mode === Modes.FOCUS) {
+        if (event.key >= 0 && event.key <= 9) { // 0 acts as clear
+            focusDigit(parseInt(event.key));
+            console.log("focus digit " + event.key);
+        }
+    }
+    else if (selectedCell) {
         if (mode === Modes.MARKING) {
             if (event.key >= 1 && event.key <= 9) {
                 markToggleSelectedCell(parseInt(event.key));
             }
 
-
-        } else {
+        }
+        else {
             if (event.key >= 1 && event.key <= 9) {
                 // convert to number
                 num = parseInt(event.key);
@@ -1220,9 +1282,13 @@ document.addEventListener('keydown', function (event) {
 
 // listener for delete key
 document.addEventListener('keydown', function (event) {
-    if (selectedCell) {
 
-        if (event.key === 'Backspace') {
+    if (event.key === 'Backspace') {
+        if (mode === Modes.FOCUS){
+            focusDigit(-1, clear = true);
+        }
+        else if (selectedCell) {
+
             if (mode === Modes.MARKING) {
                 markToggleSelectedCell(0);
                 return;

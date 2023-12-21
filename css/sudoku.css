@@ -104,6 +104,23 @@ button{
 
 }
 
+
+.mode-button{
+  color: rgb(110, 135, 156);
+  border: 0px solid rgb(110, 135, 156);
+}
+
+.mode-button.selected{
+  /* button for marking and focus mode */
+  /* color: rgb(158, 91, 91); */
+  border: 2px solid rgb(158, 91, 91);
+}
+
+.mode-button.selected .fa{
+  color: rgb(158, 91, 91);
+}
+
+
 /* mobile */
 @media only screen and (max-width: 600px) {
   .w3-panel{
@@ -158,6 +175,15 @@ button{
     font-size: 1.05em;
   }
 
+  .sudoku-cell.focused{
+    /* color: rgba(158, 91, 91, 0.85) !important; */
+    background-color: rgba(158, 91, 91, 0.351) !important;
+    /* border */
+    /* border: 3px solid rgb(158, 91, 91) !important; */
+    /* box-shadow:inset 0px 0px 0px 1.75px rgba(158, 91, 91, 0.85); */
+    /* z-index: 100; */
+  }
+
   .cell-text{
     position:absolute;
     left: 50%;
@@ -173,7 +199,7 @@ button{
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
-    line-height: 15px !important;
+    line-height: 11px !important;
 
     /* padding: 5%; */
 
@@ -195,8 +221,18 @@ button{
 
   .pencil-mark.marked{
     display: block;
-    color: rgb(129, 148, 161);
+    color: rgba(129, 148, 161, 0.8);
 
+  }
+
+  .pencil-mark.marked.focused{
+    /* color: rgb(220, 123, 123) !important;  */
+    color: rgba(158, 91, 91, 0.85) !important;
+    /* adds a border */
+    border: 1px solid rgba(220, 169, 169, 0);
+    /* adds a outline instead of border */
+    /* box-shadow: 0px 0px 0px 1.75px rgba(220, 169, 169, 0.722); */
+    outline: 1px solid rgba(158, 91, 91, 0.8);
   }
 
   
@@ -232,8 +268,47 @@ button{
     }
   }
 
+  /* Style the cells that are pre-filled with numbers */
+  .sudoku-cell.prefilled {
+    color: rgba(86, 92, 89, 0.902);
 
-  /* borders */
+  }
+
+  /* default class for selected cell */
+  .sudoku-cell.default {
+    color: #497ba9;
+    font-size: 24px;
+  }
+
+  /* class for selected cell */
+  .sudoku-cell.selected {
+    background-color: #c6af7a30;
+  }
+
+  /* class for when pause button is clicked */
+  .sudoku-cell.paused {
+    /* background-color: #c6af7a30; */
+    font-size: 0;
+  }
+
+  /* style buttons */
+  .sudoku-button{
+    color: rgb(110, 135, 156);
+    font-size: 1.1em;
+    display: flex;
+    width: 90%;
+    cursor: pointer;
+    height: 40px;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+    border-radius: 6px;
+    background-color: #e5e0d86c;
+    border: none;
+  }
+
+  
+  /* #region borders */
 
   /* up */
   .sudoku-cell[data-row="1"]{
@@ -273,44 +348,7 @@ button{
     border-left: 3px solid rgb(70, 68, 68);
   }
 
-  /* Style the cells that are pre-filled with numbers */
-  .sudoku-cell.prefilled {
-    color: rgba(86, 92, 89, 0.902);
-
-  }
-
-  /* default class for selected cell */
-  .sudoku-cell.default {
-    color: #407eb7;
-    font-size: 24px;
-  }
-
-  /* class for selected cell */
-  .sudoku-cell.selected {
-    background-color: #c6af7a30;
-  }
-
-  /* class for when pause button is clicked */
-  .sudoku-cell.paused {
-    /* background-color: #c6af7a30; */
-    font-size: 0;
-  }
-
-  /* style buttons */
-  .sudoku-button{
-    color: rgb(110, 135, 156);
-    font-size: 1.1em;
-    display: flex;
-    width: 90%;
-    cursor: pointer;
-    height: 40px;
-    align-items: center;
-    justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-    border-radius: 6px;
-    background-color: #e5e0d86c;
-    border: none;
-  }
+  /* #endregion */
 
   /* non-mobil */
   @media only screen and (min-width: 600px) {
