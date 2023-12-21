@@ -971,7 +971,6 @@ const hasPlayerWon = (board) => !findNextEmptyCell(board);
 function replaceSelectedCell(newCell) {
     // simply handles the graphical changes of selecting a new cell
     if (selectedCell) {
-        // add class selected to the cell
         selectedCell.classList.remove('selected');
     }
     selectedCell = newCell;
@@ -1129,23 +1128,26 @@ document.addEventListener('keydown', function (event) {
 
 // updates selected cell
 function handleCellClick(event) {
-    replaceSelectedCell(event.target)
+    // replaceSelectedCell(event.target)
+    replaceSelectedCell(event);
     if (platformMode === Platform.Mobile) {
         updateNumButtons(selectedCell);
     }
 }
 
 function handleOutsideClick(event) {
-    if (selectedCell && !event.target.classList.contains('sudoku-cell') && (!event.target.closest('num-button')) && (!event.target.classList.contains('sudoku-button')) && !event.target.closest('.num-button')) {
-        console.log(event.target.classList);
-
+    if (selectedCell && !event.target.classList.contains('.sudoku-cell')  && (!event.target.closest('.sudoku-cell')) && (!event.target.closest('.num-button')) && (!event.target.classList.contains('.sudoku-button')) && !event.target.closest('.num-button')) {
+        // console.log(event.target.classList);
+        // console.log("clicked outside");
         selectedCell.classList.remove('selected');
         selectedCell = null;
     }
 }
 
 $('.sudoku-cell').on('click', function (e) {
-    handleCellClick(e);
+    // get parent cell even if the user clicks on the text
+    let cell = e.target.closest('.sudoku-cell');
+    handleCellClick(cell);
 });
 
 document.addEventListener("click", handleOutsideClick);
