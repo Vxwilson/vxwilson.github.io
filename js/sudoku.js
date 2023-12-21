@@ -1155,7 +1155,10 @@ document.addEventListener("click", handleOutsideClick);
 //MOBILE section//
 function press(num) {
     // check if we are in marking mode
-
+    if (mode === Modes.FOCUS) {
+        focusDigit(num);
+        return;
+    }
     if (selectedCell) {
         if (mode === Modes.MARKING) {
             if (num !== 0) {

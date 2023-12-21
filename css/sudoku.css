@@ -177,7 +177,7 @@ button{
 
   .sudoku-cell.focused{
     /* color: rgba(158, 91, 91, 0.85) !important; */
-    background-color: rgba(158, 91, 91, 0.351) !important;
+    background-color: rgba(185, 129, 129, 0.2) !important;
     /* border */
     /* border: 3px solid rgb(158, 91, 91) !important; */
     /* box-shadow:inset 0px 0px 0px 1.75px rgba(158, 91, 91, 0.85); */
