@@ -681,18 +681,18 @@ function _addFile(item) {
                     var color = getColorForFileExt(fileExt); // add a function to map file extensions to colors
                     var bgColor = getColorForFileExt(fileExt);
 
+    
                     var fig = _htmlToElement(
                         '<div class="block">' +
-                        '<div class="block" style="width: 90%; background-color: ' + bgColor + '; border-radius: 5px; height: 100px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;">' +
-                        '<div style="display: flex; flex-direction: row; justify-content: space-between;">' +
-                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-wrap: break-word; text-overflow: ellipsis;">' + fileName + '</span>' +
-                        '<span style="color: #aaa; font-size: 14px; width: 50px; font-weight: 500; text-align: right; position: absolute; right: 5px;">.' + fileExt + '</span>' +
+                        '<div class="block" style="width: 90%; background-color: ' + bgColor + '; border-radius: 5px; height: 110px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;">' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
+                        '<span style="color: #888; font-size: 14px; width: 50px; font-weight: 500; text-align: right">.' + fileExt + '</span>' +
                         '</div>' +
-                        '<span style="color: #aaa; font-size: 12px; text-align: left; margin-top: 10px;">' + getItemSize(fileSize) + '</span>' +
+                        '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
                         '</div>' +
                         '</div>'
                     );
-                    
                     
                     var buttonContainer = _htmlToElement(
                         '<div class="textbuttoncontainer"></div>'
@@ -745,7 +745,7 @@ function getItemSize(item) {
     return size.toFixed(1) + ' ' + units[unitIndex];
 }
 
-function getColorForFileExt(ext) {
+function getColorForFileExt_old(ext) {
     const hueMap = {
         zip: 60, // yellow
         pdf: 0, // red
@@ -761,6 +761,26 @@ function getColorForFileExt(ext) {
     const hue = hueMap[ext] || 0; // default to red if no hue is mapped
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
+
+function getColorForFileExt(ext) {
+    // Use a hash function to generate a unique hue based on the extension string.
+    const hash = hashString(ext);
+    // Normalize the hash value to be within the 0-360 range for HSL hue.
+    const hue = (hash % 360 + 360) % 360; 
+    const saturation = 26; // light pastel color
+    const lightness = 86; // light pastel color
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }
+  
+  // Simple hash function (replace with a more robust one if needed)
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  }
 
 
 window.loadmodal = function (url) {
