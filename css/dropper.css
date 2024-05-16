@@ -325,6 +325,9 @@ textarea {
   background: var(--base-01);
   border-radius: 6px;
   padding-right: 0px;
+
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
+
 }
 
 /* for buttons */
@@ -425,6 +428,13 @@ textarea {
 }
 
 
+
+/* image masonry */
+#pictures .block{
+  /* box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2); */
+
+}
+
 /* file masonry buttons (download etc) on card */
 .button-card { /* Apply styles to all buttons */
   color: hsl(225, 45%, 60%); 
@@ -440,8 +450,9 @@ textarea {
 
 .file-card {
   /* ... your existing styles ... */
-  width: 90%; border-radius: 5px; height: 110px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;
+  width: 90%; border-radius: 6px; height: 100px; margin-bottom: 8px !important; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; position: relative;
 
+  box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease; /* Add transition */
 }
 
