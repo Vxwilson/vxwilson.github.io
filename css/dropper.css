@@ -425,6 +425,33 @@ textarea {
 }
 
 
+/* file masonry buttons (download etc) on card */
+.button-card { /* Apply styles to all buttons */
+  color: hsl(225, 45%, 60%); 
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.3s ease; /* Add transition for smooth color change */
+}
+
+
+.button-card:hover { /* Styles for when the button is hovered */
+  color: hsl(225, 55%, 40%); /* Darker color on hover */
+}
+
+.file-card {
+  /* ... your existing styles ... */
+  width: 90%; border-radius: 5px; height: 110px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;
+
+  transition: background-color 0.3s ease; /* Add transition */
+}
+
+.file-card:hover {
+  /* background-color: rgba(0, 0, 0, 0.5); Darken the existing background */
+  filter: brightness(90%);
+}
+
+
+
 /* image flex set to make button at right */
 .masonry3 figure {
   margin: 0;
@@ -498,9 +525,10 @@ textarea {
   }
 
   .filemasonry {
-    column-count: 3;
+    column-count: 2;
   }
 }
+
 
 @media screen and (max-width: 500px) {
 
@@ -523,7 +551,7 @@ textarea {
   .filemasonry {
     /* line-clamp: 2; */
 
-    column-count: 2;
+    column-count: 1;
   }
 
   .photo {

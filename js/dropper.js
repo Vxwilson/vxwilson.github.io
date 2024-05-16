@@ -627,46 +627,46 @@ function _addImage(item) {
         });
 }
 
-function _addFile2(item) {
-    getDownloadURL(ref(storage, item._location.path_))
-        .then((url) => {
-            var fig = _htmlToElement(
-                '<div class="block">' +
-                '<figure style="display:block">'
-                + '<img src=/photos/barcode.png class="photo"></img>'
-                + '<figcaption> ' + item.name + ' </figcaption>'
-                + '</figure>'
-                + '</div>'
-            );
+// function _addFile_old(item) {
+//     getDownloadURL(ref(storage, item._location.path_))
+//         .then((url) => {
+//             var fig = _htmlToElement(
+//                 '<div class="block">' +
+//                 '<figure style="display:block">'
+//                 + '<img src=/photos/barcode.png class="photo"></img>'
+//                 + '<figcaption> ' + item.name + ' </figcaption>'
+//                 + '</figure>'
+//                 + '</div>'
+//             );
 
-            // stores delete button etc
-            var buttonContainer = _htmlToElement(
-                '<div class="textbuttoncontainer">\
-                </div>')
+//             // stores delete button etc
+//             var buttonContainer = _htmlToElement(
+//                 '<div class="textbuttoncontainer">\
+//                 </div>')
 
-            document.getElementById("files").appendChild(fig);
+//             document.getElementById("files").appendChild(fig);
 
-            fig.appendChild(buttonContainer);
-            // fig.appendChild(buttonContainer);
+//             fig.appendChild(buttonContainer);
+//             // fig.appendChild(buttonContainer);
 
-            makeDownloadButton(item, buttonContainer, url);
-            makeQRCodeButton(item, buttonContainer, url);
-            makeCloseButton(item, buttonContainer, fig);
+//             makeDownloadButton(item, buttonContainer, url);
+//             makeQRCodeButton(item, buttonContainer, url);
+//             makeCloseButton(item, buttonContainer, fig);
 
-            //fix this 
-            fig.childNodes[0].addEventListener("click", function () {
-                // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
-                // open(url);
-                createQRCode(url, item.name);
-                // downloadURI(url, item.name);
-            })
+//             //fix this 
+//             fig.childNodes[0].addEventListener("click", function () {
+//                 // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
+//                 // open(url);
+//                 createQRCode(url, item.name);
+//                 // downloadURI(url, item.name);
+//             })
 
 
-        })
-        .catch((error) => {
-            // Handle any errors
-        });
-}
+//         })
+//         .catch((error) => {
+//             // Handle any errors
+//         });
+// }
 
 function _addFile(item) {
     getDownloadURL(ref(storage, item._location.path_))
@@ -681,16 +681,90 @@ function _addFile(item) {
                     var color = getColorForFileExt(fileExt); // add a function to map file extensions to colors
                     var bgColor = getColorForFileExt(fileExt);
 
-    
-                    var fig = _htmlToElement(
+                    
+                    // Add a PDF-specific button if the file is a PDF
+                    let pdfButton = '';
+                    if (fileExt === 'pdf') {
+                        pdfButton = '<span class="pdf-button button-card" style="">view</span>'
+                    }
+
+                    let qrButton = '<span class="qr-button button-card" style="">qr</span>'
+                    
+                    let downloadButton = '<span class="download-button button-card" style="">get</span>'
+                    
+                    var olddesign = _htmlToElement(
                         '<div class="block">' +
-                        '<div class="block" style="width: 90%; background-color: ' + bgColor + '; border-radius: 5px; height: 110px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;">' +
-                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                        '<div class="block file-card" style=" background-color: #eee">' +
+                        '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
+                        // '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
                         '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
                         '<span style="color: #888; font-size: 14px; width: 50px; font-weight: 500; text-align: right">.' + fileExt + '</span>' +
                         '</div>' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+
                         '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
+                        '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
+                            pdfButton + // Add the PDF button here
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            qrButton +
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            downloadButton +
                         '</div>' +
+                        '</div>' +
+                        '</div>' +
+
+                        '</div>'
+                    );
+
+
+                    var fig_old2 = _htmlToElement(
+                        '<div class="block">' +
+                        '<div class="block file-card" style=" background-color: #ddd">' +
+                        // '<div class="block file-card" style=" background-color: #312d35">' +
+                        // '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
+                        '<span style="margin-left: 10px;"></span>'+
+                        '<span style="background-color: ' + bgColor + '; color: #777; border-radius:6px;height:24px; font-size: 14px; width: 50px; font-weight: 500; text-align: center">.' + fileExt + '</span>' +
+                        '</div>' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+
+                        '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
+                        '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
+                            pdfButton + // Add the PDF button here
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            qrButton +
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            downloadButton +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+
+                        '</div>'
+                    );
+
+                    var fig = _htmlToElement(
+                        '<div class="block">' +
+                        '<div class="block file-card" style=" background-color: #312d35">' +
+                        // '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                        '<span style="color: #aaa; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
+                        '<span style="margin-left: 10px;"></span>'+
+                        '<span style="background-color: ' + bgColor + '; color: #666; border-radius:6px;height:24px; font-size: 14px; width: 50px; font-weight: 500; text-align: center">.' + fileExt + '</span>' +
+                        '</div>' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+
+                        '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
+                        '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
+                            pdfButton + // Add the PDF button here
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            qrButton +
+                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            downloadButton +
+                        '</div>' +
+                        '</div>' +
+                        '</div>' +
+
                         '</div>'
                     );
                     
@@ -702,18 +776,33 @@ function _addFile(item) {
                     fig.appendChild(buttonContainer);
 
                     makeCloseButton(item, buttonContainer, fig);
-                    makeDownloadButton(item, buttonContainer, url);
-                    makeQRCodeButton(item, buttonContainer, url);
+                    // makeDownloadButton(item, buttonContainer, url);
+                    // makeQRCodeButton(item, buttonContainer, url);
 
                     fig.addEventListener("click", function () {
                         console.log('clicked a childnode file');
                         // createQRCode(url, item.name);
                     });
 
-                    fig.childNodes[0].addEventListener("click", function () {
-                        console.log('clicked a childnode file');
-                        // createQRCode(url, item.name);
-                        open(url);
+                    // Add event listener to the PDF button if it exists
+                    if (fileExt === 'pdf') {
+                        const pdfButton = fig.querySelector('.pdf-button');
+                        pdfButton.addEventListener('click', () => {
+                            console.log('Pressed PDF!');
+                            open(url);
+                        });
+                    }
+
+                    // Add event listener to the QR code button
+                    const qrButton_ = fig.querySelector('.qr-button');
+                    qrButton_.addEventListener('click', () => {
+                        createQRCode(url, item.name);
+                    });
+
+                    // Add event listener to the download button
+                    const downloadButton_ = fig.querySelector('.download-button');
+                    downloadButton_.addEventListener('click', () => {
+                        downloadURI(url, item.name);
                     });
 
                     document.getElementById("files").appendChild(fig);
@@ -767,7 +856,7 @@ function getColorForFileExt(ext) {
     const hash = hashString(ext);
     // Normalize the hash value to be within the 0-360 range for HSL hue.
     const hue = (hash % 360 + 360) % 360; 
-    const saturation = 26; // light pastel color
+    const saturation = 36; // light pastel color
     const lightness = 86; // light pastel color
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
   }
