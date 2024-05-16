@@ -380,10 +380,11 @@ function makeDownloadButton(item, parentEle, url) {
 // }
 
 // Function to create a QR code and display it
-function createQRCode(url, fileName) {
+function createQRCode(url, fileName, item, eleToDelete) {
     const qrCodeContainer = document.getElementById('qrCodeContainer');
     const qrCodeElement = document.getElementById('qrcode');
     const fileNameElement = document.getElementById('fileName');
+    const deleteButton = document.getElementById('deletebutton'); // Get the delete button
 
     qrCodeElement.innerHTML = ''; // Clear previous QR code
 
@@ -398,6 +399,13 @@ function createQRCode(url, fileName) {
 
     fileNameElement.textContent = fileName;
 
+    // set delete
+     // Set the onclick event for the delete button
+     deleteButton.onclick = () => {
+        deleteFileAtPathAndRemove(item.fullPath, eleToDelete);
+        hideQRCode(); // Hide the QR code after deletion (optional)
+    };
+
     // Show the QR code container
     qrCodeContainer.style.display = 'block';
 }
@@ -408,11 +416,11 @@ window.hideQRCode = function () {
 }
 
 // Function to add the QR code button next to the download button
-function makeQRCodeButton(item, parentEle, url) {
+function makeQRCodeButton(item, parentEle, url, eleToDelete) {
     const qrCodeButton = _htmlToElement('<span class="fa fa-qrcode qr-button"></span>');
 
     qrCodeButton.addEventListener('click', function () {
-        createQRCode(url, item.name);
+        createQRCode(url, item.name, item.fullPath, eleToDelete);
     });
 
     // parentEle.childNodes[0].after(qrCodeButton);
@@ -688,60 +696,60 @@ function _addFile(item) {
                         pdfButton = '<span class="pdf-button button-card" style="">view</span>'
                     }
 
-                    let qrButton = '<span class="qr-button button-card" style="">qr</span>'
+                    // let qrButton = '<span class="qr-button button-card" style="">qr</span>'
                     
                     let downloadButton = '<span class="download-button button-card" style="">get</span>'
                     
-                    var olddesign = _htmlToElement(
-                        '<div class="block">' +
-                        '<div class="block file-card" style=" background-color: #eee">' +
-                        '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
-                        // '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
-                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
-                        '<span style="color: #888; font-size: 14px; width: 50px; font-weight: 500; text-align: right">.' + fileExt + '</span>' +
-                        '</div>' +
-                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                    // var olddesign = _htmlToElement(
+                    //     '<div class="block">' +
+                    //     '<div class="block file-card" style=" background-color: #eee">' +
+                    //     '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
+                    //     // '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                    //     '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
+                    //     '<span style="color: #888; font-size: 14px; width: 50px; font-weight: 500; text-align: right">.' + fileExt + '</span>' +
+                    //     '</div>' +
+                    //     '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
 
-                        '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
-                        '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
-                            pdfButton + // Add the PDF button here
-                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
-                            qrButton +
-                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
-                            downloadButton +
-                        '</div>' +
-                        '</div>' +
-                        '</div>' +
+                    //     '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
+                    //     '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
+                    //         pdfButton + // Add the PDF button here
+                    //         '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                    //         qrButton +
+                    //         '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                    //         downloadButton +
+                    //     '</div>' +
+                    //     '</div>' +
+                    //     '</div>' +
 
-                        '</div>'
-                    );
+                    //     '</div>'
+                    // );
 
 
-                    var fig_old2 = _htmlToElement(
-                        '<div class="block">' +
-                        '<div class="block file-card" style=" background-color: #ddd">' +
-                        // '<div class="block file-card" style=" background-color: #312d35">' +
-                        // '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
-                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
-                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
-                        '<span style="margin-left: 10px;"></span>'+
-                        '<span style="background-color: ' + bgColor + '; color: #777; border-radius:6px;height:24px; font-size: 14px; width: 50px; font-weight: 500; text-align: center">.' + fileExt + '</span>' +
-                        '</div>' +
-                        '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                    // var fig_old2 = _htmlToElement(
+                    //     '<div class="block">' +
+                    //     '<div class="block file-card" style=" background-color: #ddd">' +
+                    //     // '<div class="block file-card" style=" background-color: #312d35">' +
+                    //     // '<div class="block file-card" style=" background-color: ' + bgColor + ';">' +
+                    //     '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
+                    //     '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-break:break-all; word-wrap: break-word;white-space: normal;">' + fileName + '</span>' +
+                    //     '<span style="margin-left: 10px;"></span>'+
+                    //     '<span style="background-color: ' + bgColor + '; color: #777; border-radius:6px;height:24px; font-size: 14px; width: 50px; font-weight: 500; text-align: center">.' + fileExt + '</span>' +
+                    //     '</div>' +
+                    //     '<div style="display: flex; flex-direction: row; justify-content: space-between; width:100%">' +
 
-                        '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
-                        '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
-                            pdfButton + // Add the PDF button here
-                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
-                            qrButton +
-                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
-                            downloadButton +
-                        '</div>' +
-                        '</div>' +
-                        '</div>' +
+                    //     '<span style="color: #888; font-size: 12px; text-align: left; margin-top: 0px;">' + getItemSize(fileSize) + '</span>' +
+                    //     '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
+                    //         pdfButton + // Add the PDF button here
+                    //         '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                    //         qrButton +
+                    //         '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                    //         downloadButton +
+                    //     '</div>' +
+                    //     '</div>' +
+                    //     '</div>' +
 
-                        '</div>'
-                    );
+                    //     '</div>'
+                    // );
 
                     var fig = _htmlToElement(
                         '<div class="block">' +
@@ -758,8 +766,8 @@ function _addFile(item) {
                         '<div style="position: absolute; bottom: 10px; right: 10px; display: flex;">' + // Parent div for buttons
                             pdfButton + // Add the PDF button here
                             '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
-                            qrButton +
-                            '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
+                            // qrButton +
+                            // '<span style="margin-left: 10px;"></span>' + // Add spacing between buttons
                             downloadButton +
                         '</div>' +
                         '</div>' +
@@ -773,7 +781,7 @@ function _addFile(item) {
                     );
 
 
-                    fig.appendChild(buttonContainer);
+                    // fig.appendChild(buttonContainer);
 
                     makeCloseButton(item, buttonContainer, fig);
                     // makeDownloadButton(item, buttonContainer, url);
@@ -782,6 +790,7 @@ function _addFile(item) {
                     fig.addEventListener("click", function () {
                         console.log('clicked a childnode file');
                         // createQRCode(url, item.name);
+                        createQRCode(url, item.name, item, fig);
                     });
 
                     // Add event listener to the PDF button if it exists
@@ -789,19 +798,23 @@ function _addFile(item) {
                         const pdfButton = fig.querySelector('.pdf-button');
                         pdfButton.addEventListener('click', () => {
                             console.log('Pressed PDF!');
+                            event.stopPropagation(); // Prevent click event from bubbling up
                             open(url);
                         });
                     }
 
                     // Add event listener to the QR code button
-                    const qrButton_ = fig.querySelector('.qr-button');
-                    qrButton_.addEventListener('click', () => {
-                        createQRCode(url, item.name);
-                    });
+                    // const qrButton_ = fig.querySelector('.qr-button');
+                    // qrButton_.addEventListener('click', () => {
+                        // event.stopPropagation(); // Prevent click event from bubbling up
+                    //     createQRCode(url, item.name, item, fig);
+                    // });
 
                     // Add event listener to the download button
                     const downloadButton_ = fig.querySelector('.download-button');
                     downloadButton_.addEventListener('click', () => {
+                        event.stopPropagation(); // Prevent click event from bubbling up
+
                         downloadURI(url, item.name);
                     });
 

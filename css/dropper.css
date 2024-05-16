@@ -450,7 +450,15 @@ textarea {
 
 .file-card {
   /* ... your existing styles ... */
-  width: 90%; border-radius: 6px; height: 100px; margin-bottom: 8px !important; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; position: relative;
+  width: 100%; 
+  border-radius: 6px; 
+  height: 100px; 
+  margin-bottom: 8px !important; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between !important; 
+  padding: 12px; 
+  position: relative;
 
   box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.2);
   transition: background-color 0.3s ease; /* Add transition */
@@ -472,7 +480,11 @@ textarea {
 }
 
 .filemasonry {
+  /* display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 3 equal-width columns 
+  grid-gap: 10px; */
   column-count: 3;
+  /* margin: 0 auto !important */
 }
 
 .filemasonry figcaption {
@@ -503,6 +515,11 @@ textarea {
   break-inside: avoid;
   cursor: pointer;
   position: relative;
+/* 
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column; */
+  justify-content: flex-end;
 }
 
 .filemasonry figure::after {
