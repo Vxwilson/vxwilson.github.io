@@ -322,7 +322,8 @@ function makeCloseButton(item, parentEle, eleToDelete) {
     // close.addEventListener("click", function () {
     //     deleteFileAtPathAndRemove(item.fullPath, parentEle);
     // })
-    parentEle.childNodes[0].after(close);
+    // parentEle.childNodes[0].after(close);
+    parentEle.appendChild(close);
 
     $(close).on('click', function () {
         deleteFileAtPathAndRemove(item.fullPath, eleToDelete);
@@ -338,10 +339,84 @@ function makeDownloadButton(item, parentEle, url) {
         downloadURI(url, item.name);
     })
 
-    parentEle.childNodes[0].after(download);
+    // parentEle.childNodes[0].after(download);
+    parentEle.appendChild(download);
+}
 
 
-    // parentEle.insertBefore(download, parentEle.childNodes[0]);
+// make scannable QR code to download
+// Function to create a QR code and display it
+// function createQRCode(url, fileName) {
+//     const qrCodeContainer = document.getElementById('qrCodeContainer');
+//     qrCodeContainer.innerHTML = ''; // Clear previous QR code
+
+//     const qrCodeElement = document.createElement('div');
+//     qrCodeElement.id = 'qrcode';
+//     qrCodeContainer.appendChild(qrCodeElement);
+
+//     QRCode.toCanvas(document.getElementById('qrcode'), url, function (error) {
+//         if (error) console.error(error);
+//         console.log('QR code generated!');
+//     });
+
+//     // Add a label to show the file name
+//     const label = document.createElement('p');
+//     label.textContent = fileName;
+//     qrCodeContainer.appendChild(label);
+
+//     // Show the QR code container
+//     qrCodeContainer.style.display = 'block';
+// }
+
+// Function to add the QR code button next to the download button
+// function makeQRCodeButton(item, parentEle, url) {
+//     const qrCodeButton = _htmlToElement('<span class="fa fa-qrcode qr-button"></span>');
+
+//     qrCodeButton.addEventListener('click', function () {
+//         createQRCode(url, item.name);
+//     });
+
+//     parentEle.childNodes[0].after(qrCodeButton);
+// }
+
+// Function to create a QR code and display it
+function createQRCode(url, fileName) {
+    const qrCodeContainer = document.getElementById('qrCodeContainer');
+    const qrCodeElement = document.getElementById('qrcode');
+    const fileNameElement = document.getElementById('fileName');
+
+    qrCodeElement.innerHTML = ''; // Clear previous QR code
+
+    var qrcode = new QRCode(qrCodeElement, {
+        text: url,
+        width: 256,
+        height: 256,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.L
+    });
+
+    fileNameElement.textContent = fileName;
+
+    // Show the QR code container
+    qrCodeContainer.style.display = 'block';
+}
+
+// Function to hide the QR code container
+window.hideQRCode = function () {
+    document.getElementById('qrCodeContainer').style.display = 'none';
+}
+
+// Function to add the QR code button next to the download button
+function makeQRCodeButton(item, parentEle, url) {
+    const qrCodeButton = _htmlToElement('<span class="fa fa-qrcode qr-button"></span>');
+
+    qrCodeButton.addEventListener('click', function () {
+        createQRCode(url, item.name);
+    });
+
+    // parentEle.childNodes[0].after(qrCodeButton);
+    parentEle.appendChild(qrCodeButton);
 }
 
 // for clipboard
@@ -443,7 +518,7 @@ function textProcessor(text) {
             //add pre code tags
             blocks[i] = '<pre><code class="' + highlightResult.language + '">' + blocks[i] + '</code></pre>';
             lastBlockIsCode = true;
-        }else if(typeof highlightResult.language != 'undefined'){
+        } else if (typeof highlightResult.language != 'undefined') {
             console.log('language detected: ' + highlightResult.language + 'relevance: ' + highlightResult.relevance + '');
 
         }
@@ -552,7 +627,7 @@ function _addImage(item) {
         });
 }
 
-function _addFile(item) {
+function _addFile2(item) {
     getDownloadURL(ref(storage, item._location.path_))
         .then((url) => {
             var fig = _htmlToElement(
@@ -575,12 +650,14 @@ function _addFile(item) {
             // fig.appendChild(buttonContainer);
 
             makeDownloadButton(item, buttonContainer, url);
+            makeQRCodeButton(item, buttonContainer, url);
             makeCloseButton(item, buttonContainer, fig);
 
             //fix this 
             fig.childNodes[0].addEventListener("click", function () {
                 // var download = _htmlToElement('<a href=' + url + ' target="_blank" download class="close fa fa-cloud-download"></a>');
-                open(url);
+                // open(url);
+                createQRCode(url, item.name);
                 // downloadURI(url, item.name);
             })
 
@@ -591,6 +668,99 @@ function _addFile(item) {
         });
 }
 
+function _addFile(item) {
+    getDownloadURL(ref(storage, item._location.path_))
+        .then((url) => {
+            getMetadata(ref(storage, item._location.path_))
+                .then((metadata) => {
+                    // Extract file size from metadata
+                    var fileSize = metadata.size;
+
+                    var fileExt = item.name.split('.').pop(); // get file extension
+                    var fileName = item.name.split('.')[0]; // get file name without extension
+                    var color = getColorForFileExt(fileExt); // add a function to map file extensions to colors
+                    var bgColor = getColorForFileExt(fileExt);
+
+                    var fig = _htmlToElement(
+                        '<div class="block">' +
+                        '<div class="block" style="width: 90%; background-color: ' + bgColor + '; border-radius: 5px; height: 100px; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; position: relative;">' +
+                        '<div style="display: flex; flex-direction: row; justify-content: space-between;">' +
+                        '<span style="color: #333; font-size: 14px; text-align: left; font-weight: 600; word-wrap: break-word; text-overflow: ellipsis;">' + fileName + '</span>' +
+                        '<span style="color: #aaa; font-size: 14px; width: 50px; font-weight: 500; text-align: right; position: absolute; right: 5px;">.' + fileExt + '</span>' +
+                        '</div>' +
+                        '<span style="color: #aaa; font-size: 12px; text-align: left; margin-top: 10px;">' + getItemSize(fileSize) + '</span>' +
+                        '</div>' +
+                        '</div>'
+                    );
+                    
+                    
+                    var buttonContainer = _htmlToElement(
+                        '<div class="textbuttoncontainer"></div>'
+                    );
+
+
+                    fig.appendChild(buttonContainer);
+
+                    makeCloseButton(item, buttonContainer, fig);
+                    makeDownloadButton(item, buttonContainer, url);
+                    makeQRCodeButton(item, buttonContainer, url);
+
+                    fig.addEventListener("click", function () {
+                        console.log('clicked a childnode file');
+                        // createQRCode(url, item.name);
+                    });
+
+                    fig.childNodes[0].addEventListener("click", function () {
+                        console.log('clicked a childnode file');
+                        // createQRCode(url, item.name);
+                        open(url);
+                    });
+
+                    document.getElementById("files").appendChild(fig);
+                    console.log("added file");
+                })
+                .catch((error) => {
+                    // Handle error while fetching metadata
+                    console.error('Error getting metadata:', error);
+                });
+        })
+        .catch((error) => {
+            // Handle any errors
+            console.log("error adding file");
+            console.log(error);
+        });
+}
+
+function getItemSize(item) {
+    // Return the file size in a human-readable format (e.g., "1.2 MB")
+    const fileSize = item;
+    console.log("the size is " + fileSize)
+    const units = ['B', 'KB', 'MB', 'GB'];
+    let size = fileSize;
+    let unitIndex = 0;
+    while (size >= 1024 && unitIndex < units.length - 1) {
+        size /= 1024;
+        unitIndex++;
+    }
+    return size.toFixed(1) + ' ' + units[unitIndex];
+}
+
+function getColorForFileExt(ext) {
+    const hueMap = {
+        zip: 60, // yellow
+        pdf: 0, // red
+        doc: 120, // green
+        xls: 180, // cyan
+        ppt: 240, // blue
+        mp3: 300, // magenta
+        // add more cases for other file extensions
+    };
+    const saturation = 40; // light pastel color
+    const lightness = 90; // light pastel color
+
+    const hue = hueMap[ext] || 0; // default to red if no hue is mapped
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
 
 
 window.loadmodal = function (url) {
@@ -632,43 +802,43 @@ window.loadmodal = function (url) {
     fig.style.transform = 'scale(' + 1 + ')';
     var scale = 1;
 
-    fig.addEventListener('wheel', function(event) {
+    fig.addEventListener('wheel', function (event) {
         event.preventDefault(); // Prevent default scroll behavior
         console.log('scrolling');
         var delta = event.deltaY || event.detail || event.wheelDelta;
         // Adjust the scale based on the scroll direction
         if (delta < 0) {
-            if(scale <2){
+            if (scale < 2) {
                 scale += 0.05; // Increase scale for zooming in
             }
         } else {
-            if(scale > 0.5){
+            if (scale > 0.5) {
                 scale -= 0.05; // Decrease scale for zooming out
             }
         }
         // get the current leftmost position of the image
         // var left = fig.style.left;
-        
+
         // console.log(left);
-      
+
 
         fig.style.transform = `scale(${scale})`;
-        
+
 
         // displacement of the image
         var rect = fig.getBoundingClientRect();
-        console.log(rect.top, rect.right, rect.bottom, rect.left);  
+        console.log(rect.top, rect.right, rect.bottom, rect.left);
 
         var dx = (event.clientX - rect.left) * (scale - 1);
 
         var dy = (event.clientY - rect.top) * (scale - 1);
-        
+
         fig.style.left = rect.left - dx + 'px';
         fig.style.top = rect.top - dy + 'px';
 
 
         console.log(fig.style.left, fig.style.top);
-      });
+    });
 
     fig.src = url;
 }
@@ -756,15 +926,15 @@ function setTextBoxExpandable() {
     const minHeight = 50;
     //set max height
     const maxHeight = 230;
-    tx.setAttribute("style", "height:" +  minHeight + "px;overflow-y:hidden;");
+    tx.setAttribute("style", "height:" + minHeight + "px;overflow-y:hidden;");
 
     tx.addEventListener("input", onInput, false);
 
     function onInput() {
         this.style.height = 0;
         var finalH = (Math.min(maxHeight, this.scrollHeight))
-        
-        if(finalH < minHeight){
+
+        if (finalH < minHeight) {
             finalH = minHeight;
         }
 

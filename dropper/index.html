@@ -107,6 +107,37 @@
         <p id=uploaded style="display:none">Uploaded!</p>
     </div>
 
+        <!-- QR Code Container
+    <div id="qrCodeContainer" style="display:none; position:fixed; top:10%; left:10%; background:white; padding:20px; border:1px solid black; z-index:1000;">
+        <div id="qrcode"></div>
+        <p id="fileName"></p>
+        <button onclick="hideQRCode()">Done</button>
+    </div> -->
+    <!-- QR Code Container -->
+    <!-- <div id="qrCodeContainer" style="display:none; position:fixed; top:50%; left:50%; width: 50%; ;transform: translate(-50%, -50%); background:white; padding: 20px 20px; border-radius:10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); z-index:1000;">
+        <div id="qrcode"></div>
+        <p id="fileName" style="color: #333; padding-top: 15px; text-align: right;"></p>
+        <button type="button" class="button-11" onclick="hideQRCode()" style="display:block; margin:0 auto;">Done</button>
+    </div> -->
+
+    <!-- <div id="qrCodeContainer" style="display:none; position:fixed; top:50%; left:50%; width: 50%; transform: translate(-50%, -50%); background:white; padding: 20px 20px; border-radius:10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); z-index:1000;">
+        <div id="qrcode"></div>
+        <div id ="fileName" style="position: absolute; top: 20px; right: 20px; font-size: 24px; font-weight: bold; color: #333; width: 240px; word-wrap: break-word;">Scan to Download!</div>
+        <p id="fileName2" style="color: #333; padding-top: 15px; text-align: right;"></p>
+        <button type="button" class="button-11" onclick="hideQRCode()" style="display:block; margin:0 auto;">Done</button>
+    </div> -->
+
+    <div id="qrCodeContainer" style="display:none; position:fixed; top:50%; left:50%; width: 45%; transform: translate(-50%, -50%); background:white; padding: 20px 20px; border-radius:10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); z-index:1000;">
+        <div id="qrcode"></div>
+        <div style="position: absolute; top: 20px; right: 20px; font-size: 17px; color: #333; width: 230px; height:100% ">
+            <p id="fileName" style="margin: 0; word-wrap: break-word; text-align: right;"></p>
+            <button type="button" class="button-11" onclick="hideQRCode()" style="width: 50%; position: absolute; bottom: 40px; right: 0px; height:50px">Done</button>
+        </div>
+    </div>
+
+
+
+
     <div class="form-popup" id="goto_form">
         <div class="form-container">
             <h3>goto</h3>
@@ -188,6 +219,8 @@
 
     <script src="/js/jquery.js"></script>
     <script src="/js/main.js" type="module"></script>
+    <script src="/js/qrcode.js"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script> -->
     <script src="/js/dropper.js" type="module"></script>
 </body>
 
