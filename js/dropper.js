@@ -385,6 +385,7 @@ function createQRCode(url, fileName, item, eleToDelete) {
     const qrCodeElement = document.getElementById('qrcode');
     const fileNameElement = document.getElementById('fileName');
     const deleteButton = document.getElementById('deletebutton'); // Get the delete button
+    const doneButton = document.getElementById('hideqrbutton'); // Get the done button
 
     qrCodeElement.innerHTML = ''; // Clear previous QR code
 
@@ -397,6 +398,19 @@ function createQRCode(url, fileName, item, eleToDelete) {
         correctLevel: QRCode.CorrectLevel.L
     });
 
+// Create a ResizeObserver instance
+// const resizeObserver = new ResizeObserver(() => {
+//     // Get the current width of the container
+//     const containerWidth = qrCodeContainer.offsetWidth / 2;
+//     // Update the width and height of the QR code
+//     qrcode.makeCode(url, {
+//       width: containerWidth,
+//       height: containerWidth
+//     });
+//   });
+    
+//     resizeObserver.observe(qrCodeContainer);
+
     fileNameElement.textContent = fileName;
 
     // set delete
@@ -405,6 +419,11 @@ function createQRCode(url, fileName, item, eleToDelete) {
         deleteFileAtPathAndRemove(item.fullPath, eleToDelete);
         hideQRCode(); // Hide the QR code after deletion (optional)
     };
+
+    doneButton.onclick = () => {
+        hideQRCode();
+    }
+
 
     // Show the QR code container
     qrCodeContainer.style.display = 'block';

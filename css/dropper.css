@@ -435,6 +435,108 @@ textarea {
 
 }
 
+/* qr shower */
+/* Desktop Styles */
+#qrCodeContainer {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 60%;
+  height: auto;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  align-items: center;
+}
+
+#qrCodeContainer > div {
+  position: relative;
+  display: flex;
+  align-items: center ;
+  flex-direction: column;
+}
+
+#namediv {
+  
+  display: flex !important; 
+  flex-direction: row !important;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#qrcode canvas {
+  /* Add specific styles for the QR code here */
+  /* width: 60% !important;
+  height: 60% !important; */
+}
+
+#qrcode img {
+  width: 40% !important;
+  height: 40% !important;
+}
+
+@media (max-width:1000px) {
+    #qrCodeContainer {
+      width: 80%;
+      height: auto !important;
+    }
+
+    #qrcode img {
+      width: 60% !important;
+      height: 60% !important;
+    }
+}
+
+#fileName {
+  margin: 0;
+  word-wrap: break-word;
+  text-align: center;
+
+  font-size: 4cqmin;
+}
+
+.viewfilebutton {
+  width: 40%;
+  position: absolute;
+  bottom: 40px;
+  height: 10%;
+  font-size: 4cqmin;
+  text-align: center;
+}
+
+#qrCodeContainer {
+  width: 60%; /* Adjust width as needed */
+}
+
+#fileName {
+  text-align: center;
+  color: #333;
+}
+
+#qrcode {
+  margin-top: 20px; /* Add space above the QR code */
+}
+
+.viewfilebutton {
+  width: 48%; /* Adjust button width as needed */
+  position: relative; /* Remove absolute positioning */
+  bottom: 0; /* Remove bottom positioning */
+  margin-top: 10px; /* Add space above buttons */
+}
+
+#deletebutton {
+  /* right: 50%; /* Center the delete button 
+  transform: translateX(50%); Adjust for left margin */
+}
+
+#hideqrbutton {
+  /* right: 0; Align the done button to the right */
+}
+
 /* file masonry buttons (download etc) on card */
 .button-card { /* Apply styles to all buttons */
   color: hsl(225, 45%, 60%); 

@@ -127,14 +127,23 @@
         <button type="button" class="button-11" onclick="hideQRCode()" style="display:block; margin:0 auto;">Done</button>
     </div> -->
 
-    <div id="qrCodeContainer" style="display:none; position:fixed; top:50%; left:50%; width: 45%; transform: translate(-50%, -50%); background:white; padding: 20px 20px; border-radius:10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); z-index:1000;">
+    <!-- <div id="qrCodeContainer" style="display:none; position:fixed; top:50%; left:50%; width: 45%; transform: translate(-50%, -50%); background:white; padding: 20px 20px; border-radius:10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); z-index:1000;">
         <div id="qrcode"></div>
-        <div style="position: absolute; top: 20px; right: 20px; font-size: 17px; color: #333; width: 230px; height:100% ">
+        <div style="position: absolute; top: 20px; right: 20px; font-size: 17px; color: #333; width: 50%px; height:100% ">
             <p id="fileName" style="margin: 0; word-wrap: break-word; text-align: right;"></p>
-            <button id="deletebutton" type="button" class="button-11" onclick="" style="width: 40%; position: absolute; bottom: 40px; right: 100px; height:44px">Remove</button>
-            <button type="button" class="button-11" onclick="hideQRCode()" style="width: 40%; position: absolute; bottom: 40px; right: 0px; height: 44px">Done</button>
+            <button id="deletebutton" type="button" class="button-11 viewfilebutton" onclick="" style="width: 40%; position: absolute; bottom: 40px; right: 100px; height:44px">Remove</button>
+            <button id="hideqrbutton" type="button" class="button-11 viewfilebutton" onclick="hideQRCode()" style="width: 40%; position: absolute; bottom: 40px; right: 0px; height: 44px">Done</button>
         </div>
-    </div>
+    </div> -->
+    <div id="qrCodeContainer">
+        <div id="qrcode"></div>
+        <p id="fileName"></p>
+        <div id="namediv">
+          
+          <button id="deletebutton" type="button" class="button-11 viewfilebutton">Remove</button>
+          <button id="hideqrbutton" type="button" class="button-11 viewfilebutton">Done</button>
+        </div>
+      </div>
 
 
 
