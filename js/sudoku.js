@@ -236,7 +236,8 @@ function trySolveBoard(visual = false) {
         displayBoard();
     }
 
-    stopStopwatch();
+    celebrate();
+    // stopStopwatch();
 
 }
 
@@ -1173,7 +1174,7 @@ function press(num) {
 
                 // check if the board is solved
                 if (hasPlayerWon(sudokuBoard)) {
-                    stopStopwatch();
+                    celebrate()
                     // alert("You solved the board!");
                 }
             } else if (num === 0) {
@@ -1186,6 +1187,7 @@ function press(num) {
         updateNumButtons(selectedCell);
     }
 }
+
 
 function updateNumButtons(cell) {
     const row = cell.dataset.row - 1;
@@ -1274,8 +1276,7 @@ document.addEventListener('keydown', function (event) {
                     }
                     // check if board is solved
                     if (hasPlayerWon(sudokuBoard)) {
-                        // alert("You solved the board!");
-                        stopStopwatch();
+                        celebrate()
                     }
                 } else {
                     // handle invalid input or ignore
@@ -1348,4 +1349,184 @@ function initializePage() {
 
     startStopwatch();
 }
+
+function celebrate() {
+    // stop the timer
+    stopStopwatch();
+    // show a confetti animation
+    randomTriggerConfetti();
+}
+
+function randomTriggerConfetti() {
+    // Randomly trigger confetti
+    const randomNum = Math.floor(Math.random() * 100);
+    if (randomNum < 79) {
+        triggerConfetti();
+    } 
+    else if (randomNum < 82) { // super rare
+        triggerSkullConfetti();
+    }
+    else {
+        triggerHeartConfetti();
+    }
+}
+
+let heartShape;
+let skullShape;
+try {
+    // Check if confetti is available AND shapeFromText exists
+    if (typeof confetti === 'function' && typeof confetti.shapeFromText === 'function') {
+        heartShape = confetti.shapeFromText({
+            text: '❤️', 
+            scalar: 1
+        });
+
+        skullShape = confetti.shapeFromText({
+            text: '💀', 
+            scalar: 1
+        });
+
+        // other 
+        console.log("Heart shape created successfully.");
+    } else {
+        heartShape = null;
+    }
+} catch (error) {
+    console.error("Error creating heart shape:", error);
+    heartShape = null; // Ensure heartShape is null if creation fails
+}
+
+function triggerSkullConfetti() {
+    const shapesToUse = [skullShape || 'circle'];
+    const randomParticleCount = Math.floor(Math.random() * (200 - 80 + 1)) + 80;
+    const randomTicks = Math.floor(Math.random() * (450 - 250 + 1)) + 250;
+    const randomSpread = Math.floor(Math.random() * (100 - 60 + 1)) + 60;
+    confetti({
+        particleCount: randomParticleCount,
+        spread: randomSpread,
+        origin: { y: 0.6 },
+        ticks: randomTicks,
+        gravity: 0.5,
+        decay: 0.92,
+        scalar: 2,
+        shapes: shapesToUse,
+        colors: ['#000000', '#FFFFFF'] // Example colors
+    });
+    // Optional: Add a couple more smaller bursts (using hearts if available)
+    setTimeout(() => {
+        confetti({
+            particleCount: Math.floor(randomParticleCount / 2), // Base off main burst?
+            spread: 60,
+            origin: { y: 0.7, x: 0.3 },
+            angle: 120,
+            scalar: 0.8,
+            ticks: randomTicks
+         });
+    }, 150); // Slightly adjusted timing maybe
+    setTimeout(() => {
+        confetti({
+            particleCount: Math.floor(randomParticleCount / 2), // Base off main burst?
+            spread: 60,
+            origin: { y: 0.7, x: 0.7 },
+            angle: 60,
+            scalar: 0.8,
+            ticks: randomTicks
+         });
+    }, 150); // Slightly adjusted timing maybe
+}
+
+function triggerHeartConfetti() {
+    const shapesToUse = [heartShape || 'circle'];
+
+    const randomParticleCount = Math.floor(Math.random() * (200 - 80 + 1)) + 80;
+    const randomTicks = Math.floor(Math.random() * (450 - 250 + 1)) + 250;
+    const randomSpread = Math.floor(Math.random() * (100 - 60 + 1)) + 60;
+
+    confetti({
+        particleCount: 0,
+        spread: randomSpread,
+        origin: { y: 0.6 },
+        ticks: randomTicks,
+        gravity: 0.5,
+        decay: 0.92,
+        scalar: 2,
+        shapes: shapesToUse,
+    });
+
+    // Optional: Add a couple more smaller bursts (using hearts if available)
+    setTimeout(() => {
+        confetti({
+            particleCount: 500,
+            spread: 360,
+            origin: { y: 0.5, x: 0.5 },
+            angle: 120,
+            scalar: heartShape ? 1.8 : 0.8, // Maybe adjust scalar if using hearts
+            shapes: shapesToUse,
+             colors: ['#FF69B4', '#FFFFFF'] // Example colors
+        });
+    }, 100);
+     setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7, x: 0.9 },
+            angle: 60,
+            scalar: heartShape ? 1.6: 0.8, // Maybe adjust scalar if using hearts
+            shapes: shapesToUse,
+             colors: ['#FF1493', '#DC143C'] // Example colors
+        });
+    }, 800);
+    setTimeout(() => {
+        confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7, x: 0.1 },
+            angle: 120,
+            scalar: heartShape ? 1.6 : 0.8, // Maybe adjust scalar if using hearts
+            shapes: shapesToUse,
+             colors: ['#FF1493', '#DC143C'] // Example colors
+        });
+    }, 800);
+}
+
+function triggerConfetti() {
+
+    const randomParticleCount = Math.floor(Math.random() * (250 - 120 + 1)) + 120;
+    const randomTicks = Math.floor(Math.random() * (400 - 200 + 1)) + 200;
+    const randomSpread = Math.floor(Math.random() * (90 - 50 + 1)) + 50;
+
+    console.log(`Confetti: Count=${randomParticleCount}, Ticks=${randomTicks}, Spread=${randomSpread}`); // Optional: for debugging
+
+    // --- Main Burst ---
+    confetti({
+        particleCount: randomParticleCount,
+        spread: randomSpread,
+        origin: { y: 0.6 },
+        ticks: randomTicks,
+    });
+    setTimeout(() => {
+        confetti({
+            particleCount: Math.floor(randomParticleCount / 3), // Base off main burst?
+            spread: 60,
+            origin: { y: 0.7, x: 0.3 },
+            angle: 120,
+            scalar: 0.8,
+            colors: ['#bb0000', '#ffffff', '#00ff00'],
+            ticks: randomTicks // Use same duration or randomize separately
+         });
+    }, 150); // Slightly adjusted timing maybe
+
+    setTimeout(() => {
+        confetti({
+            particleCount: Math.floor(randomParticleCount / 3),
+            spread: 60,
+            origin: { y: 0.7, x: 0.7 },
+            angle: 60,
+            scalar: 0.8,
+            colors: ['#0000ff', '#ffff00', '#ff00ff'],
+            ticks: randomTicks
+         });
+    }, 150);
+}
+
 initializePage();
