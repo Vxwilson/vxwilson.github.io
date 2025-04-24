@@ -1170,6 +1170,11 @@ function press(num) {
                 if (trySetValue(selectedCell.dataset.row, selectedCell.dataset.col, num)) {
                     // selectedCell.textContent = num;
                     setCellText(selectedCell, num);
+                    // Check if placing this number completed its set
+                    if (isNumberSetComplete(sudokuBoard, num)) {
+                    console.log(`Set for number ${num} is complete! Triggering mini confetti.`);
+                    triggerMiniConfetti(); // Call the mini confetti function
+                    }
                 }
 
                 // check if the board is solved
@@ -1269,6 +1274,11 @@ document.addEventListener('keydown', function (event) {
                     setCellText(selectedCell, num);
                     updateNumButtons(selectedCell);
 
+                    if (isNumberSetComplete(sudokuBoard, num)) {
+                        console.log(`Set for number ${num} is complete! Triggering mini confetti.`);
+                        triggerMiniConfetti(); // Call the mini confetti function
+                    }
+
                     // try to resume stopwatch
                     if (paused) {
                         paused = false;
@@ -1348,6 +1358,21 @@ function initializePage() {
     }
 
     startStopwatch();
+}
+
+// logic to check if one of the number sets is complete
+function isNumberSetComplete(board, num) {
+    let count = 0;
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            if (board[r][c] === num) {
+                count++;
+            }
+        }
+    }
+    // In a solved Sudoku, each number appears exactly 9 times.
+    // If the count reaches 9, the set for this number is complete.
+    return count === 9;
 }
 
 function celebrate() {
@@ -1527,6 +1552,19 @@ function triggerConfetti() {
             ticks: randomTicks
          });
     }, 150);
+}
+
+function triggerMiniConfetti() {
+    const randomParticleCount = Math.floor(Math.random() * (50 - 20 + 1)) + 20;
+    const randomTicks = Math.floor(Math.random() * (200 - 100 + 1)) + 100;
+    const randomSpread = Math.floor(Math.random() * (30 - 10 + 1)) + 10;
+
+    confetti({
+        particleCount: randomParticleCount,
+        spread: randomSpread,
+        origin: { y: 0.6 },
+        ticks: randomTicks,
+    });
 }
 
 initializePage();
