@@ -979,8 +979,18 @@ function replaceSelectedCell(newCell) {
 
     // try to focus if in focus mode
     if (mode === Modes.FOCUS) {
+
         let value = parseInt(selectedCell.querySelector('.cell-text').textContent);
         focusDigit(value);
+
+        // unselect cell if value is 0 in focus mode
+        console.log(`the cell  ${value}`);
+        if (platformMode === Platform.Desktop && isNaN(value)) {
+            console.log(`the cell is removedf ${value}`);
+            selectedCell.classList.remove('selected');
+            selectedCell = null;
+        }
+
     }
 
     // debug
@@ -1131,7 +1141,10 @@ document.addEventListener('keydown', function (event) {
 function handleCellClick(event) {
     // replaceSelectedCell(event.target)
     replaceSelectedCell(event);
-    if (platformMode === Platform.Mobile && mode === Modes.NORMAL) {
+    // debug
+    console.log(`Selected cell ${selectedCell.dataset.row}, ${selectedCell.dataset.col}, current mode ${mode}`);
+    if (platformMode === Platform.Mobile && mode !== Modes.MARKING) {
+        // if (platformMode === Platform.Mobile && mode === Modes.NORMAL) {
         updateNumButtons(selectedCell);
     }
 }
@@ -1156,10 +1169,10 @@ document.addEventListener("click", handleOutsideClick);
 //MOBILE section//
 function press(num) {
     // check if we are in marking mode
-    if (mode === Modes.FOCUS) {
-        focusDigit(num);
-        return;
-    }
+    // if (mode === Modes.FOCUS) {
+    //     focusDigit(num);
+    //     return;
+    // }
     if (selectedCell) {
         if (mode === Modes.MARKING) {
             if (num !== 0) {
@@ -1238,10 +1251,10 @@ function updateNumButtons(cell) {
 
         else if (checkInputValid(sudokuBoard, row, col, num)) {
             button.disabled = false;
-            // console.log("button " + num + " is valid");
+            console.log("button " + num + " is valid");
         } else {
             button.disabled = true;
-            // console.log("button " + num + " is invalid");
+            console.log("button " + num + " is invalid");
         }
     });
 }
