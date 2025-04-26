@@ -2,8 +2,8 @@
 import { SudokuBoard } from './board.js';
 import { SudokuUI } from './ui.js';
 import { Timer } from './timer.js';
-import * as Solver from './solver_basic.js'; // Using current basic solver
-// import * as SolverAdvanced from './solver_advanced.js'; // For later
+import * as Solver from './solver_basic.js'; // current basic solver
+import * as SolverAdvanced from './solver_advanced.js';  // this will be replacing the basic solver
 import * as Persistence from './persistence.js';
 // copytoclipboard from utils.js
 import { copyToClipboard } from './utils.js'; // If needed
@@ -607,6 +607,7 @@ export class SudokuGame {
                      }
                  });
             },
+            onHintRequest: () => this._handleHintRequest(),
             onUndoRequest: () => this._undo(),
             // onRedoRequest: () => this._redo(), // Add if implemented
             onAutoMarkRequest: () => this._clearAllPencilMarks(), // Current button toggles clear/auto-fill
@@ -695,6 +696,101 @@ export class SudokuGame {
              // Other UI Callbacks
              onResize: () => this._detectPlatform(),
         };
+    }
+
+    async _handleHintRequest() {
+        console.log("Hint requested...");
+        const currentGrid = this.board.getGrid();
+    
+        // Ensure no solving attempt if paused or game over
+        if (this.currentState.isPaused || !findNextEmptyCell(currentGrid)) {
+            console.log("Hint ignored (paused or solved).");
+            return;
+        }
+    
+        const result = SolverAdvanced.solveSingleStep(currentGrid);
+    
+        console.log("Solver Result:", result); // Log the raw result
+    
+        switch (result.status) {
+            case 'error':
+                console.error("Hint Error:", result.message);
+                this.ui.showConfirm(`Error: ${result.message || 'Board state is invalid.'}`, () => {}); // Use confirm as a simple alert for now
+                break;
+            case 'solved':
+                console.log("Hint: Board already solved.");
+                this.ui.showConfirm("Board is already solved!", () => {});
+                break;
+            case 'stuck':
+                console.log("Hint: Solver stuck.", result.message);
+                this.ui.showConfirm(result.message || "No simple hint could be found.", () => {});
+                break;
+            case 'found_step':
+                const step = result.steps[0];
+                console.log("Hint Found:", step.technique, step.description);
+                console.log("Step Details:", step);
+    
+                // --- User Feedback ---
+                // 1. Simple Alert (for now)
+                this.ui.showConfirm(`Hint (${step.technique}):\n${step.description}\n\nApply this hint?`,
+                    () => { // Confirm callback: Apply the hint
+                        this._applyHintStep(step);
+                    },
+                    () => { // Cancel callback: Just highlight (or do nothing for now)
+                        console.log("Hint not applied by user.");
+                        // Optional: Add temporary highlighting here without applying
+                        // this.ui.highlightHint(step.highlights); // Needs implementation in UI
+                    }
+                );
+
+                //directly apply the hint
+                // this._applyHintStep(step);
+                break;
+        }
+    }
+    
+    // Helper function to apply the hint step (called from confirm callback)
+    _applyHintStep(step) {
+        if (!step.cell || step.value === undefined) {
+             console.error("Cannot apply hint: Missing cell or value.", step);
+             return; // Can't apply elimination-only steps directly like this yet
+        }
+    
+        const [row, col] = step.cell;
+        const value = step.value;
+    
+        // Check if the cell is already filled correctly/incorrectly
+        const currentValue = this.board.getValue(row, col);
+        if (currentValue !== 0) {
+             console.warn(`Hint targets an already filled cell [${row}, ${col}]. Current: ${currentValue}, Hint: ${value}`);
+             // Optionally prevent applying or overwrite? Overwriting seems reasonable for a hint.
+        }
+    
+        console.log(`Applying hint: Placing ${value} at [${row}, ${col}] using ${step.technique}`);
+        this._addUndoState(); // Save state before applying hint
+        this.board.setValue(row, col, value);
+    
+        // Auto-update pencil marks based on the placed value if setting is enabled
+        if (this.currentState.settings.autoPencilMarks) {
+            this._updateAffectedPencilMarks(row, col, value);
+        }
+    
+        // If the step also involved eliminations, you could potentially update
+        // the UI pencil marks here too, though it overlaps with _updateAffectedPencilMarks
+        // if (step.eliminated && this.currentState.settings.autoPencilMarks) {
+        //     step.eliminated.forEach(elim => {
+        //         elim.values.forEach(val => {
+        //             this.board.setPencilMark(elim.cell[0], elim.cell[1], val, false);
+        //         });
+        //     });
+        // }
+    
+        this._updateUI(); // Redraw the board
+    
+        // Check for win after applying hint
+        if (!findNextEmptyCell(this.board.getGrid())) {
+            this._handleWin();
+        }
     }
 
     // --- Keyboard Handling ---

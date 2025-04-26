@@ -7,16 +7,13 @@ import { BOARD_SIZE, BOX_SIZE } from './constants.js';
  * @param {number} row - Row index (0-8).
  * @param {number} col - Column index (0-8).
  * @param {number} input - The number to check (1-9).
+ * @param {boolean} [ignoreCell=false] - Whether to ignore the cell itself if it already contains the input.
  * @returns {boolean} True if the placement is valid, false otherwise.
  */
-export function checkInputValid(board, row, col, input) {
+export function checkInputValid(board, row, col, input, ignoreCell = false) {
     // Check row
     for (let i = 0; i < BOARD_SIZE; i++) {
-        // Don't check the cell itself if it already contains the input
-        // This is useful if you call this *after* tentatively placing the number
-        // if (i !== col && board[row][i] === input) {
-        // Or simpler, just check all cells in the row
-        if (board[row][i] === input) {
+        if (board[row][i] === input && !(ignoreCell && i === col)) {
             return false;
         }
     }
@@ -24,7 +21,7 @@ export function checkInputValid(board, row, col, input) {
     // Check column
     for (let j = 0; j < BOARD_SIZE; j++) {
         // if (j !== row && board[j][col] === input) {
-         if (board[j][col] === input) {
+         if (board[j][col] === input && !(ignoreCell && j === row)) {
             return false;
         }
     }
@@ -35,7 +32,7 @@ export function checkInputValid(board, row, col, input) {
     for (let i = boxRowStart; i < boxRowStart + BOX_SIZE; i++) {
         for (let j = boxColStart; j < boxColStart + BOX_SIZE; j++) {
             // if ((i !== row || j !== col) && board[i][j] === input) {
-            if (board[i][j] === input) {
+            if (board[i][j] === input && !(ignoreCell && i === row && j === col)) {
                 return false;
             }
         }
@@ -100,4 +97,33 @@ export function copyToClipboard(text) {
         console.error('Failed to copy code: ', err); // Error handling
     }
     document.body.removeChild(textArea);
+}
+
+export function getPeers(row, col) {
+    const peers = [];
+    const peerSet = new Set(); // Use a set to avoid duplicates easily
+
+    // Row peers
+    for (let c = 0; c < BOARD_SIZE; c++) {
+        if (c !== col) peerSet.add(`${row}-${c}`);
+    }
+    // Column peers
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        if (r !== row) peerSet.add(`${r}-${col}`);
+    }
+    // Box peers
+    const startRow = Math.floor(row / BOX_SIZE) * BOX_SIZE;
+    const startCol = Math.floor(col / BOX_SIZE) * BOX_SIZE;
+    for (let r = 0; r < BOX_SIZE; r++) {
+        for (let c = 0; c < BOX_SIZE; c++) {
+            const peerRow = startRow + r;
+            const peerCol = startCol + c;
+            if (peerRow !== row || peerCol !== col) {
+                peerSet.add(`${peerRow}-${peerCol}`);
+            }
+        }
+    }
+    // Convert back to [r, c] pairs
+    peerSet.forEach(p => peers.push(p.split('-').map(Number)));
+    return peers;
 }

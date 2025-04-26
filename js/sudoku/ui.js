@@ -349,6 +349,7 @@ export class SudokuUI {
         this.pencilModeButton.onclick = () => this.callbacks.onModeToggleRequest(Modes.MARKING);
         this.focusModeButton.onclick = () => this.callbacks.onModeToggleRequest(Modes.FOCUS);
         document.querySelector('button[onclick*="trySolveBoard"]').onclick = () => this.callbacks.onSolveRequest(false); // false = not visual
+        document.querySelector('button[onclick*="hintBoard"]').onclick = () => this.callbacks.onHintRequest(); // false = not visual
 
         // --- Bottom Buttons ---
         this.undoButton.onclick = () => this.callbacks.onUndoRequest();
