@@ -1,6 +1,6 @@
 // js/sudoku/solver_advanced.js
 import { BOARD_SIZE, BOX_SIZE } from './constants.js';
-import { checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray } from './utils.js';
+import { checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, getCommonPeers, cellsSeeEachOther } from './utils.js';
 import * as SolverBasic from './solver_basic.js'; // Keep for generation/solve placeholders
 
 /**
@@ -77,7 +77,7 @@ function initializeCandidatesMap(board) {
 // --- Utility: Get Units (remains the same) ---
 function getUnits() {
     const units = [];
-     // Rows
+    // Rows
     for (let r = 0; r < BOARD_SIZE; r++) {
         units.push({ type: 'Row', index: r + 1, cells: Array.from({ length: BOARD_SIZE }, (_, c) => [r, c]) });
     }
@@ -124,7 +124,7 @@ function applyEliminations(candidatesMap, eliminations) {
                     const [r_log, c_log] = cellKey.split('-').map(Number);
                     console.log(`Elimination applied at R${r_log + 1}C${c_log + 1}: Removed ${value}`);
                     if (candidates.size === 0) {
-                        throw new Error(`Contradiction: Applying elimination of ${value} left cell R${r_log+1}C${c_log+1} with no candidates.`);
+                        throw new Error(`Contradiction: Applying elimination of ${value} left cell R${r_log + 1}C${c_log + 1} with no candidates.`);
                     }
                 }
             }
@@ -165,15 +165,15 @@ function findHiddenSinglesMap(candidatesMap, board) {
             let foundCellKey = null;
 
             for (const [r, c] of unit.cells) {
-                 const cellKey = `${r}-${c}`;
-                 if (board[r][c] === 0 && candidatesMap.has(cellKey)) {
+                const cellKey = `${r}-${c}`;
+                if (board[r][c] === 0 && candidatesMap.has(cellKey)) {
                     if (candidatesMap.get(cellKey)?.has(n)) {
                         foundCount++;
                         foundCellCoords = [r, c];
                         foundCellKey = cellKey;
                     }
-                 }
-                 if (foundCount > 1) break;
+                }
+                if (foundCount > 1) break;
             }
 
             if (foundCount === 1) {
@@ -181,7 +181,7 @@ function findHiddenSinglesMap(candidatesMap, board) {
                 // Ensure it's not also a Naked Single (which would be found first anyway)
                 // but check just in case the order changes later. Size > 1 means it's hidden.
                 if (candidatesMap.get(foundCellKey)?.size > 1) {
-                     return {
+                    return {
                         technique: `Hidden Single (${unit.type} ${unit.index})`,
                         cell: [r, c],
                         value: n,
@@ -191,8 +191,8 @@ function findHiddenSinglesMap(candidatesMap, board) {
                             { row: r, col: c, candidates: [n], type: 'target' },
                             // Highlight other cells in the unit (without specific candidates)
                             ...unit.cells
-                                 .filter(([ur, uc]) => !(ur === r && uc === c))
-                                 .map(([ur, uc]) => ({ row: ur, col: uc, candidates: [], type: 'unit' }))
+                                .filter(([ur, uc]) => !(ur === r && uc === c))
+                                .map(([ur, uc]) => ({ row: ur, col: uc, candidates: [], type: 'unit' }))
                         ]
                     };
                 }
@@ -233,7 +233,7 @@ function findLockedCandidates(candidatesMap) {
             for (let n = 1; n <= BOARD_SIZE; n++) {
                 const cellsWithN = boxCells.filter(([r, c]) => candidatesMap.get(`${r}-${c}`)?.has(n));
                 if (cellsWithN.length < 2) continue;
-                const cellKeysWithN = new Set(cellsWithN.map(([r,c]) => `${r}-${c}`));
+                const cellKeysWithN = new Set(cellsWithN.map(([r, c]) => `${r}-${c}`));
                 const rows = new Set(cellsWithN.map(([r, c]) => r));
                 const cols = new Set(cellsWithN.map(([r, c]) => c));
 
@@ -262,7 +262,7 @@ function findLockedCandidates(candidatesMap) {
                                 })
                             ]
                         };
-                        console.log(`  >> Found Potential Pointing Row (${n} in Box ${boxIndex} -> Row ${row+1}). Eliminations:`, pointingElims.map(e=>e.cellKey));
+                        console.log(`  >> Found Potential Pointing Row (${n} in Box ${boxIndex} -> Row ${row + 1}). Eliminations:`, pointingElims.map(e => e.cellKey));
                         return { eliminations: pointingElims, stepInfo: stepInfo };
                     }
                 }
@@ -273,7 +273,7 @@ function findLockedCandidates(candidatesMap) {
                     const pointingElims = [];
                     for (let r = 0; r < BOARD_SIZE; r++) {
                         const targetCellKey = `${r}-${col}`;
-                         if (!boxCellKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
+                        if (!boxCellKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
                             pointingElims.push({ cellKey: targetCellKey, values: [n] });
                         }
                     }
@@ -292,7 +292,7 @@ function findLockedCandidates(candidatesMap) {
                                 })
                             ]
                         };
-                         console.log(`  >> Found Potential Pointing Col (${n} in Box ${boxIndex} -> Col ${col+1}). Eliminations:`, pointingElims.map(e=>e.cellKey));
+                        console.log(`  >> Found Potential Pointing Col (${n} in Box ${boxIndex} -> Col ${col + 1}). Eliminations:`, pointingElims.map(e => e.cellKey));
                         return { eliminations: pointingElims, stepInfo: stepInfo };
                     }
                 }
@@ -307,7 +307,7 @@ function findLockedCandidates(candidatesMap) {
         for (let n = 1; n <= BOARD_SIZE; n++) {
             const cellsWithN = unit.cells.filter(([r, c]) => candidatesMap.get(`${r}-${c}`)?.has(n));
             if (cellsWithN.length < 2) continue;
-            const cellKeysWithN = new Set(cellsWithN.map(([r,c]) => `${r}-${c}`));
+            const cellKeysWithN = new Set(cellsWithN.map(([r, c]) => `${r}-${c}`));
             const boxes = new Set(cellsWithN.map(([r, c]) => Math.floor(r / BOX_SIZE) * BOX_SIZE + Math.floor(c / BOX_SIZE)));
 
             // Claiming Check
@@ -332,20 +332,20 @@ function findLockedCandidates(candidatesMap) {
 
                 if (claimingElims.length > 0) {
                     const stepInfo = {
-                         technique: `Locked Candidates (Claiming ${unit.type})`,
-                         description: `Digit ${n} in ${unit.type} ${unit.index} is confined to Box ${boxIndexUI}. Removed from other cells in Box ${boxIndexUI}.`,
-                         eliminations: claimingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                         highlights: [
-                             // Highlight the defining cells in the line showing the candidate 'n'
-                             ...cellsWithN.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
-                             // Highlight the cells in the box where 'n' is being eliminated
-                             ...claimingElims.map(elim => {
-                                 const [er, ec] = elim.cellKey.split('-').map(Number);
-                                 return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
-                             })
-                         ]
+                        technique: `Locked Candidates (Claiming ${unit.type})`,
+                        description: `Digit ${n} in ${unit.type} ${unit.index} is confined to Box ${boxIndexUI}. Removed from other cells in Box ${boxIndexUI}.`,
+                        eliminations: claimingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the defining cells in the line showing the candidate 'n'
+                            ...cellsWithN.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                            // Highlight the cells in the box where 'n' is being eliminated
+                            ...claimingElims.map(elim => {
+                                const [er, ec] = elim.cellKey.split('-').map(Number);
+                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                            })
+                        ]
                     };
-                     console.log(`  >> Found Potential Claiming (${n} in ${unit.type} ${unit.index} -> Box ${boxIndexUI}). Eliminations:`, claimingElims.map(e=>e.cellKey));
+                    console.log(`  >> Found Potential Claiming (${n} in ${unit.type} ${unit.index} -> Box ${boxIndexUI}). Eliminations:`, claimingElims.map(e => e.cellKey));
                     return { eliminations: claimingElims, stepInfo: stepInfo };
                 }
             } // End Claiming Check
@@ -472,48 +472,605 @@ function findHiddenPairs(candidatesMap, board) { // Renamed for clarity
 
             // Check if they appear in the *exact same* two cells
             if (cellsForDigit1.size === 2 && cellsForDigit2.size === 2) {
-                 const cellUnion = new Set([...cellsForDigit1, ...cellsForDigit2]);
+                const cellUnion = new Set([...cellsForDigit1, ...cellsForDigit2]);
 
-                 if (cellUnion.size === 2) { // It's a Hidden Pair
-                     const subsetCellKeys = Array.from(cellUnion); // The keys of the two cells
-                     const unitElims = [];
+                if (cellUnion.size === 2) { // It's a Hidden Pair
+                    const subsetCellKeys = Array.from(cellUnion); // The keys of the two cells
+                    const unitElims = [];
 
-                     // Eliminate candidates *other than* the pair's digits from these two cells
-                     for (const cellKey of subsetCellKeys) {
-                         const candidates = candidatesMap.get(cellKey);
-                         if (candidates) {
-                             const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
-                             if (elimValues.length > 0) {
-                                 unitElims.push({ cellKey: cellKey, values: elimValues });
-                             }
-                         }
-                     }
+                    // Eliminate candidates *other than* the pair's digits from these two cells
+                    for (const cellKey of subsetCellKeys) {
+                        const candidates = candidatesMap.get(cellKey);
+                        if (candidates) {
+                            const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
+                            if (elimValues.length > 0) {
+                                unitElims.push({ cellKey: cellKey, values: elimValues });
+                            }
+                        }
+                    }
 
-                     if (unitElims.length > 0) {
-                         const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
-                         const stepInfo = {
-                             technique: `Hidden Pair (${unit.type} ${unit.index})`,
-                             description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these two cells.`,
-                             eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                             highlights: [
-                                 // Highlight the two cells forming the pair, showing *only* the hidden pair candidates
-                                 ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
-                                 // Optionally, highlight the eliminated values *within* the pair cells - can be noisy
-                                 // ...unitElims.map(elim => {
-                                 //     const [er, ec] = elim.cellKey.split('-').map(Number);
-                                 //     return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
-                                 // })
-                             ]
-                         };
-                         console.log(`  >> Found Potential Hidden Pair (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
-                         return { eliminations: unitElims, stepInfo: stepInfo };
-                     }
-                 }
+                    if (unitElims.length > 0) {
+                        const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
+                        const stepInfo = {
+                            technique: `Hidden Pair (${unit.type} ${unit.index})`,
+                            description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these two cells.`,
+                            eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                            highlights: [
+                                // Highlight the two cells forming the pair, showing *only* the hidden pair candidates
+                                ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
+                                // Optionally, highlight the eliminated values *within* the pair cells - can be noisy
+                                // ...unitElims.map(elim => {
+                                //     const [er, ec] = elim.cellKey.split('-').map(Number);
+                                //     return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                                // })
+                            ]
+                        };
+                        console.log(`  >> Found Potential Hidden Pair (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                        return { eliminations: unitElims, stepInfo: stepInfo };
+                    }
+                }
             }
         }
     }
     return { eliminations: [], stepInfo: null };
 }
+
+// --- Elimination Techniques (Continued) ---
+
+/**
+ * Finds the FIRST X-Wing pattern (Row or Column based) that results in actual eliminations.
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+ */
+function findXWing(candidatesMap) {
+    // Iterate through each digit 1-9
+    for (let n = 1; n <= BOARD_SIZE; n++) {
+
+        // --- Check for Row-based X-Wing ---
+        const candidateRows = new Map(); // Map<rowIndex, colIndices[]>
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            const colsWithN = [];
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (candidatesMap.get(`${r}-${c}`)?.has(n)) {
+                    colsWithN.push(c);
+                }
+            }
+            // Store row only if 'n' appears exactly twice
+            if (colsWithN.length === 2) {
+                candidateRows.set(r, colsWithN);
+            }
+        }
+
+        if (candidateRows.size >= 2) {
+            const rowIndices = Array.from(candidateRows.keys());
+            const rowCombinations = getCombinations(rowIndices, 2); // Get pairs of rows
+
+            for (const [r1, r2] of rowCombinations) {
+                const cols1 = candidateRows.get(r1);
+                const cols2 = candidateRows.get(r2);
+
+                // Check if the columns are the same for both rows
+                if (cols1[0] === cols2[0] && cols1[1] === cols2[1]) {
+                    const [c1, c2] = cols1; // The two columns forming the X-Wing sides
+                    const xWingElims = [];
+                    const definingCellsCoords = [[r1, c1], [r1, c2], [r2, c1], [r2, c2]];
+                    const definingCellsKeys = new Set(definingCellsCoords.map(([r, c]) => `${r}-${c}`));
+
+                    // Check for eliminations in the two columns (c1, c2), excluding the X-Wing rows (r1, r2)
+                    for (const targetCol of [c1, c2]) {
+                        for (let targetRow = 0; targetRow < BOARD_SIZE; targetRow++) {
+                            const targetCellKey = `${targetRow}-${targetCol}`;
+                            // Eliminate if it's NOT a defining cell AND has candidate 'n'
+                            if (!definingCellsKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
+                                xWingElims.push({ cellKey: targetCellKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    // If eliminations were found, create the step and return
+                    if (xWingElims.length > 0) {
+                        const stepInfo = {
+                            technique: `X-Wing (Rows, Digit ${n})`,
+                            description: `Digit ${n} in Rows ${r1 + 1} and ${r2 + 1} forms an X-Wing in Columns ${c1 + 1} and ${c2 + 1}. Digit ${n} can be removed from other cells in these columns.`,
+                            eliminations: xWingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                            highlights: [
+                                // Highlight the 4 defining "corner" cells
+                                ...definingCellsCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                // Highlight the candidates being eliminated
+                                ...xWingElims.map(elim => {
+                                    const [er, ec] = elim.cellKey.split('-').map(Number);
+                                    return { row: er, col: ec, candidates: [n], type: 'eliminated' };
+                                })
+                            ]
+                        };
+                        console.log(`  >> Found Potential Row X-Wing (${n} in R${r1 + 1},R${r2 + 1} / C${c1 + 1},C${c2 + 1}). Eliminations:`, xWingElims);
+                        return { eliminations: xWingElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        } // End Row-based check for digit n
+
+        // --- Check for Column-based X-Wing ---
+        const candidateCols = new Map(); // Map<colIndex, rowIndices[]>
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            const rowsWithN = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                if (candidatesMap.get(`${r}-${c}`)?.has(n)) {
+                    rowsWithN.push(r);
+                }
+            }
+            // Store col only if 'n' appears exactly twice
+            if (rowsWithN.length === 2) {
+                candidateCols.set(c, rowsWithN);
+            }
+        }
+
+        if (candidateCols.size >= 2) {
+            const colIndices = Array.from(candidateCols.keys());
+            const colCombinations = getCombinations(colIndices, 2); // Get pairs of columns
+
+            for (const [c1, c2] of colCombinations) {
+                const rows1 = candidateCols.get(c1);
+                const rows2 = candidateCols.get(c2);
+
+                // Check if the rows are the same for both columns
+                if (rows1[0] === rows2[0] && rows1[1] === rows2[1]) {
+                    const [r1, r2] = rows1; // The two rows forming the X-Wing sides
+                    const xWingElims = [];
+                    const definingCellsCoords = [[r1, c1], [r1, c2], [r2, c1], [r2, c2]];
+                    const definingCellsKeys = new Set(definingCellsCoords.map(([r, c]) => `${r}-${c}`));
+
+                    // Check for eliminations in the two rows (r1, r2), excluding the X-Wing columns (c1, c2)
+                    for (const targetRow of [r1, r2]) {
+                        for (let targetCol = 0; targetCol < BOARD_SIZE; targetCol++) {
+                            const targetCellKey = `${targetRow}-${targetCol}`;
+                            // Eliminate if it's NOT a defining cell AND has candidate 'n'
+                            if (!definingCellsKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
+                                xWingElims.push({ cellKey: targetCellKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    // If eliminations were found, create the step and return
+                    if (xWingElims.length > 0) {
+                        const stepInfo = {
+                            technique: `X-Wing (Cols, Digit ${n})`,
+                            description: `Digit ${n} in Columns ${c1 + 1} and ${c2 + 1} forms an X-Wing in Rows ${r1 + 1} and ${r2 + 1}. Digit ${n} can be removed from other cells in these rows.`,
+                            eliminations: xWingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                            highlights: [
+                                // Highlight the 4 defining "corner" cells
+                                ...definingCellsCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                // Highlight the candidates being eliminated
+                                ...xWingElims.map(elim => {
+                                    const [er, ec] = elim.cellKey.split('-').map(Number);
+                                    return { row: er, col: ec, candidates: [n], type: 'eliminated' };
+                                })
+                            ]
+                        };
+                        console.log(`  >> Found Potential Col X-Wing (${n} in C${c1 + 1},C${c2 + 1} / R${r1 + 1},R${r2 + 1}). Eliminations:`, xWingElims);
+                        return { eliminations: xWingElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        } // End Col-based check for digit n
+
+    } // End loop through digits
+
+    // No X-Wing found that resulted in eliminations
+    return { eliminations: [], stepInfo: null };
+}
+
+// --- Elimination Techniques (Continued) ---
+
+
+// /**
+//  * Helper for W-Wing: Checks if assuming 'candidate' is eliminated from cells
+//  * seeing cell1 or cell2 would leave no place for 'candidate' in a specific unit.
+//  * This attempts to verify a "strong link" based on the provided comment logic.
+//  *
+//  * @param {Map<string, Set<number>>} candidatesMap - The current full candidate map.
+//  * @param {string} cell1Key - Key of the first bivalue cell ('r-c').
+//  * @param {string} cell2Key - Key of the second bivalue cell ('r-c').
+//  * @param {number} candidate - The candidate value to check the strong link for (e.g., the 'B' if checking elim for 'A').
+//  * @returns {boolean} True if the condition (elimination + no remaining spots) is met for ANY unit, false otherwise.
+//  */
+// function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate) {
+//     const [r1, c1] = cell1Key.split('-').map(Number);
+//     const [r2, c2] = cell2Key.split('-').map(Number);
+//     // console.log(`  Helper checking link for ${candidate} between ${cell1Key} and ${cell2Key}`);
+
+//     for (const unit of allUnits) {
+//         // Get the keys of cells within this unit
+//         const unitCellKeys = new Set(unit.cells.map(([r, c]) => `${r}-${c}`));
+
+//         // --- Simulation within this unit ---
+//         let eliminationHappenedInUnit = false;
+//         const possibleLocationsForCandidate = new Set(); // Track where 'candidate' COULD be in this unit initially
+
+//         // 1. Find initial possible locations for 'candidate' within this unit
+//         for (const [r_unit, c_unit] of unit.cells) {
+//             const key = `${r_unit}-${c_unit}`;
+//             if (candidatesMap.get(key)?.has(candidate)) {
+//                 possibleLocationsForCandidate.add(key);
+//             }
+//         }
+
+//         // If the candidate doesn't even exist in this unit initially, this unit cannot prove the link.
+//         if (possibleLocationsForCandidate.size === 0) {
+//             // console.log(`    Helper: Unit ${unit.type} ${unit.index} has no ${candidate} initially.`);
+//             continue;
+//         }
+
+//         const initialSize = possibleLocationsForCandidate.size;
+//         // console.log(`    Helper: Unit ${unit.type} ${unit.index} initially has ${candidate} in ${initialSize} cells: [${Array.from(possibleLocationsForCandidate).join(', ')}]`);
+
+//         // 2. Simulate eliminations: Remove 'candidate' from unit cells that see cell1 OR cell2
+//         const keysToRemove = new Set();
+//         for (const unitCellKey of possibleLocationsForCandidate) {
+//             // We only care about cells *currently* in our possibleLocationsForCandidate set
+//             const [r_unit, c_unit] = unitCellKey.split('-').map(Number);
+
+//             // Check if this unit cell sees either of the W-Wing endpoint cells
+//             // Note: A cell doesn't "see" itself in the peer sense, but it might see the *other* wing cell.
+//             // We need to be careful not to eliminate candidate from cell1 or cell2 based on seeing *itself*.
+//             // The `cellsSeeEachOther` function handles row/col/box peer checks.
+//             let seesWingEndpoint = false;
+//             if (unitCellKey !== cell1Key && cellsSeeEachOther(r_unit, c_unit, r1, c1)) {
+//                  seesWingEndpoint = true;
+//                 // console.log(`      Helper: ${unitCellKey} sees ${cell1Key}`);
+//             }
+//             if (unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2)) {
+//                  seesWingEndpoint = true;
+//                 // console.log(`      Helper: ${unitCellKey} sees ${cell2Key}`);
+//             }
+
+
+//             if (seesWingEndpoint) {
+//                 // If this cell (which initially has 'candidate') sees one of the wing cells,
+//                 // mark it for removal from our temporary set.
+//                 keysToRemove.add(unitCellKey);
+//                 // console.log(`      Helper: Marked ${unitCellKey} for removal (sees wing endpoint).`);
+//             }
+//         }
+
+//         // Perform the removals
+//         if (keysToRemove.size > 0) {
+//             eliminationHappenedInUnit = true; // At least one hypothetical elimination occurred
+//             keysToRemove.forEach(key => possibleLocationsForCandidate.delete(key));
+//         }
+
+//         // 3. Check the condition: Was an elimination made AND no spots left?
+//         const finalSize = possibleLocationsForCandidate.size;
+//         // console.log(`    Helper: Unit ${unit.type} ${unit.index} after hypothetical elims has ${finalSize} cells for ${candidate}: [${Array.from(possibleLocationsForCandidate).join(', ')}]. Elimination happened: ${eliminationHappenedInUnit}`);
+
+//         if (eliminationHappenedInUnit && finalSize === 0) {
+//             // If *any* candidate was removed due to the 'seeing' rule,
+//             // AND the unit now has zero places left for that candidate,
+//             // then the condition is met for this unit.
+//             // console.log(`  Helper: Strong link for ${candidate} CONFIRMED via unit ${unit.type} ${unit.index}.`);
+//             return true;
+//         }
+//         // else {
+//             // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by unit ${unit.type} ${unit.index}. (Elimination: ${eliminationHappenedInUnit}, Final Size: ${finalSize})`);
+//         // }
+
+//     } // End loop through units
+
+//     // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by ANY unit.`);
+//     return false; // Condition not met for any unit
+// }
+
+/**
+ * Helper for W-Wing: Checks if assuming 'candidate' is eliminated from cells
+ * seeing cell1 or cell2 would leave no place for 'candidate' in a specific unit.
+ * This attempts to verify a "strong link" based on the provided comment logic.
+ *
+ * @param {Map<string, Set<number>>} candidatesMap - The current full candidate map.
+ * @param {string} cell1Key - Key of the first bivalue cell ('r-c').
+ * @param {string} cell2Key - Key of the second bivalue cell ('r-c').
+ * @param {number} candidate - The candidate value to check the strong link for (e.g., the 'B' if checking elim for 'A').
+ * @returns {object | null} The unit object ({type, index, cells}) if the link condition is met in that unit, otherwise null.
+ */
+function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate) {
+    const [r1, c1] = cell1Key.split('-').map(Number);
+    const [r2, c2] = cell2Key.split('-').map(Number);
+    // console.log(`  Helper checking link for ${candidate} between ${cell1Key} and ${cell2Key}`);
+
+    for (const unit of allUnits) { // unit is { type, index, cells }
+        const unitCellKeys = new Set(unit.cells.map(([r, c]) => `${r}-${c}`));
+
+        // --- Simulation within this unit ---
+        let eliminationHappenedInUnit = false;
+        const possibleLocationsForCandidate = new Set();
+
+        // 1. Find initial possible locations for 'candidate' within this unit
+        for (const [r_unit, c_unit] of unit.cells) {
+            const key = `${r_unit}-${c_unit}`;
+            if (candidatesMap.get(key)?.has(candidate)) {
+                possibleLocationsForCandidate.add(key);
+            }
+        }
+
+        if (possibleLocationsForCandidate.size === 0) {
+            continue; // Candidate not present in this unit initially
+        }
+
+        // const initialSize = possibleLocationsForCandidate.size;
+        // console.log(`    Helper: Unit ${unit.type} ${unit.index} initially has ${candidate} in ${initialSize} cells: [${Array.from(possibleLocationsForCandidate).join(', ')}]`);
+
+        // 2. Simulate eliminations
+        const keysToRemove = new Set();
+        for (const unitCellKey of possibleLocationsForCandidate) {
+            const [r_unit, c_unit] = unitCellKey.split('-').map(Number);
+            let seesWingEndpoint = false;
+            if (unitCellKey !== cell1Key && cellsSeeEachOther(r_unit, c_unit, r1, c1)) {
+                seesWingEndpoint = true;
+            }
+            if (!seesWingEndpoint && unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2)) { // Use 'else if' structure potentially slightly faster? no, need to check both independently. check changed logic
+                seesWingEndpoint = true; // Correction: Check separately, a cell might see both
+            }
+            // Re-checking original separate logic - A cell seeing EITHER is enough
+            let seesWing1 = unitCellKey !== cell1Key && cellsSeeEachOther(r_unit, c_unit, r1, c1);
+            let seesWing2 = unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2);
+
+
+            if (seesWing1 || seesWing2) { // If it sees EITHER wing cell
+                keysToRemove.add(unitCellKey);
+            }
+        }
+
+        // Perform the removals
+        if (keysToRemove.size > 0) {
+            eliminationHappenedInUnit = true;
+            keysToRemove.forEach(key => possibleLocationsForCandidate.delete(key));
+        }
+
+        // 3. Check the condition: Was an elimination made AND no spots left?
+        const finalSize = possibleLocationsForCandidate.size;
+        // console.log(`    Helper: Unit ${unit.type} ${unit.index} after hypothetical elims has ${finalSize} cells for ${candidate}. Elimination happened: ${eliminationHappenedInUnit}`);
+
+        if (eliminationHappenedInUnit && finalSize === 0) {
+            // Condition met! Return the unit object itself.
+            // console.log(`  Helper: Strong link for ${candidate} CONFIRMED via unit ${unit.type} ${unit.index}.`);
+            return unit; // <<< CHANGE: Return the unit object
+        }
+    } // End loop through units
+
+    // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by ANY unit.`);
+    return null; // <<< CHANGE: Return null if no unit confirmed the link
+}
+
+/**
+ * Finds the FIRST W-Wing pattern (Type 1 - bivalue cells) that results in actual eliminations
+ * from a common peer, using the WWingFindInvalidUnitHelper to check the strong link.
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+ */
+function findWWing(candidatesMap) {
+    // 1. Find all bivalue cells (same as before)
+    const bivalueCells = [];
+    for (const [key, candidates] of candidatesMap.entries()) {
+        if (candidates.size === 2) {
+            const [r, c] = key.split('-').map(Number);
+            bivalueCells.push({ key, r, c, candidatesList: Array.from(candidates) });
+        }
+    }
+    if (bivalueCells.length < 2) return { eliminations: [], stepInfo: null };
+
+    // 2. Iterate through pairs (same as before)
+    const combinations = getCombinations(bivalueCells, 2);
+
+    for (const [cell1, cell2] of combinations) {
+        // 3. Check conditions (same as before)
+        const [candA, candB] = cell1.candidatesList;
+        const c2Candidates = cell2.candidatesList;
+        if (
+            !((candA === c2Candidates[0] && candB === c2Candidates[1]) ||
+              (candA === c2Candidates[1] && candB === c2Candidates[0])) ||
+            cellsSeeEachOther(cell1.r, cell1.c, cell2.r, cell2.c)
+        ) {
+            continue;
+        }
+
+        // 4. Find common peers (same as before)
+        const commonPeersKeys = getCommonPeers(cell1.r, cell1.c, cell2.r, cell2.c);
+        if (commonPeersKeys.size === 0) continue;
+
+        // console.log(`Checking W-Wing potential: ${cell1.key}(${candA}/${candB}) and ${cell2.key}(${candA}/${candB}). Peers: [${Array.from(commonPeersKeys).join(', ')}]`);
+
+        // 5. Iterate through common peers to check for eliminations
+        const wingElims = [];
+        let identifiedLinkValue = null;
+        let identifiedElimValue = null;
+        let linkUnit = null; // <<< To store the unit confirming the link
+
+        // Check Hypothesis 1: Strong link on candB? -> Eliminate candA from peers
+        linkUnit = WWingFindInvalidUnitHelper(candidatesMap, cell1.key, cell2.key, candB);
+        if (linkUnit) { // <<< Check if a unit was returned
+             // console.log(`  Strong link confirmed for ${candB} via ${linkUnit.type} ${linkUnit.index}. Checking peers for ${candA}...`);
+            for (const peerKey of commonPeersKeys) {
+                if (candidatesMap.get(peerKey)?.has(candA)) {
+                    wingElims.push({ cellKey: peerKey, values: [candA] });
+                    identifiedLinkValue = candB;
+                    identifiedElimValue = candA;
+                    // console.log(`    Elimination found: Remove ${candA} from ${peerKey}`);
+                }
+            }
+            // Keep linkUnit if eliminations were found, otherwise clear it
+            if (wingElims.length === 0) linkUnit = null;
+        }
+
+        // Check Hypothesis 2: Strong link on candA? -> Eliminate candB from peers
+        // Only if Hypothesis 1 didn't yield eliminations
+        if (wingElims.length === 0) {
+            linkUnit = WWingFindInvalidUnitHelper(candidatesMap, cell1.key, cell2.key, candA);
+            if (linkUnit) { // <<< Check if a unit was returned
+                // console.log(`  Strong link confirmed for ${candA} via ${linkUnit.type} ${linkUnit.index}. Checking peers for ${candB}...`);
+                for (const peerKey of commonPeersKeys) {
+                    if (candidatesMap.get(peerKey)?.has(candB)) {
+                        wingElims.push({ cellKey: peerKey, values: [candB] });
+                        identifiedLinkValue = candA;
+                        identifiedElimValue = candB;
+                        // console.log(`    Elimination found: Remove ${candB} from ${peerKey}`);
+                    }
+                }
+                 // Keep linkUnit if eliminations were found, otherwise clear it
+                if (wingElims.length === 0) linkUnit = null;
+            }
+        }
+
+
+        // 6. If eliminations were found, build step and return
+        if (wingElims.length > 0 && linkUnit) { // <<< Ensure linkUnit is valid
+             const firstElim = wingElims[0];
+             const eliminatedPeerCoords = firstElim.cellKey.split('-').map(Number);
+
+             const stepInfo = {
+                technique: `W-Wing`,
+                // <<< Update description to include the unit type/index
+                description: `Cells R${cell1.r + 1}C${cell1.c + 1} and R${cell2.r + 1}C${cell2.c + 1} (both ${candA}/${candB}) form a W-Wing. A strong link on ${identifiedLinkValue} exists between them (verified in ${linkUnit.type} ${linkUnit.index}). Candidate ${identifiedElimValue} can be removed from common peer(s) like R${eliminatedPeerCoords[0]+1}C${eliminatedPeerCoords[1]+1}.`,
+                eliminations: wingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                highlights: [
+                    // Highlight the two wing cells (defining)
+                    { row: cell1.r, col: cell1.c, candidates: [candA, candB], type: 'defining' },
+                    { row: cell2.r, col: cell2.c, candidates: [candA, candB], type: 'defining' },
+                    // Highlight ALL common peers where elimination occurs (eliminated)
+                    ...wingElims.map(elim => {
+                        const [er, ec] = elim.cellKey.split('-').map(Number);
+                        return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                    }),
+                    // <<< Highlight the cells in the unit that confirmed the strong link
+                    ...(linkUnit.cells
+                        // Optional: Filter out the main wing cells if you want different styling?
+                        // .filter(([ur, uc]) => !([cell1.key, cell2.key].includes(`${ur}-${uc}`)))
+                        .map(([ur, uc]) => ({
+                            row: ur,
+                            col: uc,
+                            candidates: [], // Or maybe highlight the link candidate: [identifiedLinkValue]?
+                            type: 'unit' // Use 'unit' type for general unit highlighting
+                        }))
+                    )
+                ]
+            };
+            console.log(`  >> Found W-Wing between ${cell1.key} and ${cell2.key} (Link ${identifiedLinkValue} in ${linkUnit.type} ${linkUnit.index}, Elim ${identifiedElimValue}). Eliminations:`, wingElims.map(e=>e.cellKey));
+            return { eliminations: wingElims, stepInfo: stepInfo };
+        } else {
+            // console.log(`  No effective W-Wing eliminations found for pair ${cell1.key}/${cell2.key}.`);
+        }
+    } // End loop through wing pair combinations
+
+    return { eliminations: [], stepInfo: null }; // No W-Wing found
+}
+
+// --- Rest of the file remains the same ---
+// ... (findNextLogicalStep, solveSingleStep, etc.)
+
+// /**
+//  * Finds the FIRST W-Wing pattern (Type 1) that results in actual eliminations
+//  * from a common peer.
+//  * @param {Map<string, Set<number>>} candidatesMap
+//  * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+//  */
+// function findWWing(candidatesMap) {
+//     // 1. Find all bivalue cells
+//     const bivalueCells = [];
+//     for (const [key, candidates] of candidatesMap.entries()) {
+//         if (candidates.size === 2) {
+//             const [r, c] = key.split('-').map(Number);
+//             bivalueCells.push({ key, r, c, candidatesList: Array.from(candidates) });
+//         }
+//     }
+
+//     if (bivalueCells.length < 2) return { eliminations: [], stepInfo: null };
+
+//     // 2. Iterate through pairs of bivalue cells
+//     const combinations = getCombinations(bivalueCells, 2);
+
+//     for (const [cell1, cell2] of combinations) {
+//         // 3. Check conditions: Same candidates? Don't see each other?
+//         const [candA, candB] = cell1.candidatesList;
+//         const c2Candidates = cell2.candidatesList;
+//         if (
+//             !((candA === c2Candidates[0] && candB === c2Candidates[1]) ||
+//                 (candA === c2Candidates[1] && candB === c2Candidates[0])) ||
+//             cellsSeeEachOther(cell1.r, cell1.c, cell2.r, cell2.c)
+//         ) {
+//             continue;
+//         }
+
+//         // 4. Find common peers
+//         const commonPeersKeys = getCommonPeers(cell1.r, cell1.c, cell2.r, cell2.c);
+//         if (commonPeersKeys.size === 0) continue;
+
+//         // log 
+//         console.log(`  >> Found W-Wing candidates: ${cell1.key} (${candA}/${candB}) and ${cell2.key} (${candA}/${candB})`);
+//         console.log(`  >> Common peers: ${Array.from(commonPeersKeys).join(', ')}`);
+//         // 5. Iterate through common peers to check for eliminations
+//         const wingElims = [];
+//         let identifiedLinkValue = null; // Which candidate (A or B) has the strong link
+//         let identifiedElimValue = null; // Which candidate (B or A) is being eliminated
+
+//         // Check Hypothesis 1: Strong link on candB? -> Eliminate candA from peers
+//         if (WWingFindInvalidUnitHelper(candidatesMap, cell1.key, cell2.key, candB)) {
+//             // console.log(`  Strong link confirmed for ${candB}. Checking peers for ${candA}...`);
+//             for (const peerKey of commonPeersKeys) {
+//                 if (candidatesMap.get(peerKey)?.has(candA)) {
+//                     wingElims.push({ cellKey: peerKey, values: [candA] });
+//                     identifiedLinkValue = candB;
+//                     identifiedElimValue = candA;
+//                     // console.log(`    Elimination found: Remove ${candA} from ${peerKey}`);
+//                 }
+//             }
+//         }
+
+//         // Check Hypothesis 2: Strong link on candA? -> Eliminate candB from peers
+//         // Only check if Hypothesis 1 didn't yield eliminations (avoids finding the same wing twice)
+//         if (wingElims.length === 0 && WWingFindInvalidUnitHelper(candidatesMap, cell1.key, cell2.key, candA)) {
+//             // console.log(`  Strong link confirmed for ${candA}. Checking peers for ${candB}...`);
+//             for (const peerKey of commonPeersKeys) {
+//                 if (candidatesMap.get(peerKey)?.has(candB)) {
+//                     wingElims.push({ cellKey: peerKey, values: [candB] });
+//                     identifiedLinkValue = candA;
+//                     identifiedElimValue = candB;
+//                     // console.log(`    Elimination found: Remove ${candB} from ${peerKey}`);
+//                 }
+//             }
+//         }
+
+//         // 6. If eliminations were found, build step and return
+//         if (wingElims.length > 0) {
+//             const firstElim = wingElims[0];
+//             const eliminatedPeerCoords = firstElim.cellKey.split('-').map(Number);
+
+//             const stepInfo = {
+//                 technique: `W-Wing`,
+//                 description: `Cells R${cell1.r + 1}C${cell1.c + 1}, R${cell2.r + 1}C${cell2.c + 1} (both ${candA}/${candB}), and peer R${eliminatedPeerCoords[0] + 1}C${eliminatedPeerCoords[1] + 1}, form a W-Wing.
+//         \nEliminated ${identifiedElimValue} from peer R${eliminatedPeerCoords[0] + 1}C${eliminatedPeerCoords[1] + 1} (link ${identifiedLinkValue}).`,
+//                 eliminations: wingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+//                 highlights: [
+//                     // Highlight the two wing cells
+//                     { row: cell1.r, col: cell1.c, candidates: [candA, candB], type: 'defining' },
+//                     { row: cell2.r, col: cell2.c, candidates: [candA, candB], type: 'defining' },
+//                     // Highlight the unit that provides the strong link? Might be too complex/confusing.
+
+//                     // Highlight ALL common peers where elimination occurs
+//                     ...wingElims.map(elim => {
+//                         const [er, ec] = elim.cellKey.split('-').map(Number);
+//                         return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+//                     })
+
+//                 ]
+//             };
+//             console.log(`  >> Found W-Wing between ${cell1.key} and ${cell2.key} (Link ${identifiedLinkValue}, Elim ${identifiedElimValue}). Eliminations:`, wingElims.map(e => e.cellKey));
+//             return { eliminations: wingElims, stepInfo: stepInfo };
+//         } else {
+//             // console.log(`  No effective W-Wing eliminations found for pair ${cell1.key}/${cell2.key}.`);
+//         }
+//     } // End loop through wing pair combinations
+
+//     return { eliminations: [], stepInfo: null }; // No W-Wing found
+// }
+
 
 
 // --- Main Solver Step Function ---
@@ -547,21 +1104,21 @@ function findNextLogicalStep(board, currentCandidatesMap) {
         }
     }
 
-     // Basic check: If the map has no entries for any empty cells, we are stuck.
-     let hasAnyCandidates = false;
-     for (let r = 0; r < BOARD_SIZE; r++) {
-         for (let c = 0; c < BOARD_SIZE; c++) {
-             if (board[r][c] === 0 && candidatesMap.has(`${r}-${c}`)) {
-                 hasAnyCandidates = true;
-                 break;
-             }
-         }
-         if (hasAnyCandidates) break;
-     }
-     if (!hasAnyCandidates && findNextEmptyCell(board)) {
-         console.log("Solver stuck: No candidates available in the provided/generated map for empty cells.");
-         return { status: 'stuck', steps: [], message: 'No candidates available to analyze. Try auto-filling pencil marks?' };
-     }
+    // Basic check: If the map has no entries for any empty cells, we are stuck.
+    let hasAnyCandidates = false;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c] === 0 && candidatesMap.has(`${r}-${c}`)) {
+                hasAnyCandidates = true;
+                break;
+            }
+        }
+        if (hasAnyCandidates) break;
+    }
+    if (!hasAnyCandidates && findNextEmptyCell(board)) {
+        console.log("Solver stuck: No candidates available in the provided/generated map for empty cells.");
+        return { status: 'stuck', steps: [], message: 'No candidates available to analyze. Try auto-filling pencil marks?' };
+    }
 
 
     // --- 1. Check for Placement Techniques ---
@@ -588,33 +1145,54 @@ function findNextLogicalStep(board, currentCandidatesMap) {
                 // Return the stepInfo derived from the *original* state before applyEliminations
                 return { status: 'found_step', steps: [lockedResult.stepInfo] };
             } else {
-                 console.log("Locked Candidates found, but caused no effective eliminations on current map.");
+                console.log("Locked Candidates found, but caused no effective eliminations on current map.");
             }
         }
 
         // Naked Pairs
         const nakedPairResult = findNakedPairs(candidatesMap); // Pass the map
         if (nakedPairResult.stepInfo && nakedPairResult.eliminations.length > 0) {
-             if (applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
+            if (applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
                 console.log("Applied Naked Pair - Returning Step");
                 return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
-             } else {
-                 console.log("Naked Pair found, but caused no effective eliminations on current map.");
+            } else {
+                console.log("Naked Pair found, but caused no effective eliminations on current map.");
             }
         }
 
-         // Hidden Pairs
-         const hiddenPairResult = findHiddenPairs(candidatesMap, board); // Pass map and board
-         if (hiddenPairResult.stepInfo && hiddenPairResult.eliminations.length > 0) {
-              if (applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
-                 console.log("Applied Hidden Pair - Returning Step");
-                 return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
-              } else {
-                 console.log("Hidden Pair found, but caused no effective eliminations on current map.");
-             }
-         }
+        // Hidden Pairs
+        const hiddenPairResult = findHiddenPairs(candidatesMap, board); // Pass map and board
+        if (hiddenPairResult.stepInfo && hiddenPairResult.eliminations.length > 0) {
+            if (applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
+                console.log("Applied Hidden Pair - Returning Step");
+                return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
+            } else {
+                console.log("Hidden Pair found, but caused no effective eliminations on current map.");
+            }
+        }
 
-        // --- Add more elimination techniques here ---
+        // --- X-Wing --- << ADDED HERE
+        const xWingResult = findXWing(candidatesMap);
+        if (xWingResult.stepInfo && xWingResult.eliminations.length > 0) {
+            if (applyEliminations(candidatesMap, xWingResult.eliminations)) {
+                console.log("Applied X-Wing - Returning Step");
+                return { status: 'found_step', steps: [xWingResult.stepInfo] };
+            } else {
+                console.log("X-Wing found, but caused no effective eliminations on current map.");
+            }
+        }
+
+        // --- W-Wing --- << ADDED HERE
+        const wWingResult = findWWing(candidatesMap);
+        if (wWingResult.stepInfo && applyEliminations(candidatesMap, wWingResult.eliminations)) {
+            console.log("Applied W-Wing - Returning Step");
+            return { status: 'found_step', steps: [wWingResult.stepInfo] };
+        }
+
+        console.log("Solver: No effective step found with w");
+
+        // --- Add more complex elimination techniques here ---
+        // e.g., findSwordfish, findJellyfish, findSkyscraper...
 
     } catch (error) {
         console.error("Solver caught contradiction:", error);

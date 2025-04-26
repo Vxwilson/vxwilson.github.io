@@ -127,3 +127,54 @@ export function getPeers(row, col) {
     peerSet.forEach(p => peers.push(p.split('-').map(Number)));
     return peers;
 }
+
+// js/sudoku/utils.js (Add this function)
+
+// ... (other functions like getPeers, BOARD_SIZE, etc.)
+
+/**
+ * Finds cells that are peers of BOTH cell1 and cell2.
+ * @param {number} r1 Row of first cell
+ * @param {number} c1 Col of first cell
+ * @param {number} r2 Row of second cell
+ * @param {number} c2 Col of second cell
+ * @returns {Set<string>} A Set of cell keys ('r-c') that are common peers.
+ */
+export function getCommonPeers(r1, c1, r2, c2) {
+    const peers1 = getPeers(r1, c1);
+    const peers2 = getPeers(r2, c2);
+    const commonPeers = new Set();
+
+    const peers1Keys = new Set(peers1.map(([r, c]) => `${r}-${c}`));
+    peers2.forEach(([r, c]) => {
+        const key = `${r}-${c}`;
+        if (peers1Keys.has(key)) {
+            commonPeers.add(key);
+        }
+    });
+    return commonPeers;
+}
+
+/**
+ * Checks if two cells can "see" each other (are peers).
+ * @param {number} r1 Row of first cell
+ * @param {number} c1 Col of first cell
+ * @param {number} r2 Row of second cell
+ * @param {number} c2 Col of second cell
+ * @returns {boolean} True if they are peers, false otherwise.
+ */
+export function cellsSeeEachOther(r1, c1, r2, c2) {
+    if (r1 === r2 && c1 === c2) return true; // Same cell
+
+    // Check row, column, and box
+    if (r1 === r2) return true;
+    if (c1 === c2) return true;
+
+    const boxR1 = Math.floor(r1 / BOX_SIZE);
+    const boxC1 = Math.floor(c1 / BOX_SIZE);
+    const boxR2 = Math.floor(r2 / BOX_SIZE);
+    const boxC2 = Math.floor(c2 / BOX_SIZE);
+    if (boxR1 === boxR2 && boxC1 === boxC2) return true;
+
+    return false;
+}
