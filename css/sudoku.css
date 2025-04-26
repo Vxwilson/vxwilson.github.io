@@ -2,12 +2,12 @@
 
 
 
-header{
+header {
   padding: 20px 16px !important;
 }
 
 @media only screen and (max-width: 600px) {
-  header{
+  header {
     padding: 15px 0px !important;
     padding: 100px 0px 15px 0px !important;
   }
@@ -26,7 +26,7 @@ header{
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
   padding: 10px;
-  width:400px;
+  width: 400px;
 
   z-index: 1000;
 }
@@ -38,7 +38,7 @@ header{
   }
 }
 
-.floatingBox .boxtitle{
+.floatingBox .boxtitle {
   font-size: 1.4em;
   font-weight: 600;
   margin-bottom: 0em;
@@ -46,7 +46,7 @@ header{
 }
 
 
-button{
+button {
   color: rgb(110, 135, 156);
   font-size: 1.5em;
   /* width: 100%; */
@@ -62,7 +62,7 @@ button{
   border: none;
 }
 
-.floatingBox button{
+.floatingBox button {
   color: rgb(110, 135, 156);
   font-size: 1.1em;
   /* display: flex; */
@@ -77,7 +77,7 @@ button{
   border: none;
 }
 
-.codebox{
+.codebox {
   /* display: flex;
   flex-direction: column;
   align-items: center;
@@ -88,7 +88,7 @@ button{
   width: 90% !important;
 }
 
-#exportcodedisplay{
+#exportcodedisplay {
   overflow-wrap: break-word;
 }
 
@@ -97,410 +97,439 @@ button{
 }
 
 /* set header margin */
-.w3-panel{
+.w3-panel {
   margin-top: 6px !important;
   margin-bottom: 6px !important;
 
 }
 
 
-.mode-button{
+.mode-button {
   color: rgb(110, 135, 156);
   border: 0px solid rgb(110, 135, 156);
+  transition: border 0.2s ease-in-out; /* Smooth border transition */
 }
 
-.mode-button.selected{
+.mode-button.selected {
   /* button for marking and focus mode */
   /* color: rgb(158, 91, 91); */
   border: 2px solid rgb(158, 91, 91);
 }
 
-.mode-button.selected .fa{
+.mode-button.selected .fa {
   color: rgb(158, 91, 91);
 }
 
 
 /* mobile */
 @media only screen and (max-width: 600px) {
-  .w3-panel{
+  .w3-panel {
     margin-top: 0px !important;
     margin-bottom: 0px !important;
   }
-  .w3-xlarge{
+
+  .w3-xlarge {
     margin: 0.5rem 0 1.5rem 0 !important;
   }
 }
 
-/* Set the font family and size for the grid */
+/* Sudoku grid */
+
 .sudoku {
-    font-family: Arial, sans-serif;
-    font-size: 24px;
-    margin: 0 auto;
-    /* margin-left: 20vw; */
-    /* display: block; */
-    /* width: 70%; */
-    margin-bottom: 1%;
-  }
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  margin: 0 auto;
+  /* margin-left: 20vw; */
+  /* display: block; */
+  /* width: 70%; */
+  margin-bottom: 1%;
+}
+
+
+/* Style the rows and cells of the grid */
+.sudoku-row {
+  display: flex;
+  justify-content: center;
+}
+
+
+
+/* style buttons */
+.sudoku-button {
+  color: rgb(110, 135, 156);
+  font-size: 1.1em;
+  display: flex;
+  width: 90%;
+  cursor: pointer;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  background-color: #e5e0d86c;
+  border: none;
+}
+
+.sudoku-cell {
+  min-width: 43px;
+  min-height: 43px;
+  width: 43px;
+  height: 43px;
+  border: 1.3px solid rgb(104, 101, 101);
+  text-align: center;
+  align-items: center;
+  line-height: 40px;
+  background-color: rgba(217, 228, 228, 0.5);
+  position: relative;
+  color: rgb(110, 135, 156);
+
+  font-size: 1.05em;
+  transition: background-color 0.15s ease-in-out;
+  /* Smooth background transitions */
+}
+
+.cell-text {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+
+/* Style the cells that are pre-filled with numbers */
+.sudoku-cell.prefilled {
+  color: rgba(86, 92, 89, 0.9);
+
+}
+
+.sudoku-cell.default {
+  color: #497ba9;
+  /* font-size: 24px; */
+}
+
+.sudoku-cell.selected {
+  background-color: #c6af7a30;
+  background-color: #d9c9a780;
+}
+
+
+.sudoku-cell.paused .cell-text {
+  /* Example: hide number when paused */
+  /* color: transparent; */
+}
+
+/* .sudoku-cell.focused{
+    background-color: rgba(185, 129, 129, 0.2) !important;
+  } */
+
+
+/* --- Focus Highlighting (Auto & Persistent) --- */
+.sudoku-cell.focus-highlight-cell {
+  background-color: rgba(185, 129, 129, 0.2) !important;
+}
+
+.pencil-mark.focus-highlight-pencil {
+  color: rgba(158, 91, 91, 0.95) !important;
+  background-color: rgba(240, 210, 210, 0.5);
+  border-radius: 2px;
+  outline: 1px solid rgba(158, 91, 91, 0.6);
+}
+
+
+/* --- Hint Highlighting --- */
+.sudoku-cell.hint-involved {
+  background-color: rgba(129, 185, 144, 0.3) !important;
+  /* Greenish tint for involved cells */
+  /* box-shadow: inset 0 0 0 2px rgba(100, 160, 110, 0.5); */
+  /* Optional inset border */
+}
+
+.pencil-mark.hint-value {
+  color: rgba(50, 110, 60, 0.95) !important;
+  /* Darker green for key pencil mark */
+  background-color: rgba(180, 240, 190, 0.6);
+  /* Brighter green background */
+  border-radius: 2px;
+  outline: 1px solid rgba(50, 110, 60, 0.7);
+}
+
+
+/* --- Pencil Marks --- */
+.pencil-marks {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 11px !important;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;/
+}
+
+.pencil-row {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  /* Allow rows to center content */
+}
+
+.pencil-mark {
+  width: 12.3px;
+  height: 12.3px;
+  font-size: 0.525em !important;
+  text-align: center;
+  line-height: 12.3px;
+  color: rgba(129, 148, 161, 0);
+  font-weight: normal;
+  display: flex;
+  /* Center number inside */
+  justify-content: center;
+  align-items: center;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+}
+
+.pencil-mark.marked {
+  color: rgba(110, 135, 156, 0.75);
+}
 
 /* mobile */
 @media only screen and (max-width: 600px) {
-    .sudoku {
-    
-      width: 80%;
-    
-    }
+  .sudoku {
+    width: 80%;
   }
-  
-  /* Style the rows and cells of the grid */
-  .sudoku-row {
-    display: flex;
-    /* display: flex; */
-    /* align center */
-    justify-content: center;
-  }
+
   .sudoku-cell {
-    min-width: 43px;
-    min-height: 43px;
-    width: 43px;
-    height: 43px;
-    border: 1.3px solid rgb(104, 101, 101);
-    text-align: center;
-    align-items: center;
-    line-height: 40px;
-    background-color:rgba(217, 228, 228, 0.5);
-    position: relative;
-    color: rgb(110, 135, 156);
-
-    font-size: 1.05em;
+    min-width: 38px;
+    min-height: 38px;
+    width: 38px;
+    height: 38px;
+    font-size: 0.95em;
   }
 
-  .sudoku-cell.focused{
-    /* color: rgba(158, 91, 91, 0.85) !important; */
-    background-color: rgba(185, 129, 129, 0.2) !important;
-    /* border */
-    /* border: 3px solid rgb(158, 91, 91) !important; */
-    /* box-shadow:inset 0px 0px 0px 1.75px rgba(158, 91, 91, 0.85); */
-    /* z-index: 100; */
+  .pencil-mark {
+    width: 12px;
+    height: 12px;
+    font-size: 0.45em !important;
+    line-height: 13px !important;
+  }
+}
+
+/* not mobile */
+@media only screen and (min-width: 600px) {
+  .sudoku-cell:hover {
+    /* background-color:#e5e2de; */
+    background-color: #c6af7a1e;
   }
 
-  .cell-text{
-    position:absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-  }
-
-  /* pencilmarks */
-
-  .pencil-marks{
-    position:absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    line-height: 11px !important;
-
-    /* padding: 5%; */
-
-  }
-  .pencil-row{
-    display: flex;
-    justify-content: center;
-  }
-  .pencil-mark{
-   
-    width: 12.3px;
-    height: 12.3px;
-    font-size: 0.525em !important;
-    text-align: center;
-    color: rgba(129, 148, 161, 0);
-    font-weight: bolder;
-    /* display: none; */
-  }
-
-  .pencil-mark.marked{
-    display: block;
-    color: rgba(129, 148, 161, 0.65);
-
-  }
-
-  .pencil-mark.marked.focused{
-    /* color: rgb(220, 123, 123) !important;  */
-    color: rgba(158, 91, 91, 0.85) !important;
-    /* adds a border */
-    border: 1px solid rgba(220, 169, 169, 0);
-    /* adds a outline instead of border */
-    /* box-shadow: 0px 0px 0px 1.75px rgba(220, 169, 169, 0.722); */
-    outline: 1px solid rgba(158, 91, 91, 0.8);
-  }
-
-  
-  @media only screen and (max-width: 600px) {
-    .sudoku-cell{
-      min-width: 38px;
-      min-height: 38px;
-      width: 38px;
-      height: 38px;
-      font-size: 0.95em;
-    }
-
-    .pencil-mark{
-      width: 12.25px;
-      height: 12.25px;
-      font-size: 0.45em !important;
-    }
-
-    .pencil-marks{
-      line-height: 13px !important;
-    }
-  }
-
-  /* not mobile */
-  @media only screen and (min-width: 600px) {
-    .sudoku-cell:hover{
-      /* background-color:#e5e2de; */
-      background-color: #c6af7a1e;
-    }
-
-    .floating-button:hover{
-      background-color: #e5e2de;
-    }
-  }
-
-  /* Style the cells that are pre-filled with numbers */
-  .sudoku-cell.prefilled {
-    color: rgba(86, 92, 89, 0.902);
-
-  }
-
-  /* default class for selected cell */
-  .sudoku-cell.default {
-    color: #497ba9;
-    font-size: 24px;
-  }
-
-  /* class for selected cell */
-  .sudoku-cell.selected {
-    background-color: #c6af7a30;
-  }
-
-  /* class for when pause button is clicked */
-  .sudoku-cell.paused {
-    /* background-color: #c6af7a30; */
-    font-size: 0;
-  }
-
-  /* style buttons */
-  .sudoku-button{
-    color: rgb(110, 135, 156);
-    font-size: 1.1em;
-    display: flex;
-    width: 90%;
-    cursor: pointer;
-    height: 40px;
-    align-items: center;
-    justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-    border-radius: 6px;
-    background-color: #e5e0d86c;
-    border: none;
-  }
-
-  
-  /* #region borders */
-
-  /* --- Outer Borders --- */
-  /* Top edge of the grid */
-  .sudoku-cell[data-row="0"] {
-    border-top: 3px solid rgb(70, 68, 68);
-  }
-
-  /* Bottom edge of the grid */
-  .sudoku-cell[data-row="8"] { 
-    border-bottom: 3px solid rgb(70, 68, 68);
-  }
-
-  /* Left edge of the grid */
-  .sudoku-cell[data-col="0"] {
-    border-left: 3px solid rgb(70, 68, 68);
-  }
-
-  /* Right edge of the grid */
-  .sudoku-cell[data-col="8"] { 
-    border-right: 3px solid rgb(70, 68, 68);
-  }
-
-  /* --- Inner Thick Borders (Box dividers) --- */
-  /* Top border of rows starting the 2nd and 3rd blocks */
-  .sudoku-cell[data-row="3"],
-  .sudoku-cell[data-row="6"] { 
-    border-top: 2px solid rgb(70, 68, 68);
-  }
-
-  /* Left border of columns starting the 2nd and 3rd blocks */
-  .sudoku-cell[data-col="3"],
-  .sudoku-cell[data-col="6"] { 
-    border-left: 2px solid rgb(70, 68, 68);
-  }
-  /* #endregion */
-
-  /* non-mobile */
-  @media only screen and (min-width: 600px) {
-    .mobile-numpad{
-      /* margin: 0.5em; */
-      display: none !important;
-    }
-
-    .mobile-numpad *{
-      display: none !important;
-    }
-  }
-
-  .mobile-numpad{
-    margin-bottom: 0px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .mobile-numpad .top{
-    width: 15%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .mobile-numpad .bottom{
-    width: 15%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  /* first of top */
-  .mobile-numpad .top:first-child{
-    /* margin-left: 12.5% !important; */
-  }
-  /* first of bottom */
-  .mobile-numpad .bottom:first-child{
-    /* margin-left: 12.5% !important; */
-  }
-
-
-  .mobile-numpad .s1{
-    width: 10% !important;
-  }
-
-  .num-button{
-    width: 40px !important;
-    height: 40px !important;
-    font-size: 1.1em !important;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #e5e0d86c;
-    background-color: #e5e0d819 !important;
-    border-radius: 6px;
-    border: solid 1px rgba(110, 135, 156, 0.501);
-    /* height: 90% !important; */
-  }
-
-  .num-button i{
-    font-style: normal !important;
-  }
-
-  .bottom-row{
-    margin-bottom: 3.5%;
-  }
-
-  /* mobile */
-  @media only screen and (max-width: 600px) {
-    .game .col{
-      padding: 0 0.25em;
-    }
-
-    .sudoku-button{
-      width: 90%;
-      font-size: 0.95em;
-    }
-  }
-
-  .sudoku-button:active{
-    background-color: #e5e0d8;
-  }
-
-  .sudoku-button:focus{
-    background-color: #e5e0d86c;
-  }
-
-  .sudoku-button:hover{
+  .floating-button:hover {
     background-color: #e5e2de;
   }
+}
 
-  .sudoku-button:disabled{
-    /* background-color: #e5e0d8; */
-    color: rgba(76, 81, 85, 0.44);
-    cursor: not-allowed;
+
+
+/* #region borders */
+
+/* --- Outer Borders --- */
+/* Top edge of the grid */
+.sudoku-cell[data-row="0"] {
+  border-top: 3px solid rgb(70, 68, 68);
+}
+
+/* Bottom edge of the grid */
+.sudoku-cell[data-row="8"] {
+  border-bottom: 3px solid rgb(70, 68, 68);
+}
+
+/* Left edge of the grid */
+.sudoku-cell[data-col="0"] {
+  border-left: 3px solid rgb(70, 68, 68);
+}
+
+/* Right edge of the grid */
+.sudoku-cell[data-col="8"] {
+  border-right: 3px solid rgb(70, 68, 68);
+}
+
+/* --- Inner Thick Borders (Box dividers) --- */
+/* Top border of rows starting the 2nd and 3rd blocks */
+.sudoku-cell[data-row="3"],
+.sudoku-cell[data-row="6"] {
+  border-top: 2px solid rgb(70, 68, 68);
+}
+
+/* Left border of columns starting the 2nd and 3rd blocks */
+.sudoku-cell[data-col="3"],
+.sudoku-cell[data-col="6"] {
+  border-left: 2px solid rgb(70, 68, 68);
+}
+
+/* #endregion */
+
+/* non-mobile */
+@media only screen and (min-width: 600px) {
+  .mobile-numpad {
+    /* margin: 0.5em; */
+    display: none !important;
   }
 
-  #difficultyButton{
-    /* width: 100%; */
-    /* margin-bottom: 1em; */
-    /* align-items: left; */
-    background-color: #407eb700;
-    /* text-align: left; */
-    font-weight: bolder;
-    height: 30px;
+  .mobile-numpad * {
+    display: none !important;
+  }
+}
 
+.mobile-numpad {
+  margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mobile-numpad .top {
+  width: 15%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.mobile-numpad .bottom {
+  width: 15%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* first of top */
+.mobile-numpad .top:first-child {
+  /* margin-left: 12.5% !important; */
+}
+
+/* first of bottom */
+.mobile-numpad .bottom:first-child {
+  /* margin-left: 12.5% !important; */
+}
+
+
+.mobile-numpad .s1 {
+  width: 10% !important;
+}
+
+.num-button {
+  width: 40px !important;
+  height: 40px !important;
+  font-size: 1.1em !important;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #e5e0d86c;
+  background-color: #e5e0d819 !important;
+  border-radius: 6px;
+  border: solid 1px rgba(110, 135, 156, 0.501);
+  /* height: 90% !important; */
+}
+
+.num-button i {
+  font-style: normal !important;
+}
+
+.bottom-row {
+  margin-bottom: 3.5%;
+}
+
+/* mobile */
+@media only screen and (max-width: 600px) {
+  .game .col {
+    padding: 0 0.25em;
   }
 
-  .timer{
-    /* color: rgb(158, 91, 91); */
-    color: rgb(110, 135, 156);
-    font-size: 1.1em;
-    display: flex;
+  .sudoku-button {
     width: 90%;
-    height: 40px;
-    align-items: center;
-    justify-content: center;
-    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-    border-radius: 6px;
-    background-color: #e5e0d86c;
-    border: none;
+    font-size: 0.95em;
   }
+}
 
-  .timer .timer-text{
-    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
-    font-style: normal !important;
-    margin-left: 0.5em;
+.sudoku-button:active {
+  background-color: #e5e0d8;
+}
+
+.sudoku-button:focus {
+  background-color: #e5e0d86c;
+}
+
+.sudoku-button:hover {
+  background-color: #e5e2de;
+}
+
+.sudoku-button:disabled {
+  /* background-color: #e5e0d8; */
+  color: rgba(76, 81, 85, 0.44);
+  cursor: not-allowed;
+}
+
+#difficultyButton {
+  /* width: 100%; */
+  /* margin-bottom: 1em; */
+  /* align-items: left; */
+  background-color: #407eb700;
+  /* text-align: left; */
+  font-weight: bolder;
+  height: 30px;
+
+}
+
+.timer {
+  /* color: rgb(158, 91, 91); */
+  color: rgb(110, 135, 156);
+  font-size: 1.1em;
+  display: flex;
+  width: 90%;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  background-color: #e5e0d86c;
+  border: none;
+}
+
+.timer .timer-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  font-style: normal !important;
+  margin-left: 0.5em;
+}
+
+.play-pause {
+  background-color: #ffff0000;
+  border: none;
+  cursor: pointer;
+  color: rgb(110, 135, 156);
+  margin-left: 35%;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  font-size: 0.9em;
+}
+
+/* mobile */
+@media only screen and (max-width: 600px) {
+  .play-pause {
+    margin-left: 5%;
   }
+}
 
-  .play-pause{
-    background-color: #ffff0000;
-    border: none;
-    cursor: pointer;
-    color: rgb(110, 135, 156);
-    margin-left: 35%;
-    align-items: center;
-    justify-content: center;
-    display: flex;
-    font-size: 0.9em;
-  }
-
-  /* mobile */
-  @media only screen and (max-width: 600px) {
-    .play-pause{
-      margin-left: 5%;
-    }
-  }
-
-  .play-pause:focus{
-    background-color: #ffff0000;
-  }
+.play-pause:focus {
+  background-color: #ffff0000;
+}
 
 
-  /* alert box */
-  /* Styles for the confirm box */
+/* alert box */
+/* Styles for the confirm box */
 /* 
 
 #confirmBox #confirmButton{
