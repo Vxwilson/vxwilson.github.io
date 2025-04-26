@@ -626,8 +626,22 @@ function closeConfirm() {
 }
 
 
+function randomboard() {
+    // generate a random board
+    alertConfirm("generate new?").then((confirmed) => {
+        if (!confirmed) {
+            return;
+        }
+    clearboard();
+    resetStopwatch();
+    generateNewBoard();
+    displayBoard(prefilled = true);
+    startStopwatch();
+    });
+}
+
 function resetboard() {
-    alertConfirm("reset ?").then((confirmed) => {
+    alertConfirm("reset?").then((confirmed) => {
         if (!confirmed) {
             return;
         }
@@ -815,7 +829,12 @@ function autoMarkAllTogglePressed() {
     });
 
     if (hasMarkings) {
-        clearAllMarkings();
+        alertConfirm("clear markings?").then((confirmed) => {
+            if (!confirmed) {
+                return;
+            }
+            clearAllMarkings();
+        });
         return;
     }
 
@@ -1413,19 +1432,6 @@ document.addEventListener('keydown', function (event) {
 
 //#endregion
 
-function randomboard() {
-    // generate a random board
-    alertConfirm("generate new?").then((confirmed) => {
-        if (!confirmed) {
-            return;
-        }
-    clearboard();
-    resetStopwatch();
-    generateNewBoard();
-    displayBoard(prefilled = true);
-    startStopwatch();
-    });
-}
 
 function initializePage() {
     // check playing mode on load
