@@ -1144,7 +1144,7 @@ export async function generatePuzzle(difficultyLevel = DifficultyLevel.MEDIUM) {
     switch(difficultyLevel) {
         case DifficultyLevel.BEGINNER: minClues = 42; maxClues = 54; break;
         case DifficultyLevel.EASY:     minClues = 32; maxClues = 40; break;
-        case DifficultyLevel.MEDIUM:   minClues = 28; maxClues = 34; break;
+        case DifficultyLevel.MEDIUM:   minClues = 28; maxClues = 32; break;
         case DifficultyLevel.HARD:     minClues = 25; maxClues = 30; break;
         case DifficultyLevel.EXPERT:   minClues = 22; maxClues = 30; break;
     }
@@ -1580,7 +1580,8 @@ export function ratePuzzleDifficulty(board) {
 
    const ratingResult = ratePuzzleDifficultyInternal(board, getTechniqueScore);
 
-   if (ratingResult.status === 'solved' || ratingResult.status === 'stuck') {
+   if (ratingResult.status === 'solved') {
+    // if (ratingResult.status === 'solved' || ratingResult.status === 'stuck') {
         // If stuck, the rating reflects the hardest technique found *before* getting stuck.
         // This is usually desired - we rate based on what the *logical* solver can do.
        const difficulty = getDifficultyLevelFromScore(ratingResult.maxScore);
