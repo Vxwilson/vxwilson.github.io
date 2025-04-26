@@ -740,12 +740,43 @@ function markToggleSelectedCell(value, cell = selectedCell, toggle = true, addMa
     }
 }
 
-function autoMarkAll() {
-    // auto mark all cells with basic exclusion method
-    // for each cell, determine which numbers are possible
-
+function clearAllMarkings() {
+    // clear all pencil marks
     let cells = document.querySelectorAll('.sudoku-cell');
     cells.forEach(cell => {
+        let pencilMarks = cell.querySelectorAll('.pencil-mark');
+        pencilMarks.forEach(mark => mark.classList.remove('marked'));
+    });
+
+    console.log("cleared all markings");
+    // update the pencil marks array
+    pencilMarks = new Array(9);
+    for (let i = 0; i < 9; i++) {
+        pencilMarks[i] = new Array(9);
+        for (let j = 0; j < 9; j++) {
+            pencilMarks[i][j] = [false, false, false, false, false, false, false, false, false];
+        }
+    }
+}
+
+
+function autoMarkAllTogglePressed() {
+    // if there is marking on any cell, then clear all markings
+    let hasMarkings = false;
+    let scells = document.querySelectorAll('.sudoku-cell');
+    scells.forEach(cell => {
+        let pencilMarks = cell.querySelectorAll('.pencil-mark.marked');
+        if (pencilMarks.length > 0) {
+            hasMarkings = true;
+        }
+    });
+
+    if (hasMarkings) {
+        clearAllMarkings();
+        return;
+    }
+
+    scells.forEach(cell => {
         // check if the cell has no value
         if (sudokuBoard[cell.dataset.row - 1][cell.dataset.col - 1] !== 0) {
             return;
@@ -770,6 +801,7 @@ function autoMarkAll() {
 
     });
 }
+
 
 // this function is called when the value of the cell is changed
 // it updates the pencil marks of the neighboring cells
@@ -1087,7 +1119,7 @@ document.addEventListener('keydown', function (event) {
         // m for marking mode
         case 'm':
             if (event.ctrlKey) {
-                autoMarkAll();
+                autoMarkAllTogglePressed();
             } else {
                 toggleMarkingMode();
             }
