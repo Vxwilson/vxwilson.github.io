@@ -1,7 +1,8 @@
 // js/sudoku/solver_advanced.js
-import { BOARD_SIZE, BOX_SIZE } from './constants.js';
+import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS, getTechniqueScore, getDifficultyLevelFromScore} from './constants.js';
 import { checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, getCommonPeers, cellsSeeEachOther } from './utils.js';
 import * as SolverBasic from './solver_basic.js'; // Keep for generation/solve placeholders
+
 
 /**
  * @typedef {'found_step' | 'stuck' | 'solved' | 'error'} SolverStatus
@@ -1109,11 +1110,11 @@ export function solveSingleStep(board, candidatesMap) {
 // These functions are placeholders and should be replaced with actual implementations
 
 
-/** Placeholder: Generates a Sudoku puzzle. */
-export function generatePuzzle(difficulty = 40) {
-    console.warn("Using basic solver for puzzle generation.");
-    return SolverBasic.generate(difficulty);
-}
+// /** Placeholder: Generates a Sudoku puzzle. */
+// export function generatePuzzle(difficulty = 40) {
+//     console.warn("Using basic solver for puzzle generation.");
+//     return SolverBasic.generate(difficulty);
+// }
 
 /** Placeholder: Solves the entire Sudoku board using backtracking. */
 export function solve(board, initialBoard = null) {
@@ -1128,4 +1129,470 @@ export function solve(board, initialBoard = null) {
         steps: [],
         message: success ? 'Board solved using backtracking.' : 'Backtracking failed to find a solution.'
     };
+}
+
+// HELPER for generating difficulty puzzles
+// --- Replace the old placeholder ---
+/**
+ * Generates a Sudoku puzzle based on desired logical difficulty.
+ * @param {DifficultyLevel} difficultyLevel - The target difficulty level enum/constant.
+ * @returns {Promise<{puzzle: number[][], solution: number[][]}|null>}
+ */
+export async function generatePuzzle(difficultyLevel = DifficultyLevel.MEDIUM) {
+    // Define approximate clue ranges per level (optional, adjust as needed)
+    let minClues = 22, maxClues = 50; // Default wide range
+    switch(difficultyLevel) {
+        case DifficultyLevel.BEGINNER: minClues = 42; maxClues = 54; break;
+        case DifficultyLevel.EASY:     minClues = 32; maxClues = 40; break;
+        case DifficultyLevel.MEDIUM:   minClues = 28; maxClues = 34; break;
+        case DifficultyLevel.HARD:     minClues = 25; maxClues = 30; break;
+        case DifficultyLevel.EXPERT:   minClues = 22; maxClues = 30; break;
+    }
+
+   const result = await generatePuzzleAdvanced(difficultyLevel, 100, minClues, maxClues); // 100 attempts
+
+   if (result) {
+       // Return in the format expected by the old basic generator's caller if needed
+       return { puzzle: result.puzzle, solution: result.solution };
+   } else {
+       // Fallback or error handling
+       console.warn("Advanced generation failed, falling back to basic (if available/desired) or returning null");
+       // Optionally, call SolverBasic.generate as a fallback:
+       // return SolverBasic.generate(35); // Fallback difficulty
+        return null;
+   }
+}
+
+/**
+ * Generates a Sudoku puzzle targeting a specific difficulty level by iteratively removing clues.
+ *
+ * @param {DifficultyLevel} desiredLevel - The target difficulty level enum/string.
+ * @param {number} maxAttempts - Maximum number of full generation attempts.
+ * @param {number} minClues - The minimum number of clues the final puzzle must have.
+ * @param {number} maxClues - Aim to start the hardening phase around this many clues (approximate).
+ * @param {number} maxHardenSteps - Max clues to remove during the hardening phase for a single attempt.
+ * @returns {Promise<{puzzle: number[][], solution: number[][], difficulty: DifficultyLevel, score: number, techniques: Set<string>} | null>} The generated puzzle and its info, or null if failed.
+ */
+export async function generatePuzzleAdvanced(
+    desiredLevel,
+    maxAttempts = 100,
+    minClues = 25, // Hard lower limit
+    maxClues = 45, // Target for initial removal phase
+    maxHardenSteps = 20 // Limit additional removals per attempt
+) {
+    console.log(`--- Generating Puzzle: Target Level = ${desiredLevel}, Clues=[${minClues}-${maxClues}] ---`);
+
+    if (!DIFFICULTY_THRESHOLDS[desiredLevel]) {
+        console.error(`Invalid desiredLevel: ${desiredLevel}`);
+        return null;
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        console.log(`Generation Attempt ${attempt}/${maxAttempts}`);
+        let board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
+
+        // 1. Generate a fully solved board
+        let digitArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        digitArray.sort(() => Math.random() - 0.5);
+        if (!SolverBasic.solve(board, digitArray)) {
+            console.warn("Attempt Failed: Could not create initial solved board.");
+            continue;
+        }
+        const solution = deepCopy2DArray(board);
+        // console.log("Generated Solution:", solution);
+
+        // 2. Initial Clue Removal Phase
+        let potentialPuzzle = deepCopy2DArray(solution);
+        let initialClueIndices = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
+        initialClueIndices.sort(() => Math.random() - 0.5); // Randomize removal order
+
+        let removedCount = 0;
+        const totalCells = BOARD_SIZE * BOARD_SIZE;
+        let currentClueCount = totalCells;
+
+        for (const cellIndex of initialClueIndices) {
+            if (currentClueCount <= maxClues) {
+                // Stop initial removal once we are in the target clue range
+                // Or maybe stop slightly above maxClues? e.g., maxClues + 5
+                console.log(`Reached approx maxClues (${maxClues}), stopping initial removal at ${currentClueCount} clues.`);
+                break;
+            }
+             if (currentClueCount <= minClues) {
+                 // Should not happen if maxClues > minClues, but safety break
+                 console.warn(`Reached minClues (${minClues}) during initial removal. Stopping.`);
+                 break;
+             }
+
+            const r = Math.floor(cellIndex / BOARD_SIZE);
+            const c = cellIndex % BOARD_SIZE;
+
+            if (potentialPuzzle[r][c] === 0) continue; // Already removed
+
+            const tempValue = potentialPuzzle[r][c];
+            potentialPuzzle[r][c] = 0;
+
+            // Check uniqueness
+            const boardCheckCopy = deepCopy2DArray(potentialPuzzle);
+            if (SolverBasic.countSolutions(boardCheckCopy) !== 1) {
+                potentialPuzzle[r][c] = tempValue; // Put back if it breaks uniqueness
+            } else {
+                removedCount++; // Successfully removed
+                currentClueCount = totalCells - removedCount;
+                // console.log(`Removed ${r}-${c}, Clues: ${currentClueCount}`);
+            }
+        }
+
+        console.log(`Initial removal done. Candidate puzzle has ${currentClueCount} clues.`);
+
+        // 3. Rate the initial puzzle candidate
+        let ratingResult = await ratePuzzleDifficulty(potentialPuzzle);
+
+        if (!ratingResult) {
+            console.log("-> Initial puzzle rating failed. Discarding attempt.");
+            continue; // Try next full attempt
+        }
+        console.log(`-> Initial Rating: ${ratingResult.difficulty} (Score: ${ratingResult.score})`);
+
+        // 4. Check if initial puzzle matches or needs hardening
+        if (ratingResult.difficulty === desiredLevel && currentClueCount >= minClues) {
+            console.log(`--- Success! Initial puzzle matches ${desiredLevel} on attempt ${attempt} ---`);
+            return {
+                puzzle: potentialPuzzle,
+                solution: solution,
+                difficulty: ratingResult.difficulty,
+                score: ratingResult.score,
+                techniques: ratingResult.techniques
+            };
+        } else if (ratingResult.difficulty > desiredLevel) {
+             console.log("-> Initial puzzle is harder than desired. Discarding attempt.");
+             continue; // Try next full attempt
+        } else if (currentClueCount <= minClues) {
+            console.log("-> Initial puzzle is too easy but already at min clues. Discarding attempt.");
+            continue; // Try next full attempt
+        }
+
+        // 5. Hardening Phase (if initial puzzle was too easy and has clues > minClues)
+        console.log("--- Entering Hardening Phase ---");
+        let currentHardeningPuzzle = deepCopy2DArray(potentialPuzzle);
+        let hardenSteps = 0;
+
+        // Find indices of remaining clues to potentially remove
+        let remainingClueIndices = [];
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (currentHardeningPuzzle[r][c] !== 0) {
+                    remainingClueIndices.push([r, c]);
+                }
+            }
+        }
+        remainingClueIndices.sort(() => Math.random() - 0.5); // Randomize hardening removal order
+
+        for (const [r, c] of remainingClueIndices) {
+            if (hardenSteps >= maxHardenSteps) {
+                 console.log("-> Reached max hardening steps. Discarding attempt.");
+                 break; // Stop hardening this attempt
+            }
+            if (currentClueCount <= minClues) {
+                 console.log("-> Reached min clues during hardening. Discarding attempt.");
+                 break; // Stop hardening this attempt
+            }
+
+            // console.log(`Hardening: Trying to remove ${r}-${c} (Clues: ${currentClueCount})`);
+            const tempValue = currentHardeningPuzzle[r][c];
+            if (tempValue === 0) continue; // Should not happen if list is correct, but safe check
+
+            currentHardeningPuzzle[r][c] = 0;
+
+            // Check uniqueness
+            const boardCheckCopy = deepCopy2DArray(currentHardeningPuzzle);
+            if (SolverBasic.countSolutions(boardCheckCopy) !== 1) {
+                currentHardeningPuzzle[r][c] = tempValue; // Put back
+                // console.log(` -> Cannot remove ${r}-${c}, breaks uniqueness.`);
+            } else {
+                // Successfully removed a clue during hardening
+                currentClueCount--;
+                hardenSteps++;
+                console.log(` -> Hardening removal #${hardenSteps}: Removed ${r}-${c}. Clues remaining: ${currentClueCount}`);
+
+                // Re-rate the puzzle
+                ratingResult = await ratePuzzleDifficulty(currentHardeningPuzzle);
+
+                if (!ratingResult) {
+                    console.log(" -> Hardening rating failed. Discarding attempt.");
+                    break; // Stop hardening this attempt
+                }
+                 console.log(` -> Hardening Rating: ${ratingResult.difficulty} (Score: ${ratingResult.score})`);
+
+
+                if (ratingResult.difficulty === desiredLevel && currentClueCount >= minClues) {
+                    console.log(`--- Success! Hardened puzzle matches ${desiredLevel} on attempt ${attempt}. \nFinal Clue Count: ${currentClueCount}`);
+                    return {
+                        puzzle: currentHardeningPuzzle,
+                        solution: solution,
+                        difficulty: ratingResult.difficulty,
+                        score: ratingResult.score,
+                        techniques: ratingResult.techniques
+                    };
+                } else if (ratingResult.difficulty > desiredLevel) {
+                    console.log(" -> Hardening overshot difficulty. Discarding attempt.");
+                    break; // Stop hardening this attempt
+                }
+                // If still too easy (ratingResult.difficulty < desiredLevel), continue hardening loop
+            }
+        } // End hardening loop
+
+        // If hardening loop finished without success
+        console.log("-> Hardening phase finished without reaching target level. Discarding attempt.");
+
+    } // End attempts loop
+
+    console.error(`Failed to generate a puzzle of level ${desiredLevel} after ${maxAttempts} attempts.`);
+    return null;
+}
+
+// /**
+//  * Generates a Sudoku puzzle targeting a specific difficulty level.
+//  *
+//  * @param {DifficultyLevel} desiredLevel - The target difficulty level (e.g., DifficultyLevel.MEDIUM).
+//  * @param {number} maxAttempts - Maximum number of puzzles to generate and rate before giving up.
+//  * @param {number} minClues - Optional minimum clues desired (approximate).
+//  * @param {number} maxClues - Optional maximum clues desired (approximate).
+//  * @returns {{puzzle: number[][], solution: number[][], difficulty: DifficultyLevel, score: number, techniques: Set<string>} | null} The generated puzzle and its info, or null if failed.
+//  */
+// export async function generatePuzzleAdvanced(desiredLevel, maxAttempts = 100, minClues = 25, maxClues = 40) {
+//     console.log(`--- Generating Puzzle: Target Level = ${desiredLevel} ---`);
+
+//     if (!DIFFICULTY_THRESHOLDS[desiredLevel]) {
+//         console.error(`Invalid desiredLevel: ${desiredLevel}`);
+//         return null;
+//     }
+
+//     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+//         console.log(`Generation Attempt ${attempt}/${maxAttempts}`);
+//         let board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
+
+//         // 1. Generate a fully solved board (using basic solver is fine)
+//         let digitArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+//         digitArray.sort(() => Math.random() - 0.5);
+
+
+//         if (!SolverBasic.solve(board, digitArray)) {
+//         // if (!basicSolve(board, digitArray)) {
+//              console.warn("Generation Error: Failed to create initial solved board.");
+//              continue; // Try next attempt
+//         }
+//         const solution = deepCopy2DArray(board);
+//         //log the solution if needed
+//         console.log("Generated Solution:", solution);
+
+//         // 2. Remove cells (adapted from basic generator)
+//         let cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
+//         cells.sort(() => Math.random() - 0.5); // Randomize removal order
+
+//         let currentPuzzle = deepCopy2DArray(solution);
+//         let removedCount = 0;
+//         const totalCells = BOARD_SIZE * BOARD_SIZE;
+
+//         for (const cellIndex of cells) {
+//             const row = Math.floor(cellIndex / BOARD_SIZE);
+//             const col = cellIndex % BOARD_SIZE;
+
+//             if (currentPuzzle[row][col] === 0) continue;
+
+//             const tempValue = currentPuzzle[row][col];
+//             currentPuzzle[row][col] = 0;
+//             removedCount++;
+
+//             // Check uniqueness
+//             const boardCheckCopy = deepCopy2DArray(currentPuzzle);
+//             const numSolutions = SolverBasic.countSolutions(boardCheckCopy);
+
+//             if (numSolutions !== 1) {
+//                 // Put back if it breaks uniqueness
+//                 currentPuzzle[row][col] = tempValue;
+//                 removedCount--;
+//                  // console.log(`Could not remove ${row}-${col}, breaks uniqueness.`);
+//             } else {
+//                 // break if barely less than maxClues
+//                 let clueCount = totalCells - removedCount;
+//                 if (clueCount < maxClues) {
+//                     console.log(`Removed ${removedCount} cells, stopping removal.`);
+//                     break; // Stop removing clues if we reach the desired range
+//                 }
+//             }
+                
+//         }
+
+//         const finalClueCount = totalCells - removedCount;
+//         console.log(`Generated candidate puzzle with ${finalClueCount} clues.`);
+
+//         // 3. Rate the generated puzzle
+//         const ratingResult = await ratePuzzleDifficulty(currentPuzzle); // Use the async wrapper if needed
+
+//         if (ratingResult && ratingResult.difficulty === desiredLevel) {
+//              // Additional Check: Ensure the number of clues is reasonable for the level? (Optional)
+//              // e.g., if (finalClueCount > someMaxForHard && desiredLevel === DifficultyLevel.HARD) continue;
+
+//             console.log(`--- Success! Found ${desiredLevel} puzzle on attempt ${attempt} ---`);
+//             return {
+//                 puzzle: currentPuzzle,
+//                 solution: solution,
+//                 difficulty: ratingResult.difficulty,
+//                 score: ratingResult.score,
+//                 techniques: ratingResult.techniques
+//             };
+//         } else if (ratingResult) {
+//              console.log(`-> Puzzle rated as ${ratingResult.difficulty} (Score: ${ratingResult.score}). Discarding.`);
+//         } else {
+//             console.log("-> Puzzle rating failed (invalid/error). Discarding.");
+//         }
+
+//     } // End attempts loop
+
+//     console.error(`Failed to generate a puzzle of level ${desiredLevel} after ${maxAttempts} attempts.`);
+//     return null;
+// }
+
+/**
+ * Simulates solving a puzzle step-by-step using only the implemented logical techniques.
+ * Does NOT use backtracking. Records techniques used and maximum difficulty score.
+ *
+ * @param {number[][]} board - The puzzle board state.
+ * @param {Function} getTechniqueScoreFn - Function to get score from technique name.
+ * @returns {{
+*   status: SolverStatus,
+*   maxScore: number,
+*   techniquesUsed: Set<string>,
+*   stepsTaken: number
+* } | { status: 'error', message: string }}
+*/
+function ratePuzzleDifficultyInternal(board, getTechniqueScoreFn) {
+   let currentBoard = deepCopy2DArray(board);
+   let candidatesMap = initializeCandidatesMap(currentBoard);
+   const techniquesUsed = new Set();
+   let maxScore = 0;
+   let stepsTaken = 0;
+   const MAX_SOLVER_STEPS = 200; // Safety break
+
+   if (!candidatesMap) {
+       return { status: 'error', message: 'Initial board state has contradiction.' };
+   }
+
+   while (stepsTaken < MAX_SOLVER_STEPS) {
+       const emptyCell = findNextEmptyCell(currentBoard);
+       if (!emptyCell) {
+           return { status: 'solved', maxScore, techniquesUsed, stepsTaken }; // Solved logically
+       }
+
+       // Use a *local copy* of the map for findNextLogicalStep to check eliminations
+       let tempCandidatesMap = new Map();
+       for (const [key, valueSet] of candidatesMap.entries()) {
+           tempCandidatesMap.set(key, new Set(valueSet));
+       }
+
+       // *** IMPORTANT: findNextLogicalStep needs to be able to run without applying changes
+       // to the main candidatesMap passed to it, OR we need a different structure.
+       // Let's assume findNextLogicalStep is primarily for *finding* the step,
+       // and we apply changes *here* in the rating loop.
+
+       // Find the next step based on the *temporary* map state
+       const result = findNextLogicalStep(currentBoard, tempCandidatesMap); // Pass temp map
+
+       if (result.status === 'found_step') {
+           stepsTaken++;
+           const step = result.steps[0];
+           const techniqueBaseName = step.technique.split(' (')[0]; // Get base name like "X-Wing"
+           techniquesUsed.add(techniqueBaseName);
+           maxScore = Math.max(maxScore, getTechniqueScoreFn(step.technique));
+
+           console.log(`Rating Step ${stepsTaken}: ${step.technique} (Score: ${getTechniqueScoreFn(step.technique)}, Max: ${maxScore})`);
+
+
+           // Apply the step's changes to the *main* board and candidatesMap for the next iteration
+           try {
+               if (step.value !== undefined && step.cell) { // Placement step (Singles)
+                   const [r, c] = step.cell;
+                   if (currentBoard[r][c] !== 0) {
+                        console.error(`Rating Error: Trying to place ${step.value} in already filled cell [${r},${c}]`);
+                        return { status: 'error', message: 'Solver tried to overwrite cell during rating.' };
+                   }
+                   currentBoard[r][c] = step.value;
+                   candidatesMap.delete(`${r}-${c}`); // Remove candidates for placed cell
+
+                   // Eliminate placed value from peers' candidates
+                   const peers = getPeers(r, c);
+                   peers.forEach(([pr, pc]) => {
+                       candidatesMap.get(`${pr}-${pc}`)?.delete(step.value);
+                   });
+                    // Check for resulting contradictions immediately? (Optional but safer)
+                    for(const [pr, pc] of peers) {
+                        if (currentBoard[pr][pc] === 0 && candidatesMap.get(`${pr}-${pc}`)?.size === 0) {
+                           return { status: 'error', message: `Contradiction after placing ${step.value} at [${r},${c}] - cell [${pr},${pc}] has no candidates.` };
+                        }
+                    }
+
+               } else if (step.eliminations && step.eliminations.length > 0) { // Elimination step
+                   const elimsForApply = step.eliminations.map(e => ({
+                       cellKey: `${e.cell[0]}-${e.cell[1]}`,
+                       values: e.values
+                   }));
+                   if (!applyEliminations(candidatesMap, elimsForApply)) {
+                       // This shouldn't happen if findNextLogicalStep reported eliminations,
+                       // but check just in case.
+                       console.warn("Rating Warning: Found step reported eliminations, but applyEliminations had no effect.");
+                   }
+               } else {
+                    console.error("Rating Error: Found step had no placement or eliminations.");
+                    return { status: 'error', message: 'Solver step invalid during rating.' };
+               }
+           } catch (error) {
+                console.error("Rating Error: Contradiction during step application.", error);
+                return { status: 'error', message: `Contradiction found during rating: ${error.message}` };
+           }
+
+       } else if (result.status === 'stuck') {
+           console.log(`Rating Stuck after ${stepsTaken} steps. Max Score: ${maxScore}`);
+           return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck logically
+
+       } else if (result.status === 'error') {
+           console.error("Rating Error: Solver returned error.", result.message);
+           return { status: 'error', message: `Solver error during rating: ${result.message}` };
+
+       } else if (result.status === 'solved') {
+            // Should have been caught by findNextEmptyCell, but handle anyway
+           return { status: 'solved', maxScore, techniquesUsed, stepsTaken };
+       }
+
+   } // End while loop
+
+   console.warn("Rating Warning: Exceeded max steps.");
+   return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck due to complexity or max steps
+}
+
+// --- Public function to be called by generator ---
+/**
+* Rates the difficulty of a given Sudoku puzzle based on logical techniques.
+* @param {number[][]} board - The puzzle board.
+* @returns {{difficulty: DifficultyLevel, score: number, techniques: Set<string>}|null} Difficulty level, max score, techniques used, or null if invalid/unsolvable by logic.
+*/
+export function ratePuzzleDifficulty(board) {
+    // Import needed constants/helpers here or pass them in
+
+   const ratingResult = ratePuzzleDifficultyInternal(board, getTechniqueScore);
+
+   if (ratingResult.status === 'solved' || ratingResult.status === 'stuck') {
+        // If stuck, the rating reflects the hardest technique found *before* getting stuck.
+        // This is usually desired - we rate based on what the *logical* solver can do.
+       const difficulty = getDifficultyLevelFromScore(ratingResult.maxScore);
+       console.log(`Puzzle Rating: ${difficulty} (Max Score: ${ratingResult.maxScore}, Solved: ${ratingResult.status === 'solved'}, Techniques: ${Array.from(ratingResult.techniquesUsed).join(', ')})`);
+       return {
+           difficulty: difficulty,
+           score: ratingResult.maxScore,
+           techniques: ratingResult.techniquesUsed
+       };
+   } else {
+       // Error during rating
+       console.error(`Puzzle Rating Failed: ${ratingResult.message}`);
+       return null;
+   }
 }

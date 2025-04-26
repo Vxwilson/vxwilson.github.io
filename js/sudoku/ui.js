@@ -1,5 +1,5 @@
 // js/sudoku/ui.js
-import { BOARD_SIZE, Modes, Difficulty } from './constants.js';
+import { BOARD_SIZE, Modes, DifficultyLevel } from './constants.js';
 
 export class SudokuUI {
     constructor(callbacks) {
@@ -145,14 +145,7 @@ export class SudokuUI {
     }
 
      updateDifficultyButton(difficultyValue) {
-         if(!this.difficultyButton) return;
-         let text = 'easy';
-         switch(difficultyValue) {
-             case Difficulty.MEDIUM: text = 'medium'; break;
-             case Difficulty.HARD: text = 'hard'; break;
-             case Difficulty.IMPOSSIBLE: text = '!?'; break;
-         }
-         this.difficultyButton.textContent = text;
+        this.difficultyButton.textContent = difficultyValue;
      }
 
      selectCell(row, col, prevRow, prevCol) {
