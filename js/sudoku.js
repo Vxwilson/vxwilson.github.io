@@ -167,6 +167,8 @@ function trySetValue(row, col, value) {
 
         // succeded, now update markings
         if (value !== 0) {
+            // log
+            console.log("update markings; for cell " + row + ", " + col + " to " + value);
             updateMarkings(row, col, value);
         }
 
@@ -769,10 +771,13 @@ function autoMarkAll() {
     });
 }
 
+// this function is called when the value of the cell is changed
+// it updates the pencil marks of the neighboring cells
 function updateMarkings(row, col, value) {
-    // update the pencil marks of the neighboring cells of the given cell
-    // used when the value of the cell is changed
-    if (!autoPencilMarks) return;
+    if (!autoPencilMarks) {
+        console.log("auto pencil marks is off");
+        return;
+    }
 
     // for all neighbors in the same row, remove the pencil mark
     for (let i = 0; i < 9; i++) {
