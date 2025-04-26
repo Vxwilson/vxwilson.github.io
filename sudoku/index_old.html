@@ -66,8 +66,8 @@
         </header>
     </div>
     <div class="header-button-container">
-        <button class="" onclick="home()">
-            <!-- <button class="" onclick="window.location.href='/';"> -->
+        <!-- <button class="" onclick="home()"> -->
+        <button class="" onclick="window.location.href='/';">
             <i class="fa fa-home"></i>
         </button>
         
@@ -128,7 +128,7 @@
             </div>
             <div class="row">
                 <div class="col l12 s12">
-                    <button class="floating-button" onclick="copyCode()">
+                    <button class="floating-button" onclick="copyCode(); closeExport()">
                         <i class="fa fa-copy"></i>
                     </button>
                 </div>
@@ -160,7 +160,7 @@
 
             <div class="row">
                 <div class="col l4 offset-l2 s5 offset-s1">
-                    <button class="floating-button" onclick="loadBoard()">
+                    <button class="floating-button" onclick="loadBoard(); closeLoad()">
                         <i class="fa fa-arrow-right"></i>
                     </button>
                 </div>
@@ -442,8 +442,8 @@
     <!-- Add canvas-confetti library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
-    <script src="/js/sudoku/main.js" type="module"></script>
-    <!-- <script src="/js/sudoku.js" type="text/javascript"></script> -->
+    <!-- <script src="/js/sudoku/main.js" type="module"></script> -->
+    <script src="/js/sudoku.js" type="text/javascript"></script>
     </script>
 
 </body>

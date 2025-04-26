@@ -309,42 +309,47 @@ button{
   
   /* #region borders */
 
-  /* --- Outer Borders --- */
-  /* Top edge of the grid */
-  .sudoku-cell[data-row="0"] {
+  /* up */
+  .sudoku-cell[data-row="1"]{
     border-top: 3px solid rgb(70, 68, 68);
   }
 
-  /* Bottom edge of the grid */
-  .sudoku-cell[data-row="8"] { 
-    border-bottom: 3px solid rgb(70, 68, 68);
-  }
-
-  /* Left edge of the grid */
-  .sudoku-cell[data-col="0"] {
-    border-left: 3px solid rgb(70, 68, 68);
-  }
-
-  /* Right edge of the grid */
-  .sudoku-cell[data-col="8"] { 
-    border-right: 3px solid rgb(70, 68, 68);
-  }
-
-  /* --- Inner Thick Borders (Box dividers) --- */
-  /* Top border of rows starting the 2nd and 3rd blocks */
-  .sudoku-cell[data-row="3"],
-  .sudoku-cell[data-row="6"] { 
+  .sudoku-cell[data-row="4"],
+  .sudoku-cell[data-row="7"] {
     border-top: 2px solid rgb(70, 68, 68);
   }
 
-  /* Left border of columns starting the 2nd and 3rd blocks */
+  /* bottom */
+  .sudoku-cell[data-row="3"],
+  .sudoku-cell[data-row="6"]{
+    /* border-bottom: 2px solid rgb(70, 68, 68); */
+  }
+  .sudoku-cell[data-row="9"]{
+    border-bottom: 3px solid rgb(70, 68, 68);
+  }
+
+  /* right */
   .sudoku-cell[data-col="3"],
-  .sudoku-cell[data-col="6"] { 
+  .sudoku-cell[data-col="6"]{
+    /* border-right: 2px solid rgb(70, 68, 68); */
+  }
+
+  .sudoku-cell[data-col="9"]{
+    border-right: 3px solid rgb(70, 68, 68);
+  }
+
+  /* left */
+  .sudoku-cell[data-col="7"],
+  .sudoku-cell[data-col="4"]{
     border-left: 2px solid rgb(70, 68, 68);
   }
+  .sudoku-cell[data-col="1"]{
+    border-left: 3px solid rgb(70, 68, 68);
+  }
+
   /* #endregion */
 
-  /* non-mobile */
+  /* non-mobil */
   @media only screen and (min-width: 600px) {
     .mobile-numpad{
       /* margin: 0.5em; */
