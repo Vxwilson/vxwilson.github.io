@@ -843,7 +843,6 @@ export class SudokuUI {
         // Export
         document.querySelector('#exportBox button[onclick*="copyCode"]').onclick = () => this.callbacks.onExportConfirm(this.exportCodeDisplay.textContent); // Pass code to copy
         document.querySelector('#exportBox button[onclick*="copyURL"]').onclick = () => this.callbacks.onExportConfirmURL(this.exportCodeDisplay.textContent); // Pass code to copy
-         // Assuming close is handled by copy button now
         // Load
         document.querySelector('#loadBox button[onclick*="loadBoard"]').onclick = () => this.callbacks.onLoadConfirm(this.loadCodeInput.value);
         document.querySelector('#loadBox button[onclick*="closeLoad"]').onclick = () => this.hideLoadBox(); // Simple hide

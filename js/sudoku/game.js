@@ -2,7 +2,6 @@
 import { SudokuBoard } from './board.js'; // Correct path if board.js is in the same folder
 import { SudokuUI } from './ui.js';
 import { Timer } from './timer.js';
-// import * as Solver from './solver_basic.js'; // No longer used for hints
 import * as SolverAdvanced from './solver_advanced.js';
 import * as Persistence from './persistence.js';
 import { copyToClipboard, getPeers} from './utils.js';
@@ -484,67 +483,6 @@ export class SudokuGame {
         this._updateUI(); // Redraw and update highlights
     }
 
-    // --- Focus Mode Handling --- - REMOVED (now integrated)
-
-     // --- Hint Request ---
-    async _handleHintRequest() {
-        console.log("Hint requested...");
-        const currentGrid = this.board.getGrid();
-
-        if (this.currentState.isPaused || !findNextEmptyCell(currentGrid)) {
-            console.log("Hint ignored (paused or solved).");
-            return;
-        }
-
-        // Clear persistent focus and its highlights before getting hint
-        if (this.currentState.mode === Modes.FOCUS) {
-             this.currentState.focusedDigits.clear();
-             this.ui.clearFocusHighlight();
-        }
-         // Also clear any previous hint highlights
-         this.ui.clearHintHighlight();
-
-        const result = SolverAdvanced.solveSingleStep(currentGrid);
-        console.log("Solver Result:", result);
-
-        let alertMessage = "";
-
-        switch (result.status) {
-            case 'error':
-                alertMessage = `Error: ${result.message || 'Board state is invalid.'}`;
-                break;
-            case 'solved':
-                alertMessage = "Board is already solved!";
-                break;
-            case 'stuck':
-                alertMessage = result.message || "No simple hint could be found with current techniques.";
-                break;
-            case 'found_step':
-                const step = result.steps[0];
-                alertMessage = `Hint (${step.technique}):\n${step.description}`;
-                 // Use setTimeout to allow the alert to close before applying highlights
-                 setTimeout(() => {
-                     console.log("Applying hint highlights for:", step.technique);
-                     this.ui.applyHintHighlight(step.highlights); // Pass highlights to UI
-                 }, 0);
-                break;
-        }
-
-        // Show the alert message
-        if (this.currentState.settings.showHintAlert && alertMessage) {
-            alert(alertMessage); // Using basic alert
-        } else if (alertMessage) {
-            // If alert is disabled, maybe log the message instead?
-            console.log("Hint Info (Alert Disabled):", alertMessage);
-        }
-        // alert(alertMessage);
-
-    }
-
-    // (Optional) Keep _applyHintStep if you want a separate button to apply the hint later
-    // _applyHintStep(step) { ... }
-
-
     // --- UI Callback Getters ---
     _getUICallbacks() {
         return {
@@ -842,4 +780,166 @@ export class SudokuGame {
              }
         }
     }
+
+    // HINT
+    /**
+     * Creates a candidate map based on the current grid and pencil marks.
+     * Performs basic validation.
+     * @returns {Map<string, Set<number>> | null} The candidate map or null if an immediate contradiction is found.
+     */
+    _getCurrentCandidatesMap() {
+        const grid = this.board.getGrid();
+        const pencilMarks = this.board.getAllPencilMarks();
+        /** @type {Map<string, Set<number>>} */
+        const candidatesMap = new Map();
+        let contradictionFound = false;
+
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (grid[r][c] === 0) {
+                    const cellKey = `${r}-${c}`;
+                    const currentCellMarks = pencilMarks[r][c]; // Array of booleans
+                    const possible = new Set();
+
+                    for (let n = 1; n <= BOARD_SIZE; n++) {
+                        if (currentCellMarks[n - 1]) {
+                            // **Basic Validation:** Check if this pencil mark conflicts with a placed peer
+                            if (!checkInputValid(grid, r, c, n, false)) { // Check against peers ONLY
+                                console.warn(`User pencil mark ${n} at [${r},${c}] conflicts with a placed peer. Ignoring for solver.`);
+                                // Optional: Decide whether to ignore the mark or flag error
+                            } else {
+                                possible.add(n);
+                            }
+                        }
+                    }
+
+                    // Check for contradiction (empty set based on *current* marks)
+                    if (possible.size === 0) {
+                        // Check if the cell *should* have possibilities if calculated fresh
+                        // This distinguishes user error from an inherently bad board state
+                        const freshPossible = new Set(Array.from({ length: BOARD_SIZE }, (_, i) => i + 1));
+                        const peers = getPeers(r, c);
+                        peers.forEach(([pr, pc]) => {
+                            const peerValue = grid[pr][pc];
+                            if (peerValue !== 0) freshPossible.delete(peerValue);
+                        });
+
+                        if (freshPossible.size > 0) {
+                            console.error(`Contradiction due to user marks: Cell R${r + 1}C${c + 1} has no candidates based on current pencil marks, but should have possibilities.`);
+                            // You might want to return a specific error message here
+                            contradictionFound = true;
+                            // break; // Can break inner loop
+                        } else {
+                            // If fresh calculation also yields no candidates, it's an invalid board state
+                            console.error(`Contradiction in board state: Cell R${r + 1}C${c + 1} has no candidates possible.`);
+                             contradictionFound = true;
+                             // break;
+                        }
+                    }
+
+                    if (contradictionFound) break; // Break outer loop if contradiction found
+
+                    candidatesMap.set(cellKey, possible);
+                }
+            }
+             if (contradictionFound) break;
+        }
+
+        if (contradictionFound) {
+            // Optionally return a more specific error status/message if needed later
+             return null;
+        }
+
+        console.log("Generated candidatesMap from current board/pencil marks.");
+        return candidatesMap;
+    }
+
+
+    // --- MODIFIED HINT REQUEST ---
+    async _handleHintRequest() {
+        console.log("Hint requested...");
+        const currentGrid = this.board.getGrid(); // Still need the grid
+
+        if (this.currentState.isPaused || !findNextEmptyCell(currentGrid)) {
+            console.log("Hint ignored (paused or solved).");
+            return;
+        }
+
+        // Clear persistent focus and its highlights before getting hint
+        if (this.currentState.mode === Modes.FOCUS) {
+             this.currentState.focusedDigits.clear();
+             this.ui.clearFocusHighlight();
+        }
+        this.ui.clearHintHighlight(); // Clear previous hint highlights
+
+        // --- Generate candidate map from current state ---
+        const currentCandidatesMap = this._getCurrentCandidatesMap();
+
+        if (!currentCandidatesMap) {
+            console.error("Cannot generate hint: Contradiction found in current pencil marks or board state.");
+            alert("Hint Error: The current pencil marks lead to a contradiction."); // Inform user
+            return;
+        }
+         if (currentCandidatesMap.size === 0 && findNextEmptyCell(currentGrid)) {
+             // Edge case: Board not solved, but no empty cells have candidates in the map
+             // This might happen if auto-pencil isn't on and user hasn't marked anything.
+             // The solver's initializeCandidatesMap *would* have found candidates.
+             // Let's try running the solver's initializer in this specific case.
+             console.warn("No candidates found in current marks. Trying solver initialization.");
+              // Fallback to solver's initialization if user marks are empty/missing
+             // This requires passing the board to solveSingleStep again. We'll adjust the solver signature.
+             // NOTE: This fallback means the first hint might ignore user marks if they are completely absent.
+             const result = SolverAdvanced.solveSingleStep(currentGrid, null); // Pass null map to trigger internal init
+             this._processSolverResult(result); // Refactored result processing
+             return;
+
+         }
+
+        // --- Call solver with the grid AND the generated map ---
+        // We pass the grid because some techniques (Hidden Subsets) need to know
+        // which cells are *actually* empty vs. having a value.
+        const result = SolverAdvanced.solveSingleStep(currentGrid, currentCandidatesMap);
+        this._processSolverResult(result); // Refactored result processing
+    }
+
+    // --- NEW HELPER for processing result ---
+    _processSolverResult(result) {
+        console.log("Solver Result:", result);
+        let alertMessage = "";
+
+        switch (result.status) {
+            case 'error':
+                alertMessage = `Error: ${result.message || 'Board state is invalid or solver failed.'}`;
+                break;
+            case 'solved':
+                alertMessage = "Board is already solved!";
+                break;
+            case 'stuck':
+                alertMessage = result.message || "No simple hint could be found with current techniques.";
+                break;
+            case 'found_step':
+                const step = result.steps[0];
+                alertMessage = `Hint (${step.technique}):\n${step.description}`;
+                 // Use setTimeout to allow the alert to close before applying highlights
+                 setTimeout(() => {
+                     console.log("Applying hint highlights for:", step.technique);
+                     this.ui.applyHintHighlight(step.highlights); // Pass highlights to UI
+                 }, 0); // Timeout 0 usually works, increase if needed
+                break;
+            default:
+                 alertMessage = "Solver returned an unexpected status.";
+                 break;
+        }
+
+        // Show the alert message
+        if (alertMessage) {
+            if (this.currentState.settings.showHintAlert) {
+                alert(alertMessage); // Using basic alert
+            } else {
+                console.log("Hint Info (Alert Disabled):", alertMessage);
+            }
+        }
+    }
+
+    // END HINT
 }

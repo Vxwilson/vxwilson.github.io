@@ -464,6 +464,16 @@ export function loadGameState() {
     }
 }
 
+// loadSettings function to only return settings from the loaded state
+export function loadSettings() {
+    
+    const loadedState = loadGameState();
+    if (loadedState && loadedState.settings) {
+        return loadedState.settings;
+    }
+    return null; // Return null if no settings found
+}
+
 /**
  * Clears all saved game data from localStorage.
  */

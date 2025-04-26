@@ -254,6 +254,60 @@ button {
   outline: 1px solid rgba(50, 110, 60, 0.7);
 }
 
+/* CSS Enhancements update */
+
+/* General involved cell */
+.sudoku-cell.hint-involved {
+  background-color: rgba(200, 230, 201, 0.4); /* Light green */
+}
+
+/* Cell where a single is placed */
+.sudoku-cell.hint-target {
+  background-color: rgba(144, 238, 144, 0.6); /* Brighter green */
+  box-shadow: inset 0 0 0 2px rgba(50, 150, 50, 0.7);
+}
+.pencil-mark.hint-target-value { /* If you highlight the pencil mark too */
+   color: #006400; font-weight: bold;
+}
+
+/* Cells defining a pattern (pair, locked candidates line/box) */
+.sudoku-cell.hint-defining {
+  background-color: rgba(173, 216, 230, 0.5); /* Light blue */
+}
+.pencil-mark.hint-defining-value {
+   color: #0000CD; /* Medium blue */
+   background-color: rgba(210, 230, 240, 0.6);
+   border-radius: 2px;
+}
+
+
+/* Cells/candidates being eliminated */
+.sudoku-cell.hint-eliminated {
+   background-color: rgba(255, 192, 203, 0.4); /* Light pink/red */
+}
+.pencil-mark.hint-eliminated-value {
+   color: #DC143C; /* Crimson */
+   background-color: rgba(255, 220, 225, 0.7);
+   border-radius: 2px;
+   text-decoration: line-through; /* Optional: strike-through */
+   text-decoration-thickness: 1px;
+}
+
+/* Other cells in a unit (e.g., for hidden single) */
+.sudoku-cell.hint-unit {
+   background-color: rgba(240, 240, 160, 0.3); /* Light yellow */
+}
+
+/* Generic highlight for specific candidate values if type isn't used */
+.pencil-mark.hint-value { /* This might be less specific now */
+  color: rgba(50, 110, 60, 0.95) !important;
+  background-color: rgba(180, 240, 190, 0.6);
+  border-radius: 2px;
+  outline: 1px solid rgba(50, 110, 60, 0.7);
+}
+
+/* end CSS Enhancements update */
+
 
 /* --- Pencil Marks --- */
 .pencil-marks {
