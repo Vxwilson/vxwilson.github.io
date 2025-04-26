@@ -983,12 +983,11 @@ function replaceSelectedCell(newCell) {
         let value = parseInt(selectedCell.querySelector('.cell-text').textContent);
         focusDigit(value);
 
-        // unselect cell if value is 0 in focus mode
+        // get out of focus mode if the cell is empty
         console.log(`the cell  ${value}`);
-        if (platformMode === Platform.Desktop && isNaN(value)) {
-            console.log(`the cell is removedf ${value}`);
-            selectedCell.classList.remove('selected');
-            selectedCell = null;
+        if (isNaN(value)) {
+            console.log(`exiting focus mode`);
+            toggleFocusMode();
         }
 
     }
