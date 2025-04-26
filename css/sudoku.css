@@ -22,7 +22,6 @@ header{
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  /* background-color: #f9f9f900; */
   background-color: #f9f9f9;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
@@ -503,3 +502,18 @@ button{
   .play-pause:focus{
     background-color: #ffff0000;
   }
+
+
+  /* alert box */
+  /* Styles for the confirm box */
+/* 
+
+#confirmBox #confirmButton{
+    background-color: #a0c4a1;
+    color: white;
+}
+
+#confirmBox #cancelButton {
+    background-color: #ddadaa;
+    color: white;
+} */

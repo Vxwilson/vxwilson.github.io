@@ -591,16 +591,59 @@ function clearboard() {
     redoStack = [];
 }
 
+// return a promise of boolean
+// this function is called when the user presses the "new game" button
+function alertConfirm(prompt){
+    return new Promise((resolve, reject) => {
+        const confirmBox = document.getElementById("confirmBox");
+        confirmBox.classList.toggle("show");
+        const confirmText = document.getElementById("confirmText");
+        confirmText.textContent = prompt;
+
+        const confirmButton = document.getElementById("confirmButton");
+        confirmButton.onclick = function () {
+            resolve(true);
+            closeConfirm();
+        }
+
+        const cancelButton = document.getElementById("cancelButton");
+        cancelButton.onclick = function () {
+            resolve(false);
+            closeConfirm();
+        }
+    });
+}
+
+function closeConfirm() {
+    const confirmBox = document.getElementById("confirmBox");
+    confirmBox.classList.toggle("show");
+    const confirmText = document.getElementById("confirmText");
+    confirmText.textContent = "";
+    const confirmButton = document.getElementById("confirmButton");
+    confirmButton.onclick = null;
+    const cancelButton = document.getElementById("cancelButton");
+    cancelButton.onclick = null;
+}
+
+
 function resetboard() {
-    // Reset the board to the starting state, keeping prefilled cells
-    sudokuBoard = JSON.parse(JSON.stringify(startingBoard));
+    alertConfirm("reset ?").then((confirmed) => {
+        if (!confirmed) {
+            return;
+        }
 
-    // Clear the undo and redo stacks
-    undoStack = [];
-    redoStack = [];
+        console.log("resetting board");
 
-    clearAllMarkings();
-    displayBoard();
+        // Reset the board to the starting state, keeping prefilled cells
+        sudokuBoard = JSON.parse(JSON.stringify(startingBoard));
+
+        // Clear the undo and redo stacks
+        undoStack = [];
+        redoStack = [];
+
+        clearAllMarkings();
+        displayBoard();
+    });
 }
 
 function displayBoard(prefilled = false) {
@@ -1372,11 +1415,16 @@ document.addEventListener('keydown', function (event) {
 
 function randomboard() {
     // generate a random board
+    alertConfirm("generate new?").then((confirmed) => {
+        if (!confirmed) {
+            return;
+        }
     clearboard();
     resetStopwatch();
     generateNewBoard();
     displayBoard(prefilled = true);
     startStopwatch();
+    });
 }
 
 function initializePage() {
