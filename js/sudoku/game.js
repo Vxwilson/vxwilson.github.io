@@ -29,7 +29,7 @@ export class SudokuGame {
             settings: {
                 autoPencilMarks: true,
                 saveDifficulty: true,
-                showHintAlert: true, // <-- Add new setting default
+                showHintAlert: true, 
             }
         };
 
@@ -59,6 +59,7 @@ export class SudokuGame {
                 this.board.setInitialGrid(decodedState.initialGrid);
                 this.board.setAllPencilMarks(decodedState.pencilMarks);
                 this.currentState.difficulty = decodedState.difficulty;
+                
                 // Settings are not typically in hash, keep defaults or load from localStorage below
 
                 this.timer.reset();
@@ -530,9 +531,14 @@ export class SudokuGame {
         }
 
         // Show the alert message
-        alert(alertMessage); // Using basic alert for simplicity
-        // If using a custom modal for alerts, call that here instead.
-         // e.g., this.ui.showAlert(alertMessage);
+        if (this.currentState.settings.showHintAlert && alertMessage) {
+            alert(alertMessage); // Using basic alert
+        } else if (alertMessage) {
+            // If alert is disabled, maybe log the message instead?
+            console.log("Hint Info (Alert Disabled):", alertMessage);
+        }
+        // alert(alertMessage);
+
     }
 
     // (Optional) Keep _applyHintStep if you want a separate button to apply the hint later
@@ -667,15 +673,38 @@ export class SudokuGame {
             onHintRequest: () => this._handleHintRequest(), // Add hint request callback
             onUndoRequest: () => this._undo(),
             onAutoMarkRequest: () => this._clearAllPencilMarks(),
+            onAutoMarkRequest: () => this._clearAllPencilMarks(), // Current button toggles clear/auto-fill
             onExportRequest: () => {
-                // ... (export logic unchanged)
-                const gameStateToExport = { /* ... */ };
-                const code = Persistence.encodeGameStateToString(gameStateToExport);
-                if (code) this.ui.showExportBox(code); else alert("Error creating export code.");
+                const gameStateToExport = {
+                    board: this.board,
+                    difficulty: this.currentState.difficulty,
+                    elapsedTime: this.timer.getElapsedTime()
+                };
+                const code = Persistence.encodeGameStateToString(gameStateToExport); // Use the new encoder
+                if (code) {
+                    this.ui.showExportBox(code);
+                } else {
+                    alert("Error creating export code.");
+                }
             },
-            onExportConfirm: (code) => { /* ... unchanged ... */ },
-            onExportConfirmURL: (code) => { /* ... unchanged ... */ },
-            onLoadRequest: () => { /* ... unchanged ... */ },
+            onExportConfirm: (code) => {
+                copyToClipboard(code);
+                this.ui.hideExportBox();
+                // Maybe show a temporary "Copied!" message
+            },
+            onExportConfirmURL: (code) => { 
+                const currentOrigin = 'https://vxwilson.github.io'
+                // const currentOrigin = window.location.origin;
+                const baseUrl = currentOrigin + window.location.pathname; // e.g., "https://vxwilson.github.io/sudoku/"
+                const shareUrl = `${baseUrl}#${code}`;
+                console.log("Shareable URL:", shareUrl);
+                copyToClipboard(shareUrl); // Copy the full URL
+                this.ui.hideExportBox();
+                // Maybe show a temporary "Copied URL!" message
+           },
+             onLoadRequest: () => {
+                this.ui.showLoadBox();
+            },
             onLoadConfirm: (code) => {
                 // ... (load logic mostly unchanged, but ensure focus/hints cleared)
                  this.ui.hideLoadBox();
@@ -716,6 +745,8 @@ export class SudokuGame {
                      // if (settingName === 'autoPencilMarks' && value) {
                      //     this._autoFillPencilMarks();
                      // }
+                 }else {
+                     console.warn(`Setting ${settingName} does not exist.`);
                  }
              },
              onResize: () => this._detectPlatform(),

@@ -428,6 +428,7 @@ export class SudokuUI {
         // Settings Toggles
         this.pencilmarkToggle = document.getElementById('pencilmark-toggle');
         this.saveDifficultyToggle = document.getElementById('save-difficulty-toggle');
+        this.showHintAlertToggle = document.getElementById('show-hint-alert-toggle');
 
         this._createGridDOM();
         this._attachEventListeners();
@@ -827,7 +828,7 @@ export class SudokuUI {
         document.querySelector('button[onclick*="trySolveBoard"]').onclick = () => this.callbacks.onSolveRequest(false); // false = not visual
         document.querySelector('button[onclick*="hintBoard"]').onclick = () => this.callbacks.onHintRequest(); // false = not visual
         // this.hintButton.onclick = () => this.callbacks.onHintRequest(); // Added Hint button listener
-        
+
         // --- Bottom Buttons ---
         this.undoButton.onclick = () => this.callbacks.onUndoRequest();
         // Add redo if implemented: this.redoButton.onclick = () => this.callbacks.onRedoRequest();
@@ -850,6 +851,7 @@ export class SudokuUI {
         // --- Settings Toggles ---
         this.pencilmarkToggle.onchange = (e) => this.callbacks.onSettingChange('autoPencilMarks', e.target.checked);
         this.saveDifficultyToggle.onchange = (e) => this.callbacks.onSettingChange('saveDifficulty', e.target.checked);
+        this.showHintAlertToggle.onchange = (e) => this.callbacks.onSettingChange('showHintAlert', e.target.checked);
 
         // --- Timer Pause/Play ---
         document.querySelector('.play-pause').onclick = () => this.callbacks.onPauseToggle();
@@ -868,6 +870,7 @@ export class SudokuUI {
     applySettings(settings) {
         this.pencilmarkToggle.checked = settings.autoPencilMarks;
         this.saveDifficultyToggle.checked = settings.saveDifficulty;
+        this.showHintAlertToggle.checked = settings.showHintAlert;
         this.updateDifficultyButton(settings.difficulty);
     }
 }

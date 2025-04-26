@@ -382,10 +382,13 @@ function loadSavedData() {
         // set settings
         autoPencilMarks = JSON.parse(localStorage.getItem("autoPencilMarks"));
         saveDifficulty = JSON.parse(localStorage.getItem("saveDifficulty"));
+        saveDifficulty = JSON.parse(localStorage.getItem("showHintToggle"));
 
         // update checkbox
         document.getElementById("pencilmark-toggle").checked = autoPencilMarks;
         document.getElementById("save-difficulty-toggle").checked = saveDifficulty;
+        document.getElementById("show-hint-alert-toggle").checked = saveDifficulty;
+
 
         if (saveDifficulty) {
             difficulty = JSON.parse(localStorage.getItem("difficulty"));

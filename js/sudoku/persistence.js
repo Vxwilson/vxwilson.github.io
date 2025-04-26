@@ -394,6 +394,7 @@ export function saveGameState(gameState) {
              grid: gameState.board.getGrid(),
              initialGrid: gameState.board.getInitialGrid(),
              pencilMarks: gameState.board.getAllPencilMarks(),
+             
              difficulty: gameState.difficulty, // Save current difficulty
              elapsedTime: gameState.elapsedTime, // Save current time
              settings: gameState.settings // Save the settings object directly
