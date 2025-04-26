@@ -118,7 +118,7 @@
         <div class="floatingBox" id="exportBox">
             <div class="row">
                 <div class="col l10">
-                    <p class="boxtitle">export code</p>
+                    <p class="boxtitle">export game</p>
                 </div>
             </div>
             <div class="row">
@@ -127,9 +127,14 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col l12 s12">
-                    <button class="floating-button" onclick="copyCode()">
+                <div class="col l4 offset-l2 s5 offset-s1">
+                    <button class="floating-button" id="copyCodeButton" onclick="copyCode()">
                         <i class="fa fa-copy"></i>
+                    </button>
+                </div>
+                <div class="col l4 s5">
+                    <button class="floating-button" id="copyUrlButton" onclick="copyURL()">
+                        <i class="fa fa-link"></i>
                     </button>
                 </div>
                 <!-- <div class="col l4 s5">
