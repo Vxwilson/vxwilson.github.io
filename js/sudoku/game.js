@@ -40,40 +40,77 @@ export class SudokuGame {
         this._initializeGame();
     }
 
+    // _initializeGame() {
+    //     console.log("Initializing Sudoku Game...");
+    //     this._detectPlatform();
+
+    //     const loadedState = Persistence.loadGameState();
+    //     if (loadedState) {
+    //         console.log("Loading saved state...");
+    //         this.board.setGrid(loadedState.boardState.grid);
+    //         this.board.setInitialGrid(loadedState.boardState.initialGrid);
+    //         // Load pencil marks if saved: this.board.setAllPencilMarks(loadedState.boardState.pencilMarks);
+
+    //         // Apply loaded settings carefully
+    //         this.currentState.settings = {
+    //             ...this.currentState.settings, // Keep defaults if something is missing
+    //             ...loadedState.settings
+    //         };
+    //         // Only override difficulty if saveDifficulty was enabled
+    //         if (this.currentState.settings.saveDifficulty && loadedState.settings.difficulty) {
+    //              this.currentState.difficulty = loadedState.settings.difficulty;
+    //         }
+
+    //         this.timer.start(loadedState.elapsedTime);
+    //         this.ui.applySettings(this.currentState.settings); // Update UI toggles
+
+    //     } else {
+    //         console.log("No saved state found, generating new board...");
+    //         this._generateNewBoard(this.currentState.difficulty);
+    //         this.timer.start();
+    //     }
+
+    //     this._updateUI(); // Initial UI draw
+    //     this.startAutoSave(); // Start auto-save timer
+    //     console.log("Game Initialized.");
+    // }
+
     _initializeGame() {
         console.log("Initializing Sudoku Game...");
         this._detectPlatform();
 
-        const loadedState = Persistence.loadGameState();
-        if (loadedState) {
+        // Load game state using the new function
+        const loadedData = Persistence.loadGameState();
+
+        if (loadedData) {
             console.log("Loading saved state...");
-            this.board.setGrid(loadedState.boardState.grid);
-            this.board.setInitialGrid(loadedState.boardState.initialGrid);
-            // Load pencil marks if saved: this.board.setAllPencilMarks(loadedState.boardState.pencilMarks);
+            // Apply loaded data
+            this.board.setGrid(loadedData.grid);
+            this.board.setInitialGrid(loadedData.initialGrid);
+            this.board.setAllPencilMarks(loadedData.pencilMarks); // Load pencil marks
 
-            // Apply loaded settings carefully
-            this.currentState.settings = {
-                ...this.currentState.settings, // Keep defaults if something is missing
-                ...loadedState.settings
-            };
-            // Only override difficulty if saveDifficulty was enabled
-            if (this.currentState.settings.saveDifficulty && loadedState.settings.difficulty) {
-                 this.currentState.difficulty = loadedState.settings.difficulty;
-            }
+            this.currentState.difficulty = loadedData.difficulty; // Load difficulty
+            this.currentState.settings = loadedData.settings; // Load full settings object
 
-            this.timer.start(loadedState.elapsedTime);
-            this.ui.applySettings(this.currentState.settings); // Update UI toggles
+            this.timer.start(loadedData.elapsedTime); // Load elapsed time
+            this.ui.applySettings(this.currentState.settings); // Update UI toggles based on loaded settings
+            this.ui.updateDifficultyButton(this.currentState.difficulty); // Ensure difficulty button matches
 
         } else {
-            console.log("No saved state found, generating new board...");
+            console.log("No valid saved state found, generating new board...");
+            // Generate new board using the default/current difficulty
             this._generateNewBoard(this.currentState.difficulty);
+             // Apply default settings to UI
+             this.ui.applySettings(this.currentState.settings);
+             this.ui.updateDifficultyButton(this.currentState.difficulty);
             this.timer.start();
         }
 
         this._updateUI(); // Initial UI draw
-        this.startAutoSave(); // Start auto-save timer
+        this.startAutoSave();
         console.log("Game Initialized.");
     }
+
 
      _detectPlatform() {
         // Simple check, refine if needed
@@ -100,21 +137,32 @@ export class SudokuGame {
         }
     }
 
+    // _saveGame() {
+    //     const gameState = {
+    //         board: this.board,
+    //         timer: this.timer,
+    //         settings: {
+    //             difficulty: this.currentState.difficulty, // Always save current difficulty setting
+    //             ...this.currentState.settings // Include other settings like autoPencil
+    //         }
+    //     };
+    //     // Only save actual difficulty value if 'saveDifficulty' setting is true
+    //     if (!this.currentState.settings.saveDifficulty) {
+    //         // If not saving difficulty, maybe save a default or skip it?
+    //         // For simplicity, we'll still save it here, but loading logic checks the flag.
+    //     }
+    //     Persistence.saveGameState(gameState);
+    // }
+
     _saveGame() {
-        const gameState = {
+        // Prepare the state object for saving
+        const gameStateToSave = {
             board: this.board,
-            timer: this.timer,
-            settings: {
-                difficulty: this.currentState.difficulty, // Always save current difficulty setting
-                ...this.currentState.settings // Include other settings like autoPencil
-            }
+            difficulty: this.currentState.difficulty,
+            elapsedTime: this.timer.getElapsedTime(), // Get current time from timer
+            settings: this.currentState.settings // Pass the whole settings object
         };
-        // Only save actual difficulty value if 'saveDifficulty' setting is true
-        if (!this.currentState.settings.saveDifficulty) {
-            // If not saving difficulty, maybe save a default or skip it?
-            // For simplicity, we'll still save it here, but loading logic checks the flag.
-        }
-        Persistence.saveGameState(gameState);
+        Persistence.saveGameState(gameStateToSave);
     }
 
      _generateNewBoard(difficultyValue) {
@@ -133,6 +181,8 @@ export class SudokuGame {
         this._updateUI();
         this.timer.start();
         this.startAutoSave();
+        // also save once the board is generated
+        this._saveGame(); // Save the new game state
     }
 
     // --- State Update and UI Sync ---
@@ -555,39 +605,86 @@ export class SudokuGame {
             onAutoMarkRequest: () => this._clearAllPencilMarks(), // Current button toggles clear/auto-fill
 
             // Persistence Callbacks
+            // onExportRequest: () => {
+            //     const code = Persistence.encodeBoardToString(this.board.getGrid(), this.board.getInitialGrid());
+            //     this.ui.showExportBox(code);
+            // },
             onExportRequest: () => {
-                const code = Persistence.encodeBoardToString(this.board.getGrid(), this.board.getInitialGrid());
-                this.ui.showExportBox(code);
+                // Prepare the state object needed for encoding
+                const gameStateToExport = {
+                    board: this.board,
+                    difficulty: this.currentState.difficulty,
+                    elapsedTime: this.timer.getElapsedTime()
+                };
+                const code = Persistence.exportGameState(gameStateToExport);
+                if (code) {
+                    this.ui.showExportBox(code);
+                } else {
+                    alert("Error creating export code."); // Or use a UI notification
+                }
             },
             onExportConfirm: (code) => {
-                    // Copy to clipboar
-                    copyToClipboard(code);
-                 this.ui.hideExportBox();
-                 // Maybe show a temporary "Copied!" message
+                // Copy to clipboar
+                // copyToClipboard(code);
+                this.ui.hideExportBox();
+                // Maybe show a temporary "Copied!" message
             },
              onLoadRequest: () => {
                 this.ui.showLoadBox();
             },
+            // onLoadConfirm: (code) => {
+            //     console.log("Loading board from code:", code);
+            //     this.ui.hideLoadBox();
+            //     const decoded = Persistence.decodeBoardFromString(code);
+            //     if (decoded) {
+            //          this.ui.showConfirm("Load this board? Current progress will be lost.", () => {
+            //             this.stopAutoSave();
+            //             this.timer.reset();
+            //             this.undoStack = [];
+            //             this.redoStack = [];
+            //             this.board.setGrid(decoded.grid);
+            //             this.board.setInitialGrid(decoded.initialGrid);
+            //             this.board.clearAllPencilMarks(); // Clear marks on load
+            //             this._setSelectedCell(null, null); // Deselect
+            //             this._updateUI();
+            //             this.timer.start();
+            //             this.startAutoSave();
+            //          });
+            //     } else {
+            //          alert("Invalid board code provided.");
+            //          // this.ui.showError("Invalid board code.");
+            //     }
+            // },
             onLoadConfirm: (code) => {
-                console.log("Loading board from code:", code);
                 this.ui.hideLoadBox();
-                const decoded = Persistence.decodeBoardFromString(code);
-                if (decoded) {
-                     this.ui.showConfirm("Load this board? Current progress will be lost.", () => {
-                        this.stopAutoSave();
-                        this.timer.reset();
-                        this.undoStack = [];
-                        this.redoStack = [];
-                        this.board.setGrid(decoded.grid);
-                        this.board.setInitialGrid(decoded.initialGrid);
-                        this.board.clearAllPencilMarks(); // Clear marks on load
-                        this._setSelectedCell(null, null); // Deselect
-                        this._updateUI();
-                        this.timer.start();
-                        this.startAutoSave();
+                // Use the new import function
+                const decodedState = Persistence.importGameState(code);
+
+                if (decodedState) {
+                     this.ui.showConfirm("Load this board state? Current progress will be lost.", () => {
+                        this.stopAutoSave(); // Stop saving during load
+                        this.timer.reset(); // Reset timer before applying loaded time
+
+                        // Apply all parts of the decoded state
+                        this.board.setGrid(decodedState.grid);
+                        this.board.setInitialGrid(decodedState.initialGrid);
+                        this.board.setAllPencilMarks(decodedState.pencilMarks);
+                        this.currentState.difficulty = decodedState.difficulty;
+                        // Assuming settings aren't in the export string, keep current settings
+                        // If settings *were* included in encode/decode, load them here:
+                        // this.currentState.settings = decodedState.settings;
+
+                        this._setSelectedCell(null, null); // Deselect cell
+                        this.timer.start(decodedState.elapsedTime); // Start timer with loaded time
+                        // Ensure UI reflects loaded state
+                        this.ui.applySettings(this.currentState.settings);
+                        this.ui.updateDifficultyButton(this.currentState.difficulty);
+                        this._updateUI(); // Full redraw
+
+                        this.startAutoSave(); // Restart autosave
                      });
                 } else {
-                     alert("Invalid board code provided.");
+                     alert("Invalid or corrupted board code provided.");
                      // this.ui.showError("Invalid board code.");
                 }
             },
