@@ -128,9 +128,6 @@ export function getPeers(row, col) {
     return peers;
 }
 
-// js/sudoku/utils.js (Add this function)
-
-// ... (other functions like getPeers, BOARD_SIZE, etc.)
 
 /**
  * Finds cells that are peers of BOTH cell1 and cell2.
@@ -177,4 +174,122 @@ export function cellsSeeEachOther(r1, c1, r2, c2) {
     if (boxR1 === boxR2 && boxC1 === boxC2) return true;
 
     return false;
+}
+
+/**
+ * Generates combinations of a specific size from an array.
+ * @param {any[]} arr - The input array.
+ * @param {number} size - The size of combinations to generate.
+ * @returns {any[][]} An array of combination arrays.
+ */
+export function getCombinations(arr, size) {
+    const result = [];
+    function combine(start, currentCombo) {
+        if (currentCombo.length === size) {
+            result.push([...currentCombo]);
+            return;
+        }
+        for (let i = start; i < arr.length; i++) {
+            currentCombo.push(arr[i]);
+            combine(i + 1, currentCombo);
+            currentCombo.pop();
+        }
+    }
+    combine(0, []);
+    return result;
+}
+
+/**
+ * Generates a list of all units (rows, columns, boxes) on the board.
+ * @returns {Array<{type: string, index: number, cells: [number, number][]}>}
+ */
+export function getUnits() {
+    const units = [];
+    // Rows
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        units.push({ type: 'Row', index: r + 1, cells: Array.from({ length: BOARD_SIZE }, (_, c) => [r, c]) });
+    }
+    // Columns
+    for (let c = 0; c < BOARD_SIZE; c++) {
+        units.push({ type: 'Column', index: c + 1, cells: Array.from({ length: BOARD_SIZE }, (_, r) => [r, c]) });
+    }
+    // Boxes
+    for (let br = 0; br < BOX_SIZE; br++) {
+        for (let bc = 0; bc < BOX_SIZE; bc++) {
+            const boxCells = [];
+            const startRow = br * BOX_SIZE;
+            const startCol = bc * BOX_SIZE;
+            for (let r = 0; r < BOX_SIZE; r++) {
+                for (let c = 0; c < BOX_SIZE; c++) {
+                    boxCells.push([startRow + r, startCol + c]);
+                }
+            }
+            units.push({ type: 'Box', index: br * BOX_SIZE + bc + 1, cells: boxCells });
+        }
+    }
+    return units;
+}
+
+// Cache units for reuse globally within modules that import it
+export const allUnits = getUnits();
+
+/**
+ * Gets all locations (as 'r-c' keys) for a specific candidate digit.
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @param {number} digit
+ * @returns {Set<string>} A set of 'r-c' keys.
+ */
+export function getCandidateLocations(candidatesMap, digit) {
+    const locations = new Set();
+    for (const [key, candidates] of candidatesMap.entries()) {
+        if (candidates.has(digit)) {
+            locations.add(key);
+        }
+    }
+    return locations;
+}
+
+/**
+ * Groups candidate locations by unit (row, column, box).
+ * @param {Set<string>} locations - Set of 'r-c' keys for a digit.
+ * @returns {{rows: Map<number, Set<string>>, cols: Map<number, Set<string>>, boxes: Map<number, Set<string>>}}
+ */
+export function groupLocationsByUnit(locations) {
+    const rows = new Map();
+    const cols = new Map();
+    const boxes = new Map();
+
+    for (const key of locations) {
+        const [r, c] = keyToCoords(key); // Use helper below
+        const boxIndex = Math.floor(r / BOX_SIZE) * BOX_SIZE + Math.floor(c / BOX_SIZE);
+
+        if (!rows.has(r)) rows.set(r, new Set());
+        rows.get(r).add(key);
+
+        if (!cols.has(c)) cols.set(c, new Set());
+        cols.get(c).add(key);
+
+        if (!boxes.has(boxIndex)) boxes.set(boxIndex, new Set());
+        boxes.get(boxIndex).add(key);
+    }
+    return { rows, cols, boxes };
+}
+
+/**
+ * Converts a 'r-c' key string to [r, c] coordinates.
+ * @param {string} key
+ * @returns {[number, number]}
+ */
+export function keyToCoords(key) {
+    return key.split('-').map(Number);
+}
+
+/**
+ * Converts [r, c] coordinates to a 'r-c' key string.
+ * @param {number} r
+ * @param {number} c
+ * @returns {string}
+ */
+export function coordsToKey(r, c) {
+    return `${r}-${c}`;
 }

@@ -28,6 +28,9 @@ export class SudokuUI {
         this.confirmButton = document.getElementById('confirmButton');
         this.cancelButton = document.getElementById('cancelButton');
 
+        this.loadingIndicator = document.getElementById('loadingIndicator');
+        this.loadingProgressText = document.getElementById('loadingProgressText');
+
         // Settings Toggles
         this.pencilmarkToggle = document.getElementById('pencilmark-toggle');
         this.saveDifficultyToggle = document.getElementById('save-difficulty-toggle');
@@ -83,10 +86,10 @@ export class SudokuUI {
     }
 
     getCellElement(row, col) {
-         if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+        if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
             return this.cells[row][col];
-         }
-         return null;
+        }
+        return null;
     }
 
     // --- Display Updates ---
@@ -139,34 +142,34 @@ export class SudokuUI {
         }
     }
 
-     updateModeButtons(currentMode) {
+    updateModeButtons(currentMode) {
         this.pencilModeButton?.classList.toggle('selected', currentMode === Modes.MARKING);
         this.focusModeButton?.classList.toggle('selected', currentMode === Modes.FOCUS);
         // If other buttons need updating based on mode
     }
 
-     updateDifficultyButton(difficultyValue) {
+    updateDifficultyButton(difficultyValue) {
         this.difficultyButton.textContent = difficultyValue;
-     }
+    }
 
-     selectCell(row, col, prevRow, prevCol) {
+    selectCell(row, col, prevRow, prevCol) {
         // Deselect previous cell
         if (prevRow !== null && prevCol !== null) {
             this.getCellElement(prevRow, prevCol)?.classList.remove('selected');
         }
-         // Select new cell
+        // Select new cell
         if (row !== null && col !== null) {
             this.getCellElement(row, col)?.classList.add('selected');
         }
     }
 
-     updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
+    updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
         this.numButtons.forEach(button => {
             const num = parseInt(button.dataset.num, 10);
             let isDisabled = true; // Default to disabled
 
             if (isPrefilled && !isMarkingMode) { // Can't change prefilled in normal mode
-                 isDisabled = true;
+                isDisabled = true;
             } else if (num === 0) { // Erase button
                 isDisabled = !canErase;
             } else if (isMarkingMode) { // Marking mode
@@ -222,9 +225,38 @@ export class SudokuUI {
 
     // --- Modals / Popups ---
 
+    // showConfirm(prompt, confirmCallback, cancelCallback) {
+    //     this.confirmText.textContent = prompt;
+    //     // Clone and replace to remove previous listeners
+    //     const newConfirmButton = this.confirmButton.cloneNode(true);
+    //     this.confirmButton.parentNode.replaceChild(newConfirmButton, this.confirmButton);
+    //     this.confirmButton = newConfirmButton;
+
+    //     const newCancelButton = this.cancelButton.cloneNode(true);
+    //     this.cancelButton.parentNode.replaceChild(newCancelButton, this.cancelButton);
+    //     this.cancelButton = newCancelButton;
+
+    //     this.confirmButton.onclick = () => {
+    //         this.hideConfirm();
+    //         if (confirmCallback) confirmCallback();
+    //     };
+    //     this.cancelButton.onclick = () => {
+    //         this.hideConfirm();
+    //         if (cancelCallback) cancelCallback();
+    //     };
+    //     this.confirmBox.classList.add('show');
+    // }
+
+    // hideConfirm() {
+    //     this.confirmBox.classList.remove('show');
+    //     this.confirmButton.onclick = null; // Clean up listener
+    //     this.cancelButton.onclick = null;  // Clean up listener
+    // }
+    // js/sudoku/ui.js
+
     showConfirm(prompt, confirmCallback, cancelCallback) {
         this.confirmText.textContent = prompt;
-        // Clone and replace to remove previous listeners
+        // Clone and replace to remove previous listeners (keep this)
         const newConfirmButton = this.confirmButton.cloneNode(true);
         this.confirmButton.parentNode.replaceChild(newConfirmButton, this.confirmButton);
         this.confirmButton = newConfirmButton;
@@ -234,20 +266,43 @@ export class SudokuUI {
         this.cancelButton = newCancelButton;
 
         this.confirmButton.onclick = () => {
+            // 1. Hide the box visually *immediately*
             this.hideConfirm();
-            if (confirmCallback) confirmCallback();
+
+            // 2. Schedule the potentially long-running callback to execute
+            //    in the next event loop cycle using setTimeout.
+            //    This allows the browser to repaint and hide the confirm box first.
+            setTimeout(() => {
+                if (confirmCallback) {
+                    try {
+                        // Execute the original callback (which calls _generateNewBoard)
+                        confirmCallback();
+                    } catch (e) {
+                        console.error("Error executing confirm callback:", e);
+                        // Optional: Handle synchronous errors in the callback if needed
+                        // Maybe hide the loading indicator if it somehow got shown
+                        this.hideLoading();
+                    }
+                }
+            }, 0); // 0ms delay is sufficient to yield to the event loop
         };
+
         this.cancelButton.onclick = () => {
+            // Cancel button logic doesn't involve heavy work, so no setTimeout needed
             this.hideConfirm();
             if (cancelCallback) cancelCallback();
         };
+
+        // Show the confirm box
         this.confirmBox.classList.add('show');
     }
 
+    // hideConfirm method remains the same
     hideConfirm() {
         this.confirmBox.classList.remove('show');
-        this.confirmButton.onclick = null; // Clean up listener
-        this.cancelButton.onclick = null;  // Clean up listener
+        // Clean up listeners immediately (though cloneNode handles the old ones)
+        if (this.confirmButton) this.confirmButton.onclick = null;
+        if (this.cancelButton) this.cancelButton.onclick = null;
     }
 
     showExportBox(code) {
@@ -259,7 +314,7 @@ export class SudokuUI {
         this.exportBox.classList.remove('show');
     }
 
-     showLoadBox() {
+    showLoadBox() {
         this.loadCodeInput.value = ''; // Clear previous input
         this.loadBox.classList.add('show');
     }
@@ -268,15 +323,49 @@ export class SudokuUI {
         this.loadBox.classList.remove('show');
     }
 
-     showSettingsPanel() {
+    showSettingsPanel() {
         this.settingsPanel.classList.add('show');
     }
 
-     hideSettingsPanel() {
-         this.settingsPanel.classList.remove('show');
-     }
+    hideSettingsPanel() {
+        this.settingsPanel.classList.remove('show');
+    }
 
-     // --- NEW/MODIFIED Highlighting ---
+    // *** NEW: Loading Indicator Methods ***
+    showLoading(initialText = "attempt ") {
+        if (this.loadingIndicator && this.loadingProgressText) {
+            this.loadingProgressText.textContent = initialText;
+            this.loadingIndicator.classList.add('show');
+            console.log("Showing loading indicator.");
+        } else {
+            console.error("Loading indicator elements not found!");
+        }
+    }
+
+    updateLoadingProgress(currentAttempt, totalAttempts, difficulty) {
+        if (this.loadingProgressText) {
+            // check if difficulty is a not null or undefined
+            if (difficulty === "") {
+                this.loadingProgressText.textContent = `[${currentAttempt}]`;
+                // console.log("loading progress: Difficulty is null or undefined, showing attempt progress.");
+            }
+            else{
+                this.loadingProgressText.textContent = `[${currentAttempt}] ${difficulty}`;
+            }
+            
+            // this.loadingProgressText.textContent = `${currentAttempt} of ${totalAttempts}`;
+            console.log(`Loading progress: ${currentAttempt}/${totalAttempts}, difficulty: ${difficulty}`);
+        }
+    }
+
+    hideLoading() {
+        if (this.loadingIndicator) {
+            this.loadingIndicator.classList.remove('show');
+            console.log("Hiding loading indicator.");
+        }
+    }
+
+    // --- NEW/MODIFIED Highlighting ---
 
     /**
      * Applies focus highlighting based on selected number(s).
@@ -346,16 +435,16 @@ export class SudokuUI {
                     if (markElement) {
                         markElement.classList.add('hint-value'); // Highlight specific pencil mark
                     }
-                     // Optionally highlight the main number if the hint is placing a value?
-                     const cellText = cell.querySelector('.cell-text');
-                     if (parseInt(cellText?.textContent || '0') === num) {
-                         // Maybe add hint-value to cellText span? Needs CSS target.
-                     }
+                    // Optionally highlight the main number if the hint is placing a value?
+                    const cellText = cell.querySelector('.cell-text');
+                    if (parseInt(cellText?.textContent || '0') === num) {
+                        // Maybe add hint-value to cellText span? Needs CSS target.
+                    }
                 });
             } else {
-                 // If candidates array is empty/null, maybe highlight the cell's main number?
-                 // This depends on how 'highlights' is structured for placed values vs elims.
-                 // For now, hint-involved covers the cell.
+                // If candidates array is empty/null, maybe highlight the cell's main number?
+                // This depends on how 'highlights' is structured for placed values vs elims.
+                // For now, hint-involved covers the cell.
             }
         });
     }
@@ -367,7 +456,7 @@ export class SudokuUI {
             cell.querySelectorAll('.pencil-mark.hint-value').forEach(mark => {
                 mark.classList.remove('hint-value');
             });
-             // Clear potential highlights on the main number if implemented
+            // Clear potential highlights on the main number if implemented
         });
     }
 
@@ -384,13 +473,12 @@ export class SudokuUI {
         });
 
         // Click outside grid to deselect
-         document.addEventListener('click', (event) => {
+        document.addEventListener('click', (event) => {
             if (!event.target.closest('.sudoku') && // Clicked outside grid
                 !event.target.closest('.num-button') && // Not on numpad
                 !event.target.closest('.mode-button') && // Not on mode buttons
                 !event.target.closest('.floatingBox') && // Not inside floating boxes
-                 this.callbacks.onClickOutside)
-            {
+                this.callbacks.onClickOutside) {
                 this.callbacks.onClickOutside();
             }
         });
@@ -414,7 +502,7 @@ export class SudokuUI {
         });
 
         // --- Top Buttons ---
-        document.querySelector('.header-button-container button[onclick*="home"]').onclick = () => window.location.href='/';
+        document.querySelector('.header-button-container button[onclick*="home"]').onclick = () => window.location.href = '/';
         document.querySelector('.header-button-container button[onclick*="openSettingsPanel"]').onclick = () => this.callbacks.onSettingsOpen();
         document.querySelector('.header-button-container button[onclick*="tryExport"]').onclick = () => this.callbacks.onExportRequest();
         document.querySelector('.header-button-container button[onclick*="tryLoad"]').onclick = () => this.callbacks.onLoadRequest();

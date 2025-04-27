@@ -595,3 +595,36 @@ button {
     background-color: #ddadaa;
     color: white;
 } */
+
+/* generator floating box for puzzle */
+/* css/sudoku.css */
+
+/* ... (existing styles) ... */
+
+.loading-indicator {
+  /* Inherit base floatingBox styles */
+  width: 250px; /* Adjust width as needed */
+  text-align: center;
+  padding: 20px; /* More padding for visual balance */
+}
+
+.loading-indicator  .row{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0px; /* Space between rows */
+}
+
+/* Style the spinner icon */
+.loading-indicator .loader-icon {
+  color: rgb(110, 135, 156);
+  /* margin-bottom: 15px; Space between spinner and text */
+}
+
+/* Style the progress text */
+.loading-indicator .progress-text {
+  font-size: 0.8em;
+  color: rgb(80, 100, 116);
+  margin-bottom: 0px; /* Space between text and spinner */
+  /* font-weight: 500; */
+}

@@ -36,7 +36,85 @@ export class SudokuGame {
         this.redoStack = [];
         this.saveInterval = null;
 
+        this.generationWorker = null;
+        this._initializeWorker();
+
         this._initializeGame();
+    }
+
+    // WORKER for puzzle generation
+    _initializeWorker() {
+        if (window.Worker) {
+            console.log("Initializing generation worker...");
+            try {
+                this.generationWorker = new Worker(new URL('./sudoku_generator.worker.js', import.meta.url), { type: 'module' });
+
+                this.generationWorker.onmessage = (event) => {
+                    this._handleWorkerMessage(event.data);
+                };
+
+                this.generationWorker.onerror = (error) => {
+                    console.error("Error initializing generation worker:", error.message, error);
+                    alert(`Failed to load the puzzle generator component. Please try reloading the page. Error: ${error.message}`);
+                    this.ui.hideLoading();
+                };
+                console.log("Generation worker initialized.");
+
+            } catch (err) {
+                console.error("Caught error creating worker:", err);
+                alert(`Failed to create the puzzle generator. This might be due to browser settings or extensions. Error: ${err.message}`);
+                this.generationWorker = null; 
+            }
+
+        } else {
+            console.error("Web Workers are not supported in this browser.");
+            alert("Sorry, your browser doesn't support a feature required for puzzle generation.");
+        }
+    }
+
+    _handleWorkerMessage(data) {
+        console.log("Received message from worker:", data);
+        switch (data.type) {
+            case 'progress':
+                this.ui.updateLoadingProgress(data.current, data.total, data.difficulty);
+                break;
+            case 'result':
+                this.ui.hideLoading();
+                const result = data.payload;
+                if (result && result.puzzle) {
+                    console.log(`[Main] Worker successfully generated ${result.difficulty} board.`);
+                    this.board.clearBoard();
+                    this.board.setGrid(result.puzzle, true);
+                    // We might not get the solution back if not needed, adapt if you send it
+                    // this.board.setSolution(result.solution);
+                    this._setSelectedCell(null, null);
+                    this._startTimerAndUnpause();
+                    this._updateUI();
+                    this.startAutoSave();
+                    this._saveGame();
+                } else {
+                    console.error("[Main] Worker sent invalid result:", result);
+                    alert("The generator returned an invalid result. Please try again.");
+                    this.board.clearBoard();
+                    this._updateUI();
+                    this.timer.pause();
+                    this.currentState.isPaused = true;
+                    this.ui.updatePauseButton(true);
+                }
+                break;
+            case 'error':
+                this.ui.hideLoading(); 
+                console.error("[Main] Worker reported error:", data.message);
+                alert(`Failed to generate puzzle: ${data.message}`);
+                this.board.clearBoard();
+                this._updateUI();
+                this.timer.pause();
+                this.currentState.isPaused = true;
+                this.ui.updatePauseButton(true);
+                break;
+            default:
+                console.warn("[Main] Received unknown message type from worker:", data.type);
+        }
     }
 
     _initializeGame() {
@@ -160,52 +238,32 @@ export class SudokuGame {
     }
 
     _generateNewBoard(difficultyValue) {
+        if (!this.generationWorker) {
+            alert("Puzzle generator is not available. Cannot create a new board.");
+            console.error("Attempted to generate board but worker is not initialized.");
+            return; 
+        }
+
         this.stopAutoSave();
         this.timer.reset();
         this.undoStack = [];
         this.redoStack = [];
-        this.currentState.focusedDigits.clear(); // Clear focus state
+        this.currentState.focusedDigits.clear(); 
 
-        console.log(`Generating new board with difficulty: ${difficultyValue}`);
+        console.log(`[Main] Requesting new board from worker: ${difficultyValue}`);
 
-        // --- Use the new Advanced Generator ---
-        SolverAdvanced.generatePuzzle(difficultyValue) // Pass the DifficultyLevel enum/string
-            .then(result => {
-                if (result) {
-                    const { puzzle /*, solution */ } = result; // Solution might not be needed by game logic directly
-                    this.board.clearBoard();
-                    this.board.setGrid(puzzle, true); // Set puzzle grid as initial grid
-                    this._setSelectedCell(null, null);
-                    this._startTimerAndUnpause();
-                    this._updateUI();
-                    this.startAutoSave();
-                    this._saveGame();
-                    console.log(`Successfully generated ${difficultyValue} board.`);
-                } else {
-                    console.error("Failed to generate puzzle. Showing empty board or error message.");
-                    // Handle generation failure: show error, try again, load default?
-                    alert(`Failed to generate a ${difficultyValue} puzzle. Please try again or select a different difficulty.`);
-                    this.board.clearBoard(); // Show empty board
-                    this._updateUI();
-                }
-            })
-            .catch(error => {
-                console.error("Error during puzzle generation:", error);
-                alert("An unexpected error occurred during puzzle generation.");
-                this.board.clearBoard();
-                this._updateUI();
-            });
+        // Show Loading Indicator 
+        const maxAttempts = 65;
+        this.ui.showLoading(`1 of ${maxAttempts}`);
 
-        // const { puzzle /*, solution */ } = SolverAdvanced.generatePuzzle(difficultyValue); // Assuming generate exists in SolverAdvanced or SolverBasic
+        // Send message to worker to start generation
+        this.generationWorker.postMessage({
+            type: 'generate',
+            difficulty: difficultyValue,
+            maxAttempts: maxAttempts
+        });
 
-        // this.board.clearBoard();
-        // this.board.setGrid(puzzle, true); // Set puzzle grid as initial grid
-
-        // this._setSelectedCell(null, null);
-        // this._updateUI(); // This will clear highlights and draw board
-        // this.timer.start();
-        // this.startAutoSave();
-        // this._saveGame();
+        console.log("[Main] Generation request sent to worker.");
     }
 
     // --- State Update and UI Sync ---
