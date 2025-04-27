@@ -129,7 +129,7 @@ export function generate(clues = 40) {
  * @returns {Promise<boolean>} True if solved, false otherwise.
  */
 export async function solveVisual(board, displayCallback, delay = 50) {
-     const emptyCell = findNextEmptyCell(board);
+    const emptyCell = findNextEmptyCell(board);
     if (!emptyCell) {
         return true; // Board is full, solved
     }

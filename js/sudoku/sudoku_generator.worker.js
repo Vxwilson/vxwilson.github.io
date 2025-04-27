@@ -1,7 +1,9 @@
-import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS} from './constants.js'; // getTechniqueScore might not be needed here anymore
-import { deepCopy2DArray} from './utils.js';
+import {BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS} from './constants.js'; // getTechniqueScore might not be needed here anymore
+import {deepCopy2DArray} from './utils.js';
 import * as SolverBasic from './solver_basic.js';
-import {ratePuzzleDifficulty } from './solver_advanced.js';
+import {ratePuzzleDifficulty } from './solver_rating.js';
+
+
 
 
 console.log('[Worker] Initializing Sudoku Generator Worker...');
@@ -12,6 +14,7 @@ async function generatePuzzleAdvanced(
     maxAttempts = 20,
     onProgressCallback = null 
 ) {
+
     let minClues, maxClues; 
     switch (desiredLevel) {
         case DifficultyLevel.BABY: minClues = 42; maxClues = 50; break;
