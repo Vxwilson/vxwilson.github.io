@@ -1,5 +1,5 @@
 // js/sudoku/solver_advanced.js
-import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS, getTechniqueScore, getDifficultyLevelFromScore} from './constants.js';
+import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS, getTechniqueScore, getDifficultyLevelFromScore } from './constants.js';
 import { checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, getCommonPeers, cellsSeeEachOther } from './utils.js';
 import * as SolverBasic from './solver_basic.js'; // Keep for generation/solve placeholders
 
@@ -136,6 +136,64 @@ function applyEliminations(candidatesMap, eliminations) {
 
 
 // --- Placement Techniques ---
+/**
+ * Finds the simplest step: a unit (row, col, box) with only one empty cell.
+ * @returns {Step | null}
+ */
+function findFullHouse(board, candidatesMap) {
+    for (const unit of allUnits) {
+        let emptyCellsInUnit = [];
+        let unitValues = new Set();
+
+        for (const [r, c] of unit.cells) {
+            if (board[r][c] === 0) {
+                emptyCellsInUnit.push([r, c]);
+            } else {
+                unitValues.add(board[r][c]);
+            }
+        }
+
+        if (emptyCellsInUnit.length === 1) {
+            const [r, c] = emptyCellsInUnit[0];
+            let missingValue = -1;
+            for (let n = 1; n <= BOARD_SIZE; n++) {
+                if (!unitValues.has(n)) {
+                    missingValue = n;
+                    break;
+                }
+            }
+
+            if (missingValue !== -1) {
+                // Double-check: Does the candidate map agree? (Should normally match)
+                const cellKey = `${r}-${c}`;
+                if (candidatesMap.has(cellKey) && !candidatesMap.get(cellKey)?.has(missingValue)) {
+                     console.warn(`Full House contradiction: Cell R${r+1}C${c+1} should be ${missingValue} for ${unit.type} ${unit.index}, but candidate not present in map.`);
+                     // Optionally return null or throw error, depending on desired strictness
+                     continue; // Skip this potential Full House if map disagrees
+                }
+
+                 // Ensure it's not *also* a Naked Single (which would have a higher SE score)
+                 // A Full House *might* also be a Naked Single if all other candidates were eliminated previously.
+                 // The SE scale prioritizes the *reason* it's solvable. If it's the last empty cell in a house, it's Full House.
+                 // We rely on the order in findNextLogicalStep to find Full House first.
+
+                return {
+                    technique: 'Full House',
+                    cell: [r, c],
+                    value: missingValue,
+                    description: `Cell R${r + 1}C${c + 1} is the last empty cell in ${unit.type.toLowerCase()} ${unit.index}, must be ${missingValue}.`,
+                    highlights: [
+                        { row: r, col: c, candidates: [missingValue], type: 'target' },
+                        ...unit.cells
+                            .filter(([ur, uc]) => !(ur === r && uc === c))
+                            .map(([ur, uc]) => ({ row: ur, col: uc, candidates: [], type: 'unit' }))
+                    ]
+                };
+            }
+        }
+    }
+    return null;
+}
 
 /** @returns {Step | null} */
 function findNakedSinglesMap(candidatesMap) {
@@ -166,31 +224,42 @@ function findHiddenSinglesMap(candidatesMap, board) {
             let foundCellKey = null;
 
             for (const [r, c] of unit.cells) {
+                if (board[r][c] !== 0) continue;
                 const cellKey = `${r}-${c}`;
-                if (board[r][c] === 0 && candidatesMap.has(cellKey)) {
-                    if (candidatesMap.get(cellKey)?.has(n)) {
-                        foundCount++;
-                        foundCellCoords = [r, c];
-                        foundCellKey = cellKey;
-                    }
-                }
+                const candidates = candidatesMap.get(cellKey);
+                if (!candidates || !candidates.has(n)) continue;
+
+                // Found a potential location for 'n'
+                foundCount++;
+                foundCellCoords = [r, c];
+                foundCellKey = cellKey;
                 if (foundCount > 1) break;
             }
 
             if (foundCount === 1) {
                 const [r, c] = foundCellCoords;
-                // Ensure it's not also a Naked Single (which would be found first anyway)
-                // but check just in case the order changes later. Size > 1 means it's hidden.
+                // Ensure it's not also a Naked Single (handled by technique order)
+                // Check size > 1 to confirm it's "hidden"
                 if (candidatesMap.get(foundCellKey)?.size > 1) {
+                    // --- Determine specific technique name based on unit type ---
+                    let techniqueName = 'Hidden Single'; // Fallback
+                    if (unit.type === 'Box') {
+                        techniqueName = 'Hidden Single (Box)';
+                    } else if (unit.type === 'Row') {
+                        techniqueName = 'Hidden Single (Row)';
+                    } else if (unit.type === 'Column') {
+                        techniqueName = 'Hidden Single (Col)';
+                    }
+                    // --- ---
+
                     return {
-                        technique: `Hidden Single (${unit.type} ${unit.index})`,
+                        // Use the specific name for scoring
+                        technique: techniqueName,
                         cell: [r, c],
                         value: n,
                         description: `Cell R${r + 1}C${c + 1} must be ${n} (only place for ${n} in ${unit.type.toLowerCase()} ${unit.index}).`,
                         highlights: [
-                            // Highlight the target cell showing the hidden single candidate
                             { row: r, col: c, candidates: [n], type: 'target' },
-                            // Highlight other cells in the unit (without specific candidates)
                             ...unit.cells
                                 .filter(([ur, uc]) => !(ur === r && uc === c))
                                 .map(([ur, uc]) => ({ row: ur, col: uc, candidates: [], type: 'unit' }))
@@ -198,6 +267,7 @@ function findHiddenSinglesMap(candidatesMap, board) {
                     };
                 }
             }
+
         }
     }
     return null; // No hidden single found
@@ -332,9 +402,11 @@ function findLockedCandidates(candidatesMap) {
                 }
 
                 if (claimingElims.length > 0) {
+                 
+                    u_type = unit.type === 'Row' ? 'Row' : 'Col';
                     const stepInfo = {
-                        technique: `Locked Candidates (Claiming ${unit.type})`,
-                        description: `Digit ${n} in ${unit.type} ${unit.index} is confined to Box ${boxIndexUI}. Removed from other cells in Box ${boxIndexUI}.`,
+                        technique: `Locked Candidates (Claiming ${u_type})`,
+                        description: `Digit ${n} in ${u_type} ${unit.index} is confined to Box ${boxIndexUI}. Removed from other cells in Box ${boxIndexUI}.`,
                         eliminations: claimingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
                         highlights: [
                             // Highlight the defining cells in the line showing the candidate 'n'
@@ -346,7 +418,7 @@ function findLockedCandidates(candidatesMap) {
                             })
                         ]
                     };
-                    console.log(`  >> Found Potential Claiming (${n} in ${unit.type} ${unit.index} -> Box ${boxIndexUI}). Eliminations:`, claimingElims.map(e => e.cellKey));
+                    console.log(`  >> Found Potential Claiming (${n} in ${u_type} ${unit.index} -> Box ${boxIndexUI}). Eliminations:`, claimingElims.map(e => e.cellKey));
                     return { eliminations: claimingElims, stepInfo: stepInfo };
                 }
             } // End Claiming Check
@@ -437,6 +509,67 @@ function findNakedPairs(candidatesMap) { // Renamed for clarity
     return { eliminations: [], stepInfo: null };
 }
 
+// Example: findNakedTriples (Adapt from findNakedPairs)
+function findNakedTriples(candidatesMap) {
+    const N = 3; // Size of the subset
+    for (const unit of allUnits) {
+        const potentialTripleCells = unit.cells
+            .map(([r, c]) => ({ key: `${r}-${c}`, candidates: candidatesMap.get(`${r}-${c}`) }))
+            .filter(cell => cell.candidates && cell.candidates.size > 0 && cell.candidates.size <= N); // Cells with N or fewer candidates
+
+        if (potentialTripleCells.length < N) continue;
+
+        const combinations = getCombinations(potentialTripleCells, N); // Get combinations of size N
+
+        for (const combo of combinations) { // combo is an array of N cells
+            const union = new Set();
+            combo.forEach(cell => cell.candidates.forEach(cand => union.add(cand)));
+
+            if (union.size === N) { // It's a Naked Triple (exactly N candidates across N cells)
+                const subsetValues = Array.from(union); // The N candidates
+                const subsetKeys = new Set(combo.map(cell => cell.key));
+                const unitElims = [];
+
+                // Find eliminations in other cells of the unit
+                for (const [r, c] of unit.cells) {
+                    const cellKey = `${r}-${c}`;
+                    if (!subsetKeys.has(cellKey)) { // If it's not one of the triple cells
+                        const cellCandidates = candidatesMap.get(cellKey);
+                        if (cellCandidates) {
+                            const elimValues = subsetValues.filter(val => cellCandidates.has(val));
+                            if (elimValues.length > 0) {
+                                unitElims.push({ cellKey: cellKey, values: elimValues });
+                            }
+                        }
+                    }
+                }
+
+                if (unitElims.length > 0) {
+                    const subsetCellsCoords = combo.map(c => c.key.split('-').map(Number));
+                    const stepInfo = {
+                        technique: `Naked Triplet`, // Specific name for scoring
+                        description: `Cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] form a Naked Triplet of (${subsetValues.join(', ')}). These digits removed from other cells in ${unit.type.toLowerCase()} ${unit.index}.`,
+                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the defining cells
+                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: subsetValues, type: 'defining' })), // Highlight N candidates in N cells
+                            // Highlight the eliminations
+                            ...unitElims.map(elim => {
+                                const [er, ec] = elim.cellKey.split('-').map(Number);
+                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                            })
+                        ]
+                    };
+                    console.log(`  >> Found Potential Naked Triplet (${subsetValues.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                    return { eliminations: unitElims, stepInfo: stepInfo };
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+// Adapt similarly for HiddenTriple, NakedQuad, HiddenQuad
+
 /**
  * Finds the FIRST Hidden Pair within any unit that results in actual eliminations.
  * @param {Map<string, Set<number>>} candidatesMap
@@ -499,16 +632,105 @@ function findHiddenPairs(candidatesMap, board) { // Renamed for clarity
                             highlights: [
                                 // Highlight the two cells forming the pair, showing *only* the hidden pair candidates
                                 ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
-                                // Optionally, highlight the eliminated values *within* the pair cells - can be noisy
-                                // ...unitElims.map(elim => {
-                                //     const [er, ec] = elim.cellKey.split('-').map(Number);
-                                //     return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
-                                // })
                             ]
                         };
                         console.log(`  >> Found Potential Hidden Pair (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
                         return { eliminations: unitElims, stepInfo: stepInfo };
                     }
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+
+function findHiddenTriples(candidatesMap, board) {
+    const N = 3; // Size of the subset
+    for (const unit of allUnits) {
+        const unitCellKeys = unit.cells
+            .filter(([r, c]) => board[r][c] === 0)
+            .map(([r, c]) => `${r}-${c}`)
+            .filter(key => candidatesMap.has(key));
+
+        if (unitCellKeys.length < N) continue;
+
+        // Map: digit -> Set<cellKey> where digit is a candidate
+        const digitLocations = new Map();
+        for (let n = 1; n <= BOARD_SIZE; n++) {
+            digitLocations.set(n, new Set());
+        }
+        unitCellKeys.forEach(key => {
+            candidatesMap.get(key)?.forEach(n => {
+                digitLocations.get(n).add(key);
+            });
+        });
+
+        // Find digits that appear as candidates in 2 or N cells within the unit
+        const possibleTripleDigits = Array.from(digitLocations.keys())
+            .filter(n => digitLocations.get(n).size >= 2 && digitLocations.get(n).size <= N);
+
+        if (possibleTripleDigits.length < N) continue;
+
+        // Get combinations of N digits
+        const digitCombinations = getCombinations(possibleTripleDigits, N);
+
+        for (const digitCombo of digitCombinations) { // e.g., [1, 4, 9]
+            // Find all cells where *any* of these N digits appear
+            const cellsUnion = new Set();
+            digitCombo.forEach(digit => {
+                digitLocations.get(digit).forEach(cellKey => cellsUnion.add(cellKey));
+            });
+
+            // Check if these N digits are restricted to exactly N cells
+            if (cellsUnion.size === N) {
+                // Now, verify that *each* of the N digits is actually present within this set of N cells
+                let allDigitsPresentInUnion = true;
+                for(const digit of digitCombo) {
+                    const locationsForDigit = digitLocations.get(digit);
+                    if (![...locationsForDigit].some(loc => cellsUnion.has(loc))) {
+                        allDigitsPresentInUnion = false;
+                        break;
+                    }
+                    // Also ensure the digit doesn't appear *outside* these N cells within the unit
+                    if ([...locationsForDigit].some(loc => !cellsUnion.has(loc))) {
+                         allDigitsPresentInUnion = false; // This check might be redundant due to cellsUnion.size === N logic, but safer
+                         break;
+                    }
+                }
+
+                if (!allDigitsPresentInUnion) continue;
+
+
+                // It's a Hidden Triple
+                const subsetCellKeys = Array.from(cellsUnion); // The keys of the N cells
+                const unitElims = [];
+
+                // Eliminate candidates *other than* the triple's digits from these N cells
+                for (const cellKey of subsetCellKeys) {
+                    const candidates = candidatesMap.get(cellKey);
+                    if (candidates) {
+                        const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
+                        if (elimValues.length > 0) {
+                            unitElims.push({ cellKey: cellKey, values: elimValues });
+                        }
+                    }
+                }
+
+                if (unitElims.length > 0) {
+                    const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
+                    const stepInfo = {
+                        technique: `Hidden Triplet`, // Specific name for scoring
+                        description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these ${N} cells.`,
+                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the N cells forming the triple, showing *only* the hidden triple candidates
+                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
+                            // Highlight the specific candidates being eliminated within those N cells
+                            // (Alternative: Could highlight the eliminated candidates in the UI differently)
+                        ]
+                    };
+                    console.log(`  >> Found Potential Hidden Triplet (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                    return { eliminations: unitElims, stepInfo: stepInfo };
                 }
             }
         }
@@ -663,104 +885,6 @@ function findXWing(candidatesMap) {
 
 // --- Elimination Techniques (Continued) ---
 
-
-// /**
-//  * Helper for W-Wing: Checks if assuming 'candidate' is eliminated from cells
-//  * seeing cell1 or cell2 would leave no place for 'candidate' in a specific unit.
-//  * This attempts to verify a "strong link" based on the provided comment logic.
-//  *
-//  * @param {Map<string, Set<number>>} candidatesMap - The current full candidate map.
-//  * @param {string} cell1Key - Key of the first bivalue cell ('r-c').
-//  * @param {string} cell2Key - Key of the second bivalue cell ('r-c').
-//  * @param {number} candidate - The candidate value to check the strong link for (e.g., the 'B' if checking elim for 'A').
-//  * @returns {boolean} True if the condition (elimination + no remaining spots) is met for ANY unit, false otherwise.
-//  */
-// function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate) {
-//     const [r1, c1] = cell1Key.split('-').map(Number);
-//     const [r2, c2] = cell2Key.split('-').map(Number);
-//     // console.log(`  Helper checking link for ${candidate} between ${cell1Key} and ${cell2Key}`);
-
-//     for (const unit of allUnits) {
-//         // Get the keys of cells within this unit
-//         const unitCellKeys = new Set(unit.cells.map(([r, c]) => `${r}-${c}`));
-
-//         // --- Simulation within this unit ---
-//         let eliminationHappenedInUnit = false;
-//         const possibleLocationsForCandidate = new Set(); // Track where 'candidate' COULD be in this unit initially
-
-//         // 1. Find initial possible locations for 'candidate' within this unit
-//         for (const [r_unit, c_unit] of unit.cells) {
-//             const key = `${r_unit}-${c_unit}`;
-//             if (candidatesMap.get(key)?.has(candidate)) {
-//                 possibleLocationsForCandidate.add(key);
-//             }
-//         }
-
-//         // If the candidate doesn't even exist in this unit initially, this unit cannot prove the link.
-//         if (possibleLocationsForCandidate.size === 0) {
-//             // console.log(`    Helper: Unit ${unit.type} ${unit.index} has no ${candidate} initially.`);
-//             continue;
-//         }
-
-//         const initialSize = possibleLocationsForCandidate.size;
-//         // console.log(`    Helper: Unit ${unit.type} ${unit.index} initially has ${candidate} in ${initialSize} cells: [${Array.from(possibleLocationsForCandidate).join(', ')}]`);
-
-//         // 2. Simulate eliminations: Remove 'candidate' from unit cells that see cell1 OR cell2
-//         const keysToRemove = new Set();
-//         for (const unitCellKey of possibleLocationsForCandidate) {
-//             // We only care about cells *currently* in our possibleLocationsForCandidate set
-//             const [r_unit, c_unit] = unitCellKey.split('-').map(Number);
-
-//             // Check if this unit cell sees either of the W-Wing endpoint cells
-//             // Note: A cell doesn't "see" itself in the peer sense, but it might see the *other* wing cell.
-//             // We need to be careful not to eliminate candidate from cell1 or cell2 based on seeing *itself*.
-//             // The `cellsSeeEachOther` function handles row/col/box peer checks.
-//             let seesWingEndpoint = false;
-//             if (unitCellKey !== cell1Key && cellsSeeEachOther(r_unit, c_unit, r1, c1)) {
-//                  seesWingEndpoint = true;
-//                 // console.log(`      Helper: ${unitCellKey} sees ${cell1Key}`);
-//             }
-//             if (unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2)) {
-//                  seesWingEndpoint = true;
-//                 // console.log(`      Helper: ${unitCellKey} sees ${cell2Key}`);
-//             }
-
-
-//             if (seesWingEndpoint) {
-//                 // If this cell (which initially has 'candidate') sees one of the wing cells,
-//                 // mark it for removal from our temporary set.
-//                 keysToRemove.add(unitCellKey);
-//                 // console.log(`      Helper: Marked ${unitCellKey} for removal (sees wing endpoint).`);
-//             }
-//         }
-
-//         // Perform the removals
-//         if (keysToRemove.size > 0) {
-//             eliminationHappenedInUnit = true; // At least one hypothetical elimination occurred
-//             keysToRemove.forEach(key => possibleLocationsForCandidate.delete(key));
-//         }
-
-//         // 3. Check the condition: Was an elimination made AND no spots left?
-//         const finalSize = possibleLocationsForCandidate.size;
-//         // console.log(`    Helper: Unit ${unit.type} ${unit.index} after hypothetical elims has ${finalSize} cells for ${candidate}: [${Array.from(possibleLocationsForCandidate).join(', ')}]. Elimination happened: ${eliminationHappenedInUnit}`);
-
-//         if (eliminationHappenedInUnit && finalSize === 0) {
-//             // If *any* candidate was removed due to the 'seeing' rule,
-//             // AND the unit now has zero places left for that candidate,
-//             // then the condition is met for this unit.
-//             // console.log(`  Helper: Strong link for ${candidate} CONFIRMED via unit ${unit.type} ${unit.index}.`);
-//             return true;
-//         }
-//         // else {
-//             // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by unit ${unit.type} ${unit.index}. (Elimination: ${eliminationHappenedInUnit}, Final Size: ${finalSize})`);
-//         // }
-
-//     } // End loop through units
-
-//     // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by ANY unit.`);
-//     return false; // Condition not met for any unit
-// }
-
 /**
  * Helper for W-Wing: Checks if assuming 'candidate' is eliminated from cells
  * seeing cell1 or cell2 would leave no place for 'candidate' in a specific unit.
@@ -796,9 +920,6 @@ function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate
             continue; // Candidate not present in this unit initially
         }
 
-        // const initialSize = possibleLocationsForCandidate.size;
-        // console.log(`    Helper: Unit ${unit.type} ${unit.index} initially has ${candidate} in ${initialSize} cells: [${Array.from(possibleLocationsForCandidate).join(', ')}]`);
-
         // 2. Simulate eliminations
         const keysToRemove = new Set();
         for (const unitCellKey of possibleLocationsForCandidate) {
@@ -810,7 +931,6 @@ function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate
             if (!seesWingEndpoint && unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2)) { // Use 'else if' structure potentially slightly faster? no, need to check both independently. check changed logic
                 seesWingEndpoint = true; // Correction: Check separately, a cell might see both
             }
-            // Re-checking original separate logic - A cell seeing EITHER is enough
             let seesWing1 = unitCellKey !== cell1Key && cellsSeeEachOther(r_unit, c_unit, r1, c1);
             let seesWing2 = unitCellKey !== cell2Key && cellsSeeEachOther(r_unit, c_unit, r2, c2);
 
@@ -828,17 +948,12 @@ function WWingFindInvalidUnitHelper(candidatesMap, cell1Key, cell2Key, candidate
 
         // 3. Check the condition: Was an elimination made AND no spots left?
         const finalSize = possibleLocationsForCandidate.size;
-        // console.log(`    Helper: Unit ${unit.type} ${unit.index} after hypothetical elims has ${finalSize} cells for ${candidate}. Elimination happened: ${eliminationHappenedInUnit}`);
-
         if (eliminationHappenedInUnit && finalSize === 0) {
-            // Condition met! Return the unit object itself.
-            // console.log(`  Helper: Strong link for ${candidate} CONFIRMED via unit ${unit.type} ${unit.index}.`);
-            return unit; // <<< CHANGE: Return the unit object
+            return unit;
         }
-    } // End loop through units
+    }
 
-    // console.log(`  Helper: Strong link for ${candidate} NOT confirmed by ANY unit.`);
-    return null; // <<< CHANGE: Return null if no unit confirmed the link
+    return null;
 }
 
 /**
@@ -867,7 +982,7 @@ function findWWing(candidatesMap) {
         const c2Candidates = cell2.candidatesList;
         if (
             !((candA === c2Candidates[0] && candB === c2Candidates[1]) ||
-              (candA === c2Candidates[1] && candB === c2Candidates[0])) ||
+                (candA === c2Candidates[1] && candB === c2Candidates[0])) ||
             cellsSeeEachOther(cell1.r, cell1.c, cell2.r, cell2.c)
         ) {
             continue;
@@ -888,7 +1003,7 @@ function findWWing(candidatesMap) {
         // Check Hypothesis 1: Strong link on candB? -> Eliminate candA from peers
         linkUnit = WWingFindInvalidUnitHelper(candidatesMap, cell1.key, cell2.key, candB);
         if (linkUnit) { // <<< Check if a unit was returned
-             // console.log(`  Strong link confirmed for ${candB} via ${linkUnit.type} ${linkUnit.index}. Checking peers for ${candA}...`);
+            // console.log(`  Strong link confirmed for ${candB} via ${linkUnit.type} ${linkUnit.index}. Checking peers for ${candA}...`);
             for (const peerKey of commonPeersKeys) {
                 if (candidatesMap.get(peerKey)?.has(candA)) {
                     wingElims.push({ cellKey: peerKey, values: [candA] });
@@ -915,7 +1030,7 @@ function findWWing(candidatesMap) {
                         // console.log(`    Elimination found: Remove ${candB} from ${peerKey}`);
                     }
                 }
-                 // Keep linkUnit if eliminations were found, otherwise clear it
+                // Keep linkUnit if eliminations were found, otherwise clear it
                 if (wingElims.length === 0) linkUnit = null;
             }
         }
@@ -923,13 +1038,13 @@ function findWWing(candidatesMap) {
 
         // 6. If eliminations were found, build step and return
         if (wingElims.length > 0 && linkUnit) { // <<< Ensure linkUnit is valid
-             const firstElim = wingElims[0];
-             const eliminatedPeerCoords = firstElim.cellKey.split('-').map(Number);
+            const firstElim = wingElims[0];
+            const eliminatedPeerCoords = firstElim.cellKey.split('-').map(Number);
 
-             const stepInfo = {
+            const stepInfo = {
                 technique: `W-Wing`,
                 // <<< Update description to include the unit type/index
-                description: `Cells R${cell1.r + 1}C${cell1.c + 1} and R${cell2.r + 1}C${cell2.c + 1} (both ${candA}/${candB}) form a W-Wing. A strong link on ${identifiedLinkValue} exists between them (verified in ${linkUnit.type} ${linkUnit.index}). Candidate ${identifiedElimValue} can be removed from common peer(s) like R${eliminatedPeerCoords[0]+1}C${eliminatedPeerCoords[1]+1}.`,
+                description: `Cells R${cell1.r + 1}C${cell1.c + 1} and R${cell2.r + 1}C${cell2.c + 1} (both ${candA}/${candB}) form a W-Wing. A strong link on ${identifiedLinkValue} exists between them (verified in ${linkUnit.type} ${linkUnit.index}). Candidate ${identifiedElimValue} can be removed from common peer(s) like R${eliminatedPeerCoords[0] + 1}C${eliminatedPeerCoords[1] + 1}.`,
                 eliminations: wingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
                 highlights: [
                     // Highlight the two wing cells (defining)
@@ -953,7 +1068,7 @@ function findWWing(candidatesMap) {
                     )
                 ]
             };
-            console.log(`  >> Found W-Wing between ${cell1.key} and ${cell2.key} (Link ${identifiedLinkValue} in ${linkUnit.type} ${linkUnit.index}, Elim ${identifiedElimValue}). Eliminations:`, wingElims.map(e=>e.cellKey));
+            console.log(`  >> Found W-Wing between ${cell1.key} and ${cell2.key} (Link ${identifiedLinkValue} in ${linkUnit.type} ${linkUnit.index}, Elim ${identifiedElimValue}). Eliminations:`, wingElims.map(e => e.cellKey));
             return { eliminations: wingElims, stepInfo: stepInfo };
         } else {
             // console.log(`  No effective W-Wing eliminations found for pair ${cell1.key}/${cell2.key}.`);
@@ -963,6 +1078,120 @@ function findWWing(candidatesMap) {
     return { eliminations: [], stepInfo: null }; // No W-Wing found
 }
 
+/**
+ * Finds the FIRST Y-Wing pattern that results in actual eliminations.
+ * Structure: Pivot(AB), Wing1(AC), Wing2(BC), where Wings see Pivot.
+ * Eliminate C from common peers of Wing1 and Wing2.
+ *
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+ */
+function findYWing(candidatesMap) {
+    // 1. Find all bivalue cells
+    const bivalueCells = [];
+    for (const [key, candidates] of candidatesMap.entries()) {
+        if (candidates.size === 2) {
+            const [r, c] = key.split('-').map(Number);
+            bivalueCells.push({ key, r, c, candidatesList: Array.from(candidates) });
+        }
+    }
+    if (bivalueCells.length < 3) return { eliminations: [], stepInfo: null }; // Need at least 3 bivalue cells
+
+    // 2. Iterate through potential pivots
+    for (const pivot of bivalueCells) {
+        const [candA, candB] = pivot.candidatesList; // Pivot candidates {A, B}
+
+        // 3. Find potential wings (bivalue cells that see the pivot)
+        const potentialWings = bivalueCells.filter(wing =>
+            wing.key !== pivot.key && cellsSeeEachOther(wing.r, wing.c, pivot.r, pivot.c)
+        );
+
+        if (potentialWings.length < 2) continue; // Need at least two wings seeing the pivot
+
+        // 4. Iterate through pairs of potential wings
+        const wingCombinations = getCombinations(potentialWings, 2);
+
+        for (const [wing1, wing2] of wingCombinations) {
+            const wing1Cands = wing1.candidatesList; // Wing1 candidates {?, ?}
+            const wing2Cands = wing2.candidatesList; // Wing2 candidates {?, ?}
+
+            // 5. Check the specific Y-Wing candidate pattern
+            let candC = -1; // The elimination candidate
+            let foundPattern = false;
+
+            // Case 1: Wing1={A, C}, Wing2={B, C}
+            if (wing1Cands.includes(candA) && !wing1Cands.includes(candB) &&
+                wing2Cands.includes(candB) && !wing2Cands.includes(candA)) {
+                const commonCandW1 = wing1Cands.find(c => c !== candA);
+                const commonCandW2 = wing2Cands.find(c => c !== candB);
+                if (commonCandW1 === commonCandW2 && commonCandW1 !== candA && commonCandW1 !== candB) {
+                    candC = commonCandW1;
+                    foundPattern = true;
+                }
+            }
+            // Case 2: Wing1={B, C}, Wing2={A, C} (swap roles of A/B compared to pivot)
+            else if (wing1Cands.includes(candB) && !wing1Cands.includes(candA) &&
+                wing2Cands.includes(candA) && !wing2Cands.includes(candB)) {
+                const commonCandW1 = wing1Cands.find(c => c !== candB);
+                const commonCandW2 = wing2Cands.find(c => c !== candA);
+                if (commonCandW1 === commonCandW2 && commonCandW1 !== candA && commonCandW1 !== candB) {
+                    candC = commonCandW1;
+                    foundPattern = true;
+                    // Note: We are still consistent here. The pivot has A, B.
+                    // Wing1 has B, C. Wing2 has A, C. The logic holds.
+                }
+            }
+
+            if (foundPattern && candC !== -1) {
+                // 6. Found a valid Y-Wing structure. Find common peers of the TWO WINGS.
+                const commonPeersKeys = getCommonPeers(wing1.r, wing1.c, wing2.r, wing2.c);
+                const yWingElims = [];
+
+                for (const peerKey of commonPeersKeys) {
+                    // Important: Do not eliminate from the pivot itself
+                    if (peerKey === pivot.key) continue;
+
+                    if (candidatesMap.get(peerKey)?.has(candC)) {
+                        yWingElims.push({ cellKey: peerKey, values: [candC] });
+                    }
+                }
+
+                // 7. If eliminations were found, create step and return
+                if (yWingElims.length > 0) {
+                    // Determine the actual A', B' used for description clarity
+                    // A' is the one shared by pivot and wing1, B' shared by pivot and wing2
+                    const actualCandA_prime = wing1Cands.find(c => c === candA || c === candB);
+                    const actualCandB_prime = wing2Cands.find(c => c === candA || c === candB);
+
+                    const stepInfo = {
+                        technique: `Y-Wing`,
+                        description: `Pivot R${pivot.r + 1}C${pivot.c + 1} (${actualCandA_prime}, ${actualCandB_prime}), Wing1 R${wing1.r + 1}C${wing1.c + 1} (${actualCandA_prime}, ${candC}), Wing2 R${wing2.r + 1}C${wing2.c + 1} (${actualCandB_prime}, ${candC}) form a Y-Wing. Candidate ${candC} can be removed from cells seeing both wings.`,
+                        eliminations: yWingElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the pivot
+                            { row: pivot.r, col: pivot.c, candidates: [candA, candB], type: 'defining' }, // Show original pivot candidates
+                            // Highlight wing 1
+                            { row: wing1.r, col: wing1.c, candidates: wing1Cands, type: 'defining' }, // Show original wing candidates
+                            // Highlight wing 2
+                            { row: wing2.r, col: wing2.c, candidates: wing2Cands, type: 'defining' }, // Show original wing candidates
+                            // Highlight the candidates being eliminated
+                            ...yWingElims.map(elim => {
+                                const [er, ec] = elim.cellKey.split('-').map(Number);
+                                return { row: er, col: ec, candidates: [candC], type: 'eliminated' };
+                            })
+                        ]
+                    };
+                    console.log(`  >> Found Potential Y-Wing (Pivot ${pivot.key}, Wings ${wing1.key}, ${wing2.key}, Elim ${candC}). Eliminations:`, yWingElims.map(e => e.cellKey));
+                    return { eliminations: yWingElims, stepInfo: stepInfo };
+                }
+            } // End if foundPattern
+        } // End loop wing combinations
+    } // End loop pivots
+
+    return { eliminations: [], stepInfo: null }; // No Y-Wing found
+}
+
+
 // --- Main Solver Step Function ---
 /**
  * Finds the single next logical step (placement or elimination).
@@ -971,7 +1200,140 @@ function findWWing(candidatesMap) {
  * @param {Map<string, Set<number>> | null} currentCandidatesMap - The candidate map reflecting current pencil marks. If null, it will be initialized.
  * @returns {SolverResult} The result, containing either the step, stuck, solved, or error.
  */
+// function findNextLogicalStep(board, currentCandidatesMap) {
+//     if (!findNextEmptyCell(board)) {
+//         return { status: 'solved', steps: [], message: 'Board is already solved.' };
+//     }
+
+//     let candidatesMap;
+//     if (currentCandidatesMap) {
+//         // Create a *copy* of the passed map to avoid modifying the game's state directly
+//         // during the solver's internal 'applyEliminations' checks.
+//         candidatesMap = new Map();
+//         for (const [key, valueSet] of currentCandidatesMap.entries()) {
+//             candidatesMap.set(key, new Set(valueSet));
+//         }
+//         console.log("Solver using pre-generated candidates map.");
+//     } else {
+//         // Fallback: Initialize if no map was provided (e.g., first hint on empty board)
+//         console.log("Solver initializing candidates map from board.");
+//         candidatesMap = initializeCandidatesMap(board);
+//         if (!candidatesMap) {
+//             return { status: 'error', steps: [], message: 'Board has an immediate contradiction or is invalid.' };
+//         }
+//     }
+
+//     // Basic check: If the map has no entries for any empty cells, we are stuck.
+//     let hasAnyCandidates = false;
+//     for (let r = 0; r < BOARD_SIZE; r++) {
+//         for (let c = 0; c < BOARD_SIZE; c++) {
+//             if (board[r][c] === 0 && candidatesMap.has(`${r}-${c}`)) {
+//                 hasAnyCandidates = true;
+//                 break;
+//             }
+//         }
+//         if (hasAnyCandidates) break;
+//     }
+//     if (!hasAnyCandidates && findNextEmptyCell(board)) {
+//         console.log("Solver stuck: No candidates available in the provided/generated map for empty cells.");
+//         return { status: 'stuck', steps: [], message: 'No candidates available to analyze. Try auto-filling pencil marks?' };
+//     }
+
+
+//     // --- 1. Check for Placement Techniques ---
+//     const nakedSingleStep = findNakedSinglesMap(candidatesMap); // Pass the map
+//     if (nakedSingleStep) {
+//         console.log("Found Naked Single");
+//         return { status: 'found_step', steps: [nakedSingleStep] };
+//     }
+
+//     const hiddenSingleStep = findHiddenSinglesMap(candidatesMap, board); // Pass map and board
+//     if (hiddenSingleStep) {
+//         console.log("Found Hidden Single");
+//         return { status: 'found_step', steps: [hiddenSingleStep] };
+//     }
+
+//     // --- 2. Check for Elimination Techniques ---
+//     try {
+//         // Locked Candidates
+//         const lockedResult = findLockedCandidates(candidatesMap); // Pass the map
+//         if (lockedResult.stepInfo && lockedResult.eliminations.length > 0) {
+//             // Try applying the eliminations to our *local copy* of the map
+//             if (applyEliminations(candidatesMap, lockedResult.eliminations)) {
+//                 console.log("Applied Locked Candidates - Returning Step");
+//                 // Return the stepInfo derived from the *original* state before applyEliminations
+//                 return { status: 'found_step', steps: [lockedResult.stepInfo] };
+//             } else {
+//                 console.log("Locked Candidates found, but caused no effective eliminations on current map.");
+//             }
+//         }
+
+//         // Naked Pairs
+//         const nakedPairResult = findNakedPairs(candidatesMap); // Pass the map
+//         if (nakedPairResult.stepInfo && nakedPairResult.eliminations.length > 0) {
+//             if (applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
+//                 console.log("Applied Naked Pair - Returning Step");
+//                 return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
+//             } else {
+//                 console.log("Naked Pair found, but caused no effective eliminations on current map.");
+//             }
+//         }
+
+//         // Hidden Pairs
+//         const hiddenPairResult = findHiddenPairs(candidatesMap, board); // Pass map and board
+//         if (hiddenPairResult.stepInfo && hiddenPairResult.eliminations.length > 0) {
+//             if (applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
+//                 console.log("Applied Hidden Pair - Returning Step");
+//                 return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
+//             } else {
+//                 console.log("Hidden Pair found, but caused no effective eliminations on current map.");
+//             }
+//         }
+
+//         // --- X-Wing --- << ADDED HERE
+//         const xWingResult = findXWing(candidatesMap);
+//         if (xWingResult.stepInfo && xWingResult.eliminations.length > 0) {
+//             if (applyEliminations(candidatesMap, xWingResult.eliminations)) {
+//                 console.log("Applied X-Wing - Returning Step");
+//                 return { status: 'found_step', steps: [xWingResult.stepInfo] };
+//             } else {
+//                 console.log("X-Wing found, but caused no effective eliminations on current map.");
+//             }
+//         }
+
+//         // Y-Wing <<<< ADDED HERE
+//         const yWingResult = findYWing(candidatesMap);
+//         if (yWingResult.stepInfo && applyEliminations(candidatesMap, yWingResult.eliminations)) {
+//             console.log("Applied Y-Wing - Returning Step");
+//             return { status: 'found_step', steps: [yWingResult.stepInfo] };
+//         } else{
+//             console.log("no Y-Wing eliminations found.");
+//         }
+
+//         // --- W-Wing --- << ADDED HERE
+//         const wWingResult = findWWing(candidatesMap);
+//         if (wWingResult.stepInfo && applyEliminations(candidatesMap, wWingResult.eliminations)) {
+//             console.log("Applied W-Wing - Returning Step");
+//             return { status: 'found_step', steps: [wWingResult.stepInfo] };
+//         }
+
+//         console.log("Solver: No effective step found with w");
+
+//         // --- Add more complex elimination techniques here ---
+//         // e.g., findSwordfish, findJellyfish, findSkyscraper...
+
+//     } catch (error) {
+//         console.error("Solver caught contradiction:", error);
+//         return { status: 'error', steps: [], message: error.message || 'Contradiction found during solving.' };
+//     }
+
+//     // --- 3. If no step was found ---
+//     console.log("Solver stuck: No placement or effective elimination found based on current candidates.");
+//     return { status: 'stuck', steps: [], message: 'No further progress possible with implemented techniques on the current candidate state.' };
+// }
+
 function findNextLogicalStep(board, currentCandidatesMap) {
+
     if (!findNextEmptyCell(board)) {
         return { status: 'solved', steps: [], message: 'Board is already solved.' };
     }
@@ -1010,89 +1372,113 @@ function findNextLogicalStep(board, currentCandidatesMap) {
         return { status: 'stuck', steps: [], message: 'No candidates available to analyze. Try auto-filling pencil marks?' };
     }
 
-
-    // --- 1. Check for Placement Techniques ---
-    const nakedSingleStep = findNakedSinglesMap(candidatesMap); // Pass the map
-    if (nakedSingleStep) {
-        console.log("Found Naked Single");
-        return { status: 'found_step', steps: [nakedSingleStep] };
-    }
-
-    const hiddenSingleStep = findHiddenSinglesMap(candidatesMap, board); // Pass map and board
-    if (hiddenSingleStep) {
-        console.log("Found Hidden Single");
-        return { status: 'found_step', steps: [hiddenSingleStep] };
-    }
-
-    // --- 2. Check for Elimination Techniques ---
     try {
-        // Locked Candidates
-        const lockedResult = findLockedCandidates(candidatesMap); // Pass the map
-        if (lockedResult.stepInfo && lockedResult.eliminations.length > 0) {
-            // Try applying the eliminations to our *local copy* of the map
-            if (applyEliminations(candidatesMap, lockedResult.eliminations)) {
-                console.log("Applied Locked Candidates - Returning Step");
-                // Return the stepInfo derived from the *original* state before applyEliminations
-                return { status: 'found_step', steps: [lockedResult.stepInfo] };
-            } else {
-                console.log("Locked Candidates found, but caused no effective eliminations on current map.");
-            }
+        // --- Technique Order (Ascending SE Score) ---
+
+        // SE ~1.0
+        const fullHouseStep = findFullHouse(board, candidatesMap); // Pass the *copied* map
+        if (fullHouseStep) {
+             console.log("Found Full House");
+             return { status: 'found_step', steps: [fullHouseStep] };
         }
 
-        // Naked Pairs
-        const nakedPairResult = findNakedPairs(candidatesMap); // Pass the map
-        if (nakedPairResult.stepInfo && nakedPairResult.eliminations.length > 0) {
-            if (applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
-                console.log("Applied Naked Pair - Returning Step");
-                return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
-            } else {
-                console.log("Naked Pair found, but caused no effective eliminations on current map.");
-            }
+
+        // SE 1.2 / 1.5
+        const hiddenSingleStep = findHiddenSinglesMap(candidatesMap, board);
+        if (hiddenSingleStep) {
+             console.log(`Found ${hiddenSingleStep.technique}`);
+             return { status: 'found_step', steps: [hiddenSingleStep] };
         }
 
-        // Hidden Pairs
-        const hiddenPairResult = findHiddenPairs(candidatesMap, board); // Pass map and board
-        if (hiddenPairResult.stepInfo && hiddenPairResult.eliminations.length > 0) {
-            if (applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
-                console.log("Applied Hidden Pair - Returning Step");
-                return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
-            } else {
-                console.log("Hidden Pair found, but caused no effective eliminations on current map.");
-            }
+        // SE 2.3
+        const nakedSingleStep = findNakedSinglesMap(candidatesMap);
+        if (nakedSingleStep) {
+             console.log("Found Naked Single");
+             return { status: 'found_step', steps: [nakedSingleStep] };
         }
 
-        // --- X-Wing --- << ADDED HERE
-        const xWingResult = findXWing(candidatesMap);
-        if (xWingResult.stepInfo && xWingResult.eliminations.length > 0) {
-            if (applyEliminations(candidatesMap, xWingResult.eliminations)) {
-                console.log("Applied X-Wing - Returning Step");
-                return { status: 'found_step', steps: [xWingResult.stepInfo] };
-            } else {
-                console.log("X-Wing found, but caused no effective eliminations on current map.");
-            }
+        // SE 2.6 / 2.8
+        const lockedResult = findLockedCandidates(candidatesMap);
+        if (lockedResult.stepInfo && applyEliminations(candidatesMap, lockedResult.eliminations)) {
+            console.log(`Applied ${lockedResult.stepInfo.technique} - Returning Step`);
+            return { status: 'found_step', steps: [lockedResult.stepInfo] };
         }
 
-        // --- W-Wing --- << ADDED HERE
+        // SE 3.0
+        const nakedPairResult = findNakedPairs(candidatesMap);
+        if (nakedPairResult.stepInfo && applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
+            console.log("Applied Naked Pair - Returning Step");
+            return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
+        }
+
+        // SE 3.1
         const wWingResult = findWWing(candidatesMap);
         if (wWingResult.stepInfo && applyEliminations(candidatesMap, wWingResult.eliminations)) {
             console.log("Applied W-Wing - Returning Step");
             return { status: 'found_step', steps: [wWingResult.stepInfo] };
         }
 
-        console.log("Solver: No effective step found with w");
+        // SE 3.2
+        const xWingResult = findXWing(candidatesMap);
+        if (xWingResult.stepInfo && applyEliminations(candidatesMap, xWingResult.eliminations)) {
+            console.log("Applied X-Wing - Returning Step");
+            return { status: 'found_step', steps: [xWingResult.stepInfo] };
+        }
 
-        // --- Add more complex elimination techniques here ---
-        // e.g., findSwordfish, findJellyfish, findSkyscraper...
+        // SE 3.4
+        const hiddenPairResult = findHiddenPairs(candidatesMap, board);
+        if (hiddenPairResult.stepInfo && applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
+            console.log("Applied Hidden Pair - Returning Step");
+            return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
+        }
+
+        // SE 3.6 (Requires findNakedTriples)
+        const nakedTripleResult = findNakedTriples(candidatesMap);
+        if (nakedTripleResult.stepInfo && applyEliminations(candidatesMap, nakedTripleResult.eliminations)) {
+            console.log("Applied Naked Triplet - Returning Step");
+            return { status: 'found_step', steps: [nakedTripleResult.stepInfo] };
+        }
+
+        // SE 3.8 (Requires findSwordfish)
+        // ...
+
+        // SE 4.0 (Requires findHiddenTriples)
+        const hiddenTripleResult = findHiddenTriples(candidatesMap, board);
+        if (hiddenTripleResult.stepInfo && applyEliminations(candidatesMap, hiddenTripleResult.eliminations)) {
+            console.log("Applied Hidden Triplet - Returning Step");
+            return { status: 'found_step', steps: [hiddenTripleResult.stepInfo] };
+        }
+
+
+        // SE 4.2
+        const yWingResult = findYWing(candidatesMap);
+        if (yWingResult.stepInfo && applyEliminations(candidatesMap, yWingResult.eliminations)) {
+             console.log("Applied Y-Wing - Returning Step");
+             return { status: 'found_step', steps: [yWingResult.stepInfo] };
+        }
+
+        // SE 4.3 (Requires findHiddenQuads)
+        // ...
+
+        // SE 4.4 (Requires findXYZWing)
+        // ...
+
+        // Add other techniques in order of increasing SE score...
 
     } catch (error) {
+        // ... (error handling remains the same) ...
         console.error("Solver caught contradiction:", error);
+        if (error instanceof Error && error.stack) {
+            console.error(error.stack);
+        }
         return { status: 'error', steps: [], message: error.message || 'Contradiction found during solving.' };
     }
 
-    // --- 3. If no step was found ---
-    console.log("Solver stuck: No placement or effective elimination found based on current candidates.");
+    // --- If no step was found ---
+    console.log("Solver stuck: No placement or effective elimination found based on current candidates (SE Ordered).");
     return { status: 'stuck', steps: [], message: 'No further progress possible with implemented techniques on the current candidate state.' };
 }
+
 
 /**
  * Public function to get a single hint step. Uses the provided candidate map.
@@ -1141,26 +1527,26 @@ export function solve(board, initialBoard = null) {
 export async function generatePuzzle(difficultyLevel = DifficultyLevel.MEDIUM) {
     // Define approximate clue ranges per level (optional, adjust as needed)
     let minClues = 22, maxClues = 50; // Default wide range
-    switch(difficultyLevel) {
-        case DifficultyLevel.BEGINNER: minClues = 42; maxClues = 54; break;
-        case DifficultyLevel.EASY:     minClues = 32; maxClues = 40; break;
-        case DifficultyLevel.MEDIUM:   minClues = 28; maxClues = 32; break;
-        case DifficultyLevel.HARD:     minClues = 25; maxClues = 30; break;
-        case DifficultyLevel.EXPERT:   minClues = 22; maxClues = 30; break;
+    switch (difficultyLevel) {
+        case DifficultyLevel.BABY: minClues = 42; maxClues = 50; break;
+        case DifficultyLevel.EASY: minClues = 32; maxClues = 38; break;
+        case DifficultyLevel.MEDIUM: minClues = 28; maxClues = 31; break;
+        case DifficultyLevel.HARD: minClues = 25; maxClues = 29; break;
+        case DifficultyLevel.VERY_HARD: minClues = 22; maxClues = 27; break;
     }
 
-   const result = await generatePuzzleAdvanced(difficultyLevel, 100, minClues, maxClues); // 100 attempts
+    const result = await generatePuzzleAdvanced(difficultyLevel, 65, minClues, maxClues); // 100 attempts
 
-   if (result) {
-       // Return in the format expected by the old basic generator's caller if needed
-       return { puzzle: result.puzzle, solution: result.solution };
-   } else {
-       // Fallback or error handling
-       console.warn("Advanced generation failed, falling back to basic (if available/desired) or returning null");
-       // Optionally, call SolverBasic.generate as a fallback:
-       // return SolverBasic.generate(35); // Fallback difficulty
+    if (result) {
+        // Return in the format expected by the old basic generator's caller if needed
+        return { puzzle: result.puzzle, solution: result.solution };
+    } else {
+        // Fallback or error handling
+        console.warn("Advanced generation failed, falling back to basic (if available/desired) or returning null");
+        // Optionally, call SolverBasic.generate as a fallback:
+        // return SolverBasic.generate(35); // Fallback difficulty
         return null;
-   }
+    }
 }
 
 /**
@@ -1175,7 +1561,7 @@ export async function generatePuzzle(difficultyLevel = DifficultyLevel.MEDIUM) {
  */
 export async function generatePuzzleAdvanced(
     desiredLevel,
-    maxAttempts = 100,
+    maxAttempts = 20,
     minClues = 25, // Hard lower limit
     maxClues = 45, // Target for initial removal phase
     maxHardenSteps = 20 // Limit additional removals per attempt
@@ -1217,11 +1603,11 @@ export async function generatePuzzleAdvanced(
                 console.log(`Reached approx maxClues (${maxClues}), stopping initial removal at ${currentClueCount} clues.`);
                 break;
             }
-             if (currentClueCount <= minClues) {
-                 // Should not happen if maxClues > minClues, but safety break
-                 console.warn(`Reached minClues (${minClues}) during initial removal. Stopping.`);
-                 break;
-             }
+            if (currentClueCount <= minClues) {
+                // Should not happen if maxClues > minClues, but safety break
+                console.warn(`Reached minClues (${minClues}) during initial removal. Stopping.`);
+                break;
+            }
 
             const r = Math.floor(cellIndex / BOARD_SIZE);
             const c = cellIndex % BOARD_SIZE;
@@ -1263,9 +1649,11 @@ export async function generatePuzzleAdvanced(
                 score: ratingResult.score,
                 techniques: ratingResult.techniques
             };
-        } else if (ratingResult.difficulty > desiredLevel) {
-             console.log("-> Initial puzzle is harder than desired. Discarding attempt.");
-             continue; // Try next full attempt
+        // check with score
+        } else if(ratingResult.score > DIFFICULTY_THRESHOLDS[desiredLevel].score) {
+        // } else if (ratingResult.difficulty > desiredLevel) {
+            console.log("-> Initial puzzle is harder than desired. Discarding attempt.");
+            continue; // Try next full attempt
         } else if (currentClueCount <= minClues) {
             console.log("-> Initial puzzle is too easy but already at min clues. Discarding attempt.");
             continue; // Try next full attempt
@@ -1289,12 +1677,12 @@ export async function generatePuzzleAdvanced(
 
         for (const [r, c] of remainingClueIndices) {
             if (hardenSteps >= maxHardenSteps) {
-                 console.log("-> Reached max hardening steps. Discarding attempt.");
-                 break; // Stop hardening this attempt
+                console.log("-> Reached max hardening steps. Discarding attempt.");
+                break; // Stop hardening this attempt
             }
             if (currentClueCount <= minClues) {
-                 console.log("-> Reached min clues during hardening. Discarding attempt.");
-                 break; // Stop hardening this attempt
+                console.log("-> Reached min clues during hardening. Discarding attempt.");
+                break; // Stop hardening this attempt
             }
 
             // console.log(`Hardening: Trying to remove ${r}-${c} (Clues: ${currentClueCount})`);
@@ -1321,7 +1709,7 @@ export async function generatePuzzleAdvanced(
                     console.log(" -> Hardening rating failed. Discarding attempt.");
                     break; // Stop hardening this attempt
                 }
-                 console.log(` -> Hardening Rating: ${ratingResult.difficulty} (Score: ${ratingResult.score})`);
+                console.log(` -> Hardening Rating: ${ratingResult.difficulty} (Score: ${ratingResult.score})`);
 
 
                 if (ratingResult.difficulty === desiredLevel && currentClueCount >= minClues) {
@@ -1333,7 +1721,8 @@ export async function generatePuzzleAdvanced(
                         score: ratingResult.score,
                         techniques: ratingResult.techniques
                     };
-                } else if (ratingResult.difficulty > desiredLevel) {
+                }else if(ratingResult.score > DIFFICULTY_THRESHOLDS[desiredLevel].score) {
+                // } else if (ratingResult.difficulty > desiredLevel) {
                     console.log(" -> Hardening overshot difficulty. Discarding attempt.");
                     break; // Stop hardening this attempt
                 }
@@ -1420,7 +1809,7 @@ export async function generatePuzzleAdvanced(
 //                     break; // Stop removing clues if we reach the desired range
 //                 }
 //             }
-                
+
 //         }
 
 //         const finalClueCount = totalCells - removedCount;
@@ -1467,106 +1856,106 @@ export async function generatePuzzleAdvanced(
 * } | { status: 'error', message: string }}
 */
 function ratePuzzleDifficultyInternal(board, getTechniqueScoreFn) {
-   let currentBoard = deepCopy2DArray(board);
-   let candidatesMap = initializeCandidatesMap(currentBoard);
-   const techniquesUsed = new Set();
-   let maxScore = 0;
-   let stepsTaken = 0;
-   const MAX_SOLVER_STEPS = 200; // Safety break
+    let currentBoard = deepCopy2DArray(board);
+    let candidatesMap = initializeCandidatesMap(currentBoard);
+    const techniquesUsed = new Set();
+    let maxScore = 0;
+    let stepsTaken = 0;
+    const MAX_SOLVER_STEPS = 200; // Safety break
 
-   if (!candidatesMap) {
-       return { status: 'error', message: 'Initial board state has contradiction.' };
-   }
+    if (!candidatesMap) {
+        return { status: 'error', message: 'Initial board state has contradiction.' };
+    }
 
-   while (stepsTaken < MAX_SOLVER_STEPS) {
-       const emptyCell = findNextEmptyCell(currentBoard);
-       if (!emptyCell) {
-           return { status: 'solved', maxScore, techniquesUsed, stepsTaken }; // Solved logically
-       }
+    while (stepsTaken < MAX_SOLVER_STEPS) {
+        const emptyCell = findNextEmptyCell(currentBoard);
+        if (!emptyCell) {
+            return { status: 'solved', maxScore, techniquesUsed, stepsTaken }; // Solved logically
+        }
 
-       // Use a *local copy* of the map for findNextLogicalStep to check eliminations
-       let tempCandidatesMap = new Map();
-       for (const [key, valueSet] of candidatesMap.entries()) {
-           tempCandidatesMap.set(key, new Set(valueSet));
-       }
+        // Use a *local copy* of the map for findNextLogicalStep to check eliminations
+        let tempCandidatesMap = new Map();
+        for (const [key, valueSet] of candidatesMap.entries()) {
+            tempCandidatesMap.set(key, new Set(valueSet));
+        }
 
-       // *** IMPORTANT: findNextLogicalStep needs to be able to run without applying changes
-       // to the main candidatesMap passed to it, OR we need a different structure.
-       // Let's assume findNextLogicalStep is primarily for *finding* the step,
-       // and we apply changes *here* in the rating loop.
+        // *** IMPORTANT: findNextLogicalStep needs to be able to run without applying changes
+        // to the main candidatesMap passed to it, OR we need a different structure.
+        // Let's assume findNextLogicalStep is primarily for *finding* the step,
+        // and we apply changes *here* in the rating loop.
 
-       // Find the next step based on the *temporary* map state
-       const result = findNextLogicalStep(currentBoard, tempCandidatesMap); // Pass temp map
+        // Find the next step based on the *temporary* map state
+        const result = findNextLogicalStep(currentBoard, tempCandidatesMap); // Pass temp map
 
-       if (result.status === 'found_step') {
-           stepsTaken++;
-           const step = result.steps[0];
-           const techniqueBaseName = step.technique.split(' (')[0]; // Get base name like "X-Wing"
-           techniquesUsed.add(techniqueBaseName);
-           maxScore = Math.max(maxScore, getTechniqueScoreFn(step.technique));
+        if (result.status === 'found_step') {
+            stepsTaken++;
+            const step = result.steps[0];
+            const techniqueBaseName = step.technique.split(' (')[0]; // Get base name like "X-Wing"
+            techniquesUsed.add(techniqueBaseName);
+            maxScore = Math.max(maxScore, getTechniqueScoreFn(step.technique));
 
-           console.log(`Rating Step ${stepsTaken}: ${step.technique} (Score: ${getTechniqueScoreFn(step.technique)}, Max: ${maxScore})`);
+            console.log(`Rating Step ${stepsTaken}: ${step.technique} (Score: ${getTechniqueScoreFn(step.technique)}, Max: ${maxScore})`);
 
 
-           // Apply the step's changes to the *main* board and candidatesMap for the next iteration
-           try {
-               if (step.value !== undefined && step.cell) { // Placement step (Singles)
-                   const [r, c] = step.cell;
-                   if (currentBoard[r][c] !== 0) {
+            // Apply the step's changes to the *main* board and candidatesMap for the next iteration
+            try {
+                if (step.value !== undefined && step.cell) { // Placement step (Singles)
+                    const [r, c] = step.cell;
+                    if (currentBoard[r][c] !== 0) {
                         console.error(`Rating Error: Trying to place ${step.value} in already filled cell [${r},${c}]`);
                         return { status: 'error', message: 'Solver tried to overwrite cell during rating.' };
-                   }
-                   currentBoard[r][c] = step.value;
-                   candidatesMap.delete(`${r}-${c}`); // Remove candidates for placed cell
+                    }
+                    currentBoard[r][c] = step.value;
+                    candidatesMap.delete(`${r}-${c}`); // Remove candidates for placed cell
 
-                   // Eliminate placed value from peers' candidates
-                   const peers = getPeers(r, c);
-                   peers.forEach(([pr, pc]) => {
-                       candidatesMap.get(`${pr}-${pc}`)?.delete(step.value);
-                   });
+                    // Eliminate placed value from peers' candidates
+                    const peers = getPeers(r, c);
+                    peers.forEach(([pr, pc]) => {
+                        candidatesMap.get(`${pr}-${pc}`)?.delete(step.value);
+                    });
                     // Check for resulting contradictions immediately? (Optional but safer)
-                    for(const [pr, pc] of peers) {
+                    for (const [pr, pc] of peers) {
                         if (currentBoard[pr][pc] === 0 && candidatesMap.get(`${pr}-${pc}`)?.size === 0) {
-                           return { status: 'error', message: `Contradiction after placing ${step.value} at [${r},${c}] - cell [${pr},${pc}] has no candidates.` };
+                            return { status: 'error', message: `Contradiction after placing ${step.value} at [${r},${c}] - cell [${pr},${pc}] has no candidates.` };
                         }
                     }
 
-               } else if (step.eliminations && step.eliminations.length > 0) { // Elimination step
-                   const elimsForApply = step.eliminations.map(e => ({
-                       cellKey: `${e.cell[0]}-${e.cell[1]}`,
-                       values: e.values
-                   }));
-                   if (!applyEliminations(candidatesMap, elimsForApply)) {
-                       // This shouldn't happen if findNextLogicalStep reported eliminations,
-                       // but check just in case.
-                       console.warn("Rating Warning: Found step reported eliminations, but applyEliminations had no effect.");
-                   }
-               } else {
+                } else if (step.eliminations && step.eliminations.length > 0) { // Elimination step
+                    const elimsForApply = step.eliminations.map(e => ({
+                        cellKey: `${e.cell[0]}-${e.cell[1]}`,
+                        values: e.values
+                    }));
+                    if (!applyEliminations(candidatesMap, elimsForApply)) {
+                        // This shouldn't happen if findNextLogicalStep reported eliminations,
+                        // but check just in case.
+                        console.warn("Rating Warning: Found step reported eliminations, but applyEliminations had no effect.");
+                    }
+                } else {
                     console.error("Rating Error: Found step had no placement or eliminations.");
                     return { status: 'error', message: 'Solver step invalid during rating.' };
-               }
-           } catch (error) {
+                }
+            } catch (error) {
                 console.error("Rating Error: Contradiction during step application.", error);
                 return { status: 'error', message: `Contradiction found during rating: ${error.message}` };
-           }
+            }
 
-       } else if (result.status === 'stuck') {
-           console.log(`Rating Stuck after ${stepsTaken} steps. Max Score: ${maxScore}`);
-           return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck logically
+        } else if (result.status === 'stuck') {
+            console.log(`Rating Stuck after ${stepsTaken} steps. Max Score: ${maxScore}`);
+            return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck logically
 
-       } else if (result.status === 'error') {
-           console.error("Rating Error: Solver returned error.", result.message);
-           return { status: 'error', message: `Solver error during rating: ${result.message}` };
+        } else if (result.status === 'error') {
+            console.error("Rating Error: Solver returned error.", result.message);
+            return { status: 'error', message: `Solver error during rating: ${result.message}` };
 
-       } else if (result.status === 'solved') {
+        } else if (result.status === 'solved') {
             // Should have been caught by findNextEmptyCell, but handle anyway
-           return { status: 'solved', maxScore, techniquesUsed, stepsTaken };
-       }
+            return { status: 'solved', maxScore, techniquesUsed, stepsTaken };
+        }
 
-   } // End while loop
+    } // End while loop
 
-   console.warn("Rating Warning: Exceeded max steps.");
-   return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck due to complexity or max steps
+    console.warn("Rating Warning: Exceeded max steps.");
+    return { status: 'stuck', maxScore, techniquesUsed, stepsTaken }; // Stuck due to complexity or max steps
 }
 
 // --- Public function to be called by generator ---
@@ -1578,22 +1967,22 @@ function ratePuzzleDifficultyInternal(board, getTechniqueScoreFn) {
 export function ratePuzzleDifficulty(board) {
     // Import needed constants/helpers here or pass them in
 
-   const ratingResult = ratePuzzleDifficultyInternal(board, getTechniqueScore);
+    const ratingResult = ratePuzzleDifficultyInternal(board, getTechniqueScore);
 
-   if (ratingResult.status === 'solved') {
-    // if (ratingResult.status === 'solved' || ratingResult.status === 'stuck') {
+    if (ratingResult.status === 'solved') {
+        // if (ratingResult.status === 'solved' || ratingResult.status === 'stuck') {
         // If stuck, the rating reflects the hardest technique found *before* getting stuck.
         // This is usually desired - we rate based on what the *logical* solver can do.
-       const difficulty = getDifficultyLevelFromScore(ratingResult.maxScore);
-       console.log(`Puzzle Rating: ${difficulty} (Max Score: ${ratingResult.maxScore}, Solved: ${ratingResult.status === 'solved'}, Techniques: ${Array.from(ratingResult.techniquesUsed).join(', ')})`);
-       return {
-           difficulty: difficulty,
-           score: ratingResult.maxScore,
-           techniques: ratingResult.techniquesUsed
-       };
-   } else {
-       // Error during rating
-       console.error(`Puzzle Rating Failed: ${ratingResult.message}`);
-       return null;
-   }
+        const difficulty = getDifficultyLevelFromScore(ratingResult.maxScore);
+        console.log(`Puzzle Rating: ${difficulty} (Max Score: ${ratingResult.maxScore}, Solved: ${ratingResult.status === 'solved'}, Techniques: ${Array.from(ratingResult.techniquesUsed).join(', ')})`);
+        return {
+            difficulty: difficulty,
+            score: ratingResult.maxScore,
+            techniques: ratingResult.techniquesUsed
+        };
+    } else {
+        // Error during rating
+        console.error(`Puzzle Rating Failed: ${ratingResult.message}`);
+        return null;
+    }
 }

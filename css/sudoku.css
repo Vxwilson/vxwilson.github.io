@@ -233,7 +233,7 @@ button {
   color: rgba(158, 91, 91, 0.95) !important;
   background-color: rgba(240, 210, 210, 0.5);
   border-radius: 2px;
-  outline: 1px solid rgba(158, 91, 91, 0.6);
+  outline: 1px solid rgba(158, 91, 91, 0.65);
 }
 
 
@@ -248,7 +248,7 @@ button {
 .pencil-mark.hint-value {
   color: rgba(50, 110, 60, 0.95) !important;
   /* Darker green for key pencil mark */
-  background-color: rgba(180, 240, 190, 0.6);
+  background-color: rgba(180, 240, 190, 0.65);
   /* Brighter green background */
   border-radius: 2px;
   outline: 1px solid rgba(50, 110, 60, 0.7);
@@ -263,7 +263,7 @@ button {
 
 /* Cell where a single is placed */
 .sudoku-cell.hint-target {
-  background-color: rgba(144, 238, 144, 0.6); /* Brighter green */
+  background-color: rgba(144, 238, 144, 5); /* Brighter green */
   box-shadow: inset 0 0 0 2px rgba(50, 150, 50, 0.7);
 }
 .pencil-mark.hint-target-value { /* If you highlight the pencil mark too */
@@ -276,7 +276,7 @@ button {
 }
 .pencil-mark.hint-defining-value {
    color: #0000CD; /* Medium blue */
-   background-color: rgba(210, 230, 240, 0.6);
+   background-color: rgba(210, 230, 240, 0.65);
    border-radius: 2px;
 }
 
@@ -301,7 +301,7 @@ button {
 /* Generic highlight for specific candidate values if type isn't used */
 .pencil-mark.hint-value { /* This might be less specific now */
   color: rgba(50, 110, 60, 0.95) !important;
-  background-color: rgba(180, 240, 190, 0.6);
+  background-color: rgba(180, 240, 190, 0.65);
   border-radius: 2px;
   outline: 1px solid rgba(50, 110, 60, 0.7);
 }
