@@ -22,7 +22,7 @@ export const DifficultyLevel = Object.freeze({
     MEDIUM: 'Medium',     
     HARD: 'Hard',       
     VERY_HARD: '?!',
-    EXTREME: '?!!',   
+    // EXTREME: '?!!',   
     // UNFAIR: '?!!!',       
     UNKNOWN: 'Unknown'
 });
@@ -56,7 +56,7 @@ const SE_SCORES = {
     'W-Wing': 33,                      // SE 3.3                
     'Skyscraper': 40,                  // SE 4.0 
     '2-String Kite': 40,               // SE 4.0 
-    'Y-Wing': 42,                      // SE 4.2 (XY-Wing)
+    'Y-Wing': 40,                      // SE 4.2 (XY-Wing)
     'Crane': 44,                       // SE 4.4
 
     // Subsets (Triples) - Requires implementing findNakedTriples/findHiddenTriples
