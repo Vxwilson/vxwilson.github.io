@@ -15,6 +15,9 @@
  3.6 Naked Triplet
  3.8 Swordfish
  4.0 Hidden Triplet
+ 4.0 Skyscrapper (self-defined)
+ 4.0 2-String Kite (self-defined)
+ 4.2 Crane
  4.2 XY-Wing (Y-Wing)
  4.3 [Direct Hidden Quad]
  4.4 XYZ-Wing

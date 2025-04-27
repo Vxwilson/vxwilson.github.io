@@ -3,7 +3,6 @@ import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS, getTechni
 import { checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, getCommonPeers, cellsSeeEachOther } from './utils.js';
 import * as SolverBasic from './solver_basic.js'; // Keep for generation/solve placeholders
 
-
 /**
  * @typedef {'found_step' | 'stuck' | 'solved' | 'error'} SolverStatus
  */
@@ -74,8 +73,7 @@ function initializeCandidatesMap(board) {
     return candidatesMap;
 }
 
-
-// --- Utility: Get Units (remains the same) ---
+// UTILITY
 function getUnits() {
     const units = [];
     // Rows
@@ -104,7 +102,6 @@ function getUnits() {
 }
 const allUnits = getUnits(); // Cache units for reuse
 
-// --- Utility: Apply Eliminations (remains the same, including logging/error check) ---
 /**
  * Applies eliminations to the candidate map.
  * @param {Map<string, Set<number>>} candidatesMap - The map to modify.
@@ -134,12 +131,9 @@ function applyEliminations(candidatesMap, eliminations) {
     return eliminationOccurred;
 }
 
+// SINGLES/TUPLES
 
-// --- Placement Techniques ---
-/**
- * Finds the simplest step: a unit (row, col, box) with only one empty cell.
- * @returns {Step | null}
- */
+// Finds the simplest step: a unit (row, col, box) with only one empty cell.
 function findFullHouse(board, candidatesMap) {
     for (const unit of allUnits) {
         let emptyCellsInUnit = [];
@@ -195,7 +189,6 @@ function findFullHouse(board, candidatesMap) {
     return null;
 }
 
-/** @returns {Step | null} */
 function findNakedSinglesMap(candidatesMap) {
     for (const [key, candidates] of candidatesMap.entries()) {
         if (candidates.size === 1) {
@@ -215,7 +208,121 @@ function findNakedSinglesMap(candidatesMap) {
     return null;
 }
 
-/** @returns {Step | null} */
+function findNakedPairs(candidatesMap) { // Renamed for clarity
+    for (const unit of allUnits) {
+        const potentialPairCells = unit.cells
+            .map(([r, c]) => ({ key: `${r}-${c}`, candidates: candidatesMap.get(`${r}-${c}`) }))
+            .filter(cell => cell.candidates && cell.candidates.size === 2);
+
+        if (potentialPairCells.length < 2) continue;
+
+        const combinations = getCombinations(potentialPairCells, 2);
+
+        for (const combo of combinations) {
+            const union = new Set([...combo[0].candidates, ...combo[1].candidates]);
+
+            if (union.size === 2) { // It's a Naked Pair
+                const subsetValues = Array.from(union); // The two candidates (e.g., [5, 6])
+                const subsetKeys = new Set(combo.map(cell => cell.key));
+                const unitElims = [];
+
+                for (const [r, c] of unit.cells) {
+                    const cellKey = `${r}-${c}`;
+                    if (!subsetKeys.has(cellKey)) {
+                        const cellCandidates = candidatesMap.get(cellKey);
+                        if (cellCandidates) {
+                            const elimValues = subsetValues.filter(val => cellCandidates.has(val));
+                            if (elimValues.length > 0) {
+                                unitElims.push({ cellKey: cellKey, values: elimValues });
+                            }
+                        }
+                    }
+                }
+
+                if (unitElims.length > 0) {
+                    const subsetCellsCoords = combo.map(c => c.key.split('-').map(Number));
+                    const stepInfo = {
+                        technique: `Naked Pair (${unit.type} ${unit.index})`,
+                        description: `Cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] form a Naked Pair of (${subsetValues.join(', ')}). These digits can be removed from other cells in ${unit.type.toLowerCase()} ${unit.index}.`,
+                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the two cells forming the pair, showing the pair's candidates
+                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: subsetValues, type: 'defining' })),
+                            // Highlight the specific candidates being eliminated in peer cells
+                            ...unitElims.map(elim => {
+                                const [er, ec] = elim.cellKey.split('-').map(Number);
+                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                            })
+                        ]
+                    };
+                    console.log(`  >> Found Potential Naked Pair (${subsetValues.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                    return { eliminations: unitElims, stepInfo: stepInfo };
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+
+function findNakedTriples(candidatesMap) {
+    const N = 3; // Size of the subset
+    for (const unit of allUnits) {
+        const potentialTripleCells = unit.cells
+            .map(([r, c]) => ({ key: `${r}-${c}`, candidates: candidatesMap.get(`${r}-${c}`) }))
+            .filter(cell => cell.candidates && cell.candidates.size > 0 && cell.candidates.size <= N); // Cells with N or fewer candidates
+
+        if (potentialTripleCells.length < N) continue;
+
+        const combinations = getCombinations(potentialTripleCells, N); // Get combinations of size N
+
+        for (const combo of combinations) { // combo is an array of N cells
+            const union = new Set();
+            combo.forEach(cell => cell.candidates.forEach(cand => union.add(cand)));
+
+            if (union.size === N) { // It's a Naked Triple (exactly N candidates across N cells)
+                const subsetValues = Array.from(union); // The N candidates
+                const subsetKeys = new Set(combo.map(cell => cell.key));
+                const unitElims = [];
+
+                // Find eliminations in other cells of the unit
+                for (const [r, c] of unit.cells) {
+                    const cellKey = `${r}-${c}`;
+                    if (!subsetKeys.has(cellKey)) { // If it's not one of the triple cells
+                        const cellCandidates = candidatesMap.get(cellKey);
+                        if (cellCandidates) {
+                            const elimValues = subsetValues.filter(val => cellCandidates.has(val));
+                            if (elimValues.length > 0) {
+                                unitElims.push({ cellKey: cellKey, values: elimValues });
+                            }
+                        }
+                    }
+                }
+
+                if (unitElims.length > 0) {
+                    const subsetCellsCoords = combo.map(c => c.key.split('-').map(Number));
+                    const stepInfo = {
+                        technique: `Naked Triplet`, // Specific name for scoring
+                        description: `Cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] form a Naked Triplet of (${subsetValues.join(', ')}). These digits removed from other cells in ${unit.type.toLowerCase()} ${unit.index}.`,
+                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the defining cells
+                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: subsetValues, type: 'defining' })), // Highlight N candidates in N cells
+                            // Highlight the eliminations
+                            ...unitElims.map(elim => {
+                                const [er, ec] = elim.cellKey.split('-').map(Number);
+                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
+                            })
+                        ]
+                    };
+                    console.log(`  >> Found Potential Naked Triplet (${subsetValues.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                    return { eliminations: unitElims, stepInfo: stepInfo };
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+
 function findHiddenSinglesMap(candidatesMap, board) {
     for (const unit of allUnits) {
         for (let n = 1; n <= BOARD_SIZE; n++) {
@@ -273,7 +380,169 @@ function findHiddenSinglesMap(candidatesMap, board) {
     return null; // No hidden single found
 }
 
-// --- Elimination Techniques ---
+function findHiddenPairs(candidatesMap, board) { // Renamed for clarity
+    for (const unit of allUnits) {
+        const unitCellKeys = unit.cells
+            .filter(([r, c]) => board[r][c] === 0)
+            .map(([r, c]) => `${r}-${c}`)
+            .filter(key => candidatesMap.has(key));
+
+        if (unitCellKeys.length < 2) continue;
+
+        const digitLocations = new Map();
+        for (let n = 1; n <= BOARD_SIZE; n++) {
+            digitLocations.set(n, new Set());
+        }
+        unitCellKeys.forEach(key => {
+            candidatesMap.get(key)?.forEach(n => {
+                digitLocations.get(n).add(key);
+            });
+        });
+
+        const possiblePairDigits = Array.from(digitLocations.keys()).filter(n => digitLocations.get(n).size === 2);
+        if (possiblePairDigits.length < 2) continue;
+
+        const digitCombinations = getCombinations(possiblePairDigits, 2);
+
+        for (const digitCombo of digitCombinations) { // e.g., [5, 7]
+            const cellsForDigit1 = digitLocations.get(digitCombo[0]);
+            const cellsForDigit2 = digitLocations.get(digitCombo[1]);
+
+            // Check if they appear in the *exact same* two cells
+            if (cellsForDigit1.size === 2 && cellsForDigit2.size === 2) {
+                const cellUnion = new Set([...cellsForDigit1, ...cellsForDigit2]);
+
+                if (cellUnion.size === 2) { // It's a Hidden Pair
+                    const subsetCellKeys = Array.from(cellUnion); // The keys of the two cells
+                    const unitElims = [];
+
+                    // Eliminate candidates *other than* the pair's digits from these two cells
+                    for (const cellKey of subsetCellKeys) {
+                        const candidates = candidatesMap.get(cellKey);
+                        if (candidates) {
+                            const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
+                            if (elimValues.length > 0) {
+                                unitElims.push({ cellKey: cellKey, values: elimValues });
+                            }
+                        }
+                    }
+
+                    if (unitElims.length > 0) {
+                        const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
+                        const stepInfo = {
+                            technique: `Hidden Pair (${unit.type} ${unit.index})`,
+                            description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these two cells.`,
+                            eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                            highlights: [
+                                // Highlight the two cells forming the pair, showing *only* the hidden pair candidates
+                                ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
+                            ]
+                        };
+                        console.log(`  >> Found Potential Hidden Pair (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                        return { eliminations: unitElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+
+function findHiddenTriples(candidatesMap, board) {
+    const N = 3; // Size of the subset
+    for (const unit of allUnits) {
+        const unitCellKeys = unit.cells
+            .filter(([r, c]) => board[r][c] === 0)
+            .map(([r, c]) => `${r}-${c}`)
+            .filter(key => candidatesMap.has(key));
+
+        if (unitCellKeys.length < N) continue;
+
+        // Map: digit -> Set<cellKey> where digit is a candidate
+        const digitLocations = new Map();
+        for (let n = 1; n <= BOARD_SIZE; n++) {
+            digitLocations.set(n, new Set());
+        }
+        unitCellKeys.forEach(key => {
+            candidatesMap.get(key)?.forEach(n => {
+                digitLocations.get(n).add(key);
+            });
+        });
+
+        // Find digits that appear as candidates in 2 or N cells within the unit
+        const possibleTripleDigits = Array.from(digitLocations.keys())
+            .filter(n => digitLocations.get(n).size >= 2 && digitLocations.get(n).size <= N);
+
+        if (possibleTripleDigits.length < N) continue;
+
+        // Get combinations of N digits
+        const digitCombinations = getCombinations(possibleTripleDigits, N);
+
+        for (const digitCombo of digitCombinations) { // e.g., [1, 4, 9]
+            // Find all cells where *any* of these N digits appear
+            const cellsUnion = new Set();
+            digitCombo.forEach(digit => {
+                digitLocations.get(digit).forEach(cellKey => cellsUnion.add(cellKey));
+            });
+
+            // Check if these N digits are restricted to exactly N cells
+            if (cellsUnion.size === N) {
+                // Now, verify that *each* of the N digits is actually present within this set of N cells
+                let allDigitsPresentInUnion = true;
+                for(const digit of digitCombo) {
+                    const locationsForDigit = digitLocations.get(digit);
+                    if (![...locationsForDigit].some(loc => cellsUnion.has(loc))) {
+                        allDigitsPresentInUnion = false;
+                        break;
+                    }
+                    // Also ensure the digit doesn't appear *outside* these N cells within the unit
+                    if ([...locationsForDigit].some(loc => !cellsUnion.has(loc))) {
+                         allDigitsPresentInUnion = false; // This check might be redundant due to cellsUnion.size === N logic, but safer
+                         break;
+                    }
+                }
+
+                if (!allDigitsPresentInUnion) continue;
+
+
+                // It's a Hidden Triple
+                const subsetCellKeys = Array.from(cellsUnion); // The keys of the N cells
+                const unitElims = [];
+
+                // Eliminate candidates *other than* the triple's digits from these N cells
+                for (const cellKey of subsetCellKeys) {
+                    const candidates = candidatesMap.get(cellKey);
+                    if (candidates) {
+                        const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
+                        if (elimValues.length > 0) {
+                            unitElims.push({ cellKey: cellKey, values: elimValues });
+                        }
+                    }
+                }
+
+                if (unitElims.length > 0) {
+                    const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
+                    const stepInfo = {
+                        technique: `Hidden Triplet`, // Specific name for scoring
+                        description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these ${N} cells.`,
+                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
+                        highlights: [
+                            // Highlight the N cells forming the triple, showing *only* the hidden triple candidates
+                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
+                            // Highlight the specific candidates being eliminated within those N cells
+                            // (Alternative: Could highlight the eliminated candidates in the UI differently)
+                        ]
+                    };
+                    console.log(`  >> Found Potential Hidden Triplet (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
+                    return { eliminations: unitElims, stepInfo: stepInfo };
+                }
+            }
+        }
+    }
+    return { eliminations: [], stepInfo: null };
+}
+
+// LOCKED CANDIDATES
 
 /**
  * Finds the FIRST Locked Candidate situation (Pointing or Claiming)
@@ -447,298 +716,7 @@ function getCombinations(arr, size) {
     return result;
 }
 
-
-/**
- * Finds the FIRST Naked Pair within any unit that results in actual eliminations.
- * @param {Map<string, Set<number>>} candidatesMap
- * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
- */
-function findNakedPairs(candidatesMap) { // Renamed for clarity
-    for (const unit of allUnits) {
-        const potentialPairCells = unit.cells
-            .map(([r, c]) => ({ key: `${r}-${c}`, candidates: candidatesMap.get(`${r}-${c}`) }))
-            .filter(cell => cell.candidates && cell.candidates.size === 2);
-
-        if (potentialPairCells.length < 2) continue;
-
-        const combinations = getCombinations(potentialPairCells, 2);
-
-        for (const combo of combinations) {
-            const union = new Set([...combo[0].candidates, ...combo[1].candidates]);
-
-            if (union.size === 2) { // It's a Naked Pair
-                const subsetValues = Array.from(union); // The two candidates (e.g., [5, 6])
-                const subsetKeys = new Set(combo.map(cell => cell.key));
-                const unitElims = [];
-
-                for (const [r, c] of unit.cells) {
-                    const cellKey = `${r}-${c}`;
-                    if (!subsetKeys.has(cellKey)) {
-                        const cellCandidates = candidatesMap.get(cellKey);
-                        if (cellCandidates) {
-                            const elimValues = subsetValues.filter(val => cellCandidates.has(val));
-                            if (elimValues.length > 0) {
-                                unitElims.push({ cellKey: cellKey, values: elimValues });
-                            }
-                        }
-                    }
-                }
-
-                if (unitElims.length > 0) {
-                    const subsetCellsCoords = combo.map(c => c.key.split('-').map(Number));
-                    const stepInfo = {
-                        technique: `Naked Pair (${unit.type} ${unit.index})`,
-                        description: `Cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] form a Naked Pair of (${subsetValues.join(', ')}). These digits can be removed from other cells in ${unit.type.toLowerCase()} ${unit.index}.`,
-                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                        highlights: [
-                            // Highlight the two cells forming the pair, showing the pair's candidates
-                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: subsetValues, type: 'defining' })),
-                            // Highlight the specific candidates being eliminated in peer cells
-                            ...unitElims.map(elim => {
-                                const [er, ec] = elim.cellKey.split('-').map(Number);
-                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
-                            })
-                        ]
-                    };
-                    console.log(`  >> Found Potential Naked Pair (${subsetValues.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
-                    return { eliminations: unitElims, stepInfo: stepInfo };
-                }
-            }
-        }
-    }
-    return { eliminations: [], stepInfo: null };
-}
-
-// Example: findNakedTriples (Adapt from findNakedPairs)
-function findNakedTriples(candidatesMap) {
-    const N = 3; // Size of the subset
-    for (const unit of allUnits) {
-        const potentialTripleCells = unit.cells
-            .map(([r, c]) => ({ key: `${r}-${c}`, candidates: candidatesMap.get(`${r}-${c}`) }))
-            .filter(cell => cell.candidates && cell.candidates.size > 0 && cell.candidates.size <= N); // Cells with N or fewer candidates
-
-        if (potentialTripleCells.length < N) continue;
-
-        const combinations = getCombinations(potentialTripleCells, N); // Get combinations of size N
-
-        for (const combo of combinations) { // combo is an array of N cells
-            const union = new Set();
-            combo.forEach(cell => cell.candidates.forEach(cand => union.add(cand)));
-
-            if (union.size === N) { // It's a Naked Triple (exactly N candidates across N cells)
-                const subsetValues = Array.from(union); // The N candidates
-                const subsetKeys = new Set(combo.map(cell => cell.key));
-                const unitElims = [];
-
-                // Find eliminations in other cells of the unit
-                for (const [r, c] of unit.cells) {
-                    const cellKey = `${r}-${c}`;
-                    if (!subsetKeys.has(cellKey)) { // If it's not one of the triple cells
-                        const cellCandidates = candidatesMap.get(cellKey);
-                        if (cellCandidates) {
-                            const elimValues = subsetValues.filter(val => cellCandidates.has(val));
-                            if (elimValues.length > 0) {
-                                unitElims.push({ cellKey: cellKey, values: elimValues });
-                            }
-                        }
-                    }
-                }
-
-                if (unitElims.length > 0) {
-                    const subsetCellsCoords = combo.map(c => c.key.split('-').map(Number));
-                    const stepInfo = {
-                        technique: `Naked Triplet`, // Specific name for scoring
-                        description: `Cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] form a Naked Triplet of (${subsetValues.join(', ')}). These digits removed from other cells in ${unit.type.toLowerCase()} ${unit.index}.`,
-                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                        highlights: [
-                            // Highlight the defining cells
-                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: subsetValues, type: 'defining' })), // Highlight N candidates in N cells
-                            // Highlight the eliminations
-                            ...unitElims.map(elim => {
-                                const [er, ec] = elim.cellKey.split('-').map(Number);
-                                return { row: er, col: ec, candidates: elim.values, type: 'eliminated' };
-                            })
-                        ]
-                    };
-                    console.log(`  >> Found Potential Naked Triplet (${subsetValues.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
-                    return { eliminations: unitElims, stepInfo: stepInfo };
-                }
-            }
-        }
-    }
-    return { eliminations: [], stepInfo: null };
-}
-// Adapt similarly for HiddenTriple, NakedQuad, HiddenQuad
-
-/**
- * Finds the FIRST Hidden Pair within any unit that results in actual eliminations.
- * @param {Map<string, Set<number>>} candidatesMap
- * @param {number[][]} board
- * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
- */
-function findHiddenPairs(candidatesMap, board) { // Renamed for clarity
-    for (const unit of allUnits) {
-        const unitCellKeys = unit.cells
-            .filter(([r, c]) => board[r][c] === 0)
-            .map(([r, c]) => `${r}-${c}`)
-            .filter(key => candidatesMap.has(key));
-
-        if (unitCellKeys.length < 2) continue;
-
-        const digitLocations = new Map();
-        for (let n = 1; n <= BOARD_SIZE; n++) {
-            digitLocations.set(n, new Set());
-        }
-        unitCellKeys.forEach(key => {
-            candidatesMap.get(key)?.forEach(n => {
-                digitLocations.get(n).add(key);
-            });
-        });
-
-        const possiblePairDigits = Array.from(digitLocations.keys()).filter(n => digitLocations.get(n).size === 2);
-        if (possiblePairDigits.length < 2) continue;
-
-        const digitCombinations = getCombinations(possiblePairDigits, 2);
-
-        for (const digitCombo of digitCombinations) { // e.g., [5, 7]
-            const cellsForDigit1 = digitLocations.get(digitCombo[0]);
-            const cellsForDigit2 = digitLocations.get(digitCombo[1]);
-
-            // Check if they appear in the *exact same* two cells
-            if (cellsForDigit1.size === 2 && cellsForDigit2.size === 2) {
-                const cellUnion = new Set([...cellsForDigit1, ...cellsForDigit2]);
-
-                if (cellUnion.size === 2) { // It's a Hidden Pair
-                    const subsetCellKeys = Array.from(cellUnion); // The keys of the two cells
-                    const unitElims = [];
-
-                    // Eliminate candidates *other than* the pair's digits from these two cells
-                    for (const cellKey of subsetCellKeys) {
-                        const candidates = candidatesMap.get(cellKey);
-                        if (candidates) {
-                            const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
-                            if (elimValues.length > 0) {
-                                unitElims.push({ cellKey: cellKey, values: elimValues });
-                            }
-                        }
-                    }
-
-                    if (unitElims.length > 0) {
-                        const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
-                        const stepInfo = {
-                            technique: `Hidden Pair (${unit.type} ${unit.index})`,
-                            description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these two cells.`,
-                            eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                            highlights: [
-                                // Highlight the two cells forming the pair, showing *only* the hidden pair candidates
-                                ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
-                            ]
-                        };
-                        console.log(`  >> Found Potential Hidden Pair (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
-                        return { eliminations: unitElims, stepInfo: stepInfo };
-                    }
-                }
-            }
-        }
-    }
-    return { eliminations: [], stepInfo: null };
-}
-
-function findHiddenTriples(candidatesMap, board) {
-    const N = 3; // Size of the subset
-    for (const unit of allUnits) {
-        const unitCellKeys = unit.cells
-            .filter(([r, c]) => board[r][c] === 0)
-            .map(([r, c]) => `${r}-${c}`)
-            .filter(key => candidatesMap.has(key));
-
-        if (unitCellKeys.length < N) continue;
-
-        // Map: digit -> Set<cellKey> where digit is a candidate
-        const digitLocations = new Map();
-        for (let n = 1; n <= BOARD_SIZE; n++) {
-            digitLocations.set(n, new Set());
-        }
-        unitCellKeys.forEach(key => {
-            candidatesMap.get(key)?.forEach(n => {
-                digitLocations.get(n).add(key);
-            });
-        });
-
-        // Find digits that appear as candidates in 2 or N cells within the unit
-        const possibleTripleDigits = Array.from(digitLocations.keys())
-            .filter(n => digitLocations.get(n).size >= 2 && digitLocations.get(n).size <= N);
-
-        if (possibleTripleDigits.length < N) continue;
-
-        // Get combinations of N digits
-        const digitCombinations = getCombinations(possibleTripleDigits, N);
-
-        for (const digitCombo of digitCombinations) { // e.g., [1, 4, 9]
-            // Find all cells where *any* of these N digits appear
-            const cellsUnion = new Set();
-            digitCombo.forEach(digit => {
-                digitLocations.get(digit).forEach(cellKey => cellsUnion.add(cellKey));
-            });
-
-            // Check if these N digits are restricted to exactly N cells
-            if (cellsUnion.size === N) {
-                // Now, verify that *each* of the N digits is actually present within this set of N cells
-                let allDigitsPresentInUnion = true;
-                for(const digit of digitCombo) {
-                    const locationsForDigit = digitLocations.get(digit);
-                    if (![...locationsForDigit].some(loc => cellsUnion.has(loc))) {
-                        allDigitsPresentInUnion = false;
-                        break;
-                    }
-                    // Also ensure the digit doesn't appear *outside* these N cells within the unit
-                    if ([...locationsForDigit].some(loc => !cellsUnion.has(loc))) {
-                         allDigitsPresentInUnion = false; // This check might be redundant due to cellsUnion.size === N logic, but safer
-                         break;
-                    }
-                }
-
-                if (!allDigitsPresentInUnion) continue;
-
-
-                // It's a Hidden Triple
-                const subsetCellKeys = Array.from(cellsUnion); // The keys of the N cells
-                const unitElims = [];
-
-                // Eliminate candidates *other than* the triple's digits from these N cells
-                for (const cellKey of subsetCellKeys) {
-                    const candidates = candidatesMap.get(cellKey);
-                    if (candidates) {
-                        const elimValues = [...candidates].filter(cand => !digitCombo.includes(cand));
-                        if (elimValues.length > 0) {
-                            unitElims.push({ cellKey: cellKey, values: elimValues });
-                        }
-                    }
-                }
-
-                if (unitElims.length > 0) {
-                    const subsetCellsCoords = subsetCellKeys.map(k => k.split('-').map(Number));
-                    const stepInfo = {
-                        technique: `Hidden Triplet`, // Specific name for scoring
-                        description: `Digits (${digitCombo.join(', ')}) only appear in cells [${subsetCellsCoords.map(([r, c]) => `R${r + 1}C${c + 1}`).join(', ')}] within ${unit.type.toLowerCase()} ${unit.index}. Other candidates removed from these ${N} cells.`,
-                        eliminations: unitElims.map(elim => ({ cell: elim.cellKey.split('-').map(Number), values: elim.values })),
-                        highlights: [
-                            // Highlight the N cells forming the triple, showing *only* the hidden triple candidates
-                            ...subsetCellsCoords.map(([r, c]) => ({ row: r, col: c, candidates: digitCombo, type: 'defining' })),
-                            // Highlight the specific candidates being eliminated within those N cells
-                            // (Alternative: Could highlight the eliminated candidates in the UI differently)
-                        ]
-                    };
-                    console.log(`  >> Found Potential Hidden Triplet (${digitCombo.join(',')} in ${unit.type} ${unit.index}). Eliminations:`, unitElims);
-                    return { eliminations: unitElims, stepInfo: stepInfo };
-                }
-            }
-        }
-    }
-    return { eliminations: [], stepInfo: null };
-}
-
-// --- Elimination Techniques (Continued) ---
+// WINGS
 
 /**
  * Finds the FIRST X-Wing pattern (Row or Column based) that results in actual eliminations.
@@ -882,9 +860,6 @@ function findXWing(candidatesMap) {
     // No X-Wing found that resulted in eliminations
     return { eliminations: [], stepInfo: null };
 }
-
-// --- Elimination Techniques (Continued) ---
-
 /**
  * Helper for W-Wing: Checks if assuming 'candidate' is eliminated from cells
  * seeing cell1 or cell2 would leave no place for 'candidate' in a specific unit.
@@ -1191,146 +1166,344 @@ function findYWing(candidatesMap) {
     return { eliminations: [], stepInfo: null }; // No Y-Wing found
 }
 
-
-// --- Main Solver Step Function ---
+// FISH
+// helper
 /**
- * Finds the single next logical step (placement or elimination).
- * Uses the provided candidatesMap, falling back to initialization if null.
- * @param {number[][]} board - The current board state (needed for some techniques).
- * @param {Map<string, Set<number>> | null} currentCandidatesMap - The candidate map reflecting current pencil marks. If null, it will be initialized.
- * @returns {SolverResult} The result, containing either the step, stuck, solved, or error.
+ * Gets all locations (as 'r-c' keys) for a specific candidate digit.
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @param {number} digit
+ * @returns {Set<string>} A set of 'r-c' keys.
  */
-// function findNextLogicalStep(board, currentCandidatesMap) {
-//     if (!findNextEmptyCell(board)) {
-//         return { status: 'solved', steps: [], message: 'Board is already solved.' };
-//     }
+function getCandidateLocations(candidatesMap, digit) {
+    const locations = new Set();
+    for (const [key, candidates] of candidatesMap.entries()) {
+        if (candidates.has(digit)) {
+            locations.add(key);
+        }
+    }
+    return locations;
+}
 
-//     let candidatesMap;
-//     if (currentCandidatesMap) {
-//         // Create a *copy* of the passed map to avoid modifying the game's state directly
-//         // during the solver's internal 'applyEliminations' checks.
-//         candidatesMap = new Map();
-//         for (const [key, valueSet] of currentCandidatesMap.entries()) {
-//             candidatesMap.set(key, new Set(valueSet));
-//         }
-//         console.log("Solver using pre-generated candidates map.");
-//     } else {
-//         // Fallback: Initialize if no map was provided (e.g., first hint on empty board)
-//         console.log("Solver initializing candidates map from board.");
-//         candidatesMap = initializeCandidatesMap(board);
-//         if (!candidatesMap) {
-//             return { status: 'error', steps: [], message: 'Board has an immediate contradiction or is invalid.' };
-//         }
-//     }
+/**
+ * Groups candidate locations by unit (row, column, box).
+ * @param {Set<string>} locations - Set of 'r-c' keys for a digit.
+ * @returns {{rows: Map<number, Set<string>>, cols: Map<number, Set<string>>, boxes: Map<number, Set<string>>}}
+ */
+function groupLocationsByUnit(locations) {
+    const rows = new Map();
+    const cols = new Map();
+    const boxes = new Map();
 
-//     // Basic check: If the map has no entries for any empty cells, we are stuck.
-//     let hasAnyCandidates = false;
-//     for (let r = 0; r < BOARD_SIZE; r++) {
-//         for (let c = 0; c < BOARD_SIZE; c++) {
-//             if (board[r][c] === 0 && candidatesMap.has(`${r}-${c}`)) {
-//                 hasAnyCandidates = true;
-//                 break;
-//             }
-//         }
-//         if (hasAnyCandidates) break;
-//     }
-//     if (!hasAnyCandidates && findNextEmptyCell(board)) {
-//         console.log("Solver stuck: No candidates available in the provided/generated map for empty cells.");
-//         return { status: 'stuck', steps: [], message: 'No candidates available to analyze. Try auto-filling pencil marks?' };
-//     }
+    for (const key of locations) {
+        const [r, c] = key.split('-').map(Number);
+        const boxIndex = Math.floor(r / BOX_SIZE) * BOX_SIZE + Math.floor(c / BOX_SIZE);
 
+        if (!rows.has(r)) rows.set(r, new Set());
+        rows.get(r).add(key);
 
-//     // --- 1. Check for Placement Techniques ---
-//     const nakedSingleStep = findNakedSinglesMap(candidatesMap); // Pass the map
-//     if (nakedSingleStep) {
-//         console.log("Found Naked Single");
-//         return { status: 'found_step', steps: [nakedSingleStep] };
-//     }
+        if (!cols.has(c)) cols.set(c, new Set());
+        cols.get(c).add(key);
 
-//     const hiddenSingleStep = findHiddenSinglesMap(candidatesMap, board); // Pass map and board
-//     if (hiddenSingleStep) {
-//         console.log("Found Hidden Single");
-//         return { status: 'found_step', steps: [hiddenSingleStep] };
-//     }
+        if (!boxes.has(boxIndex)) boxes.set(boxIndex, new Set());
+        boxes.get(boxIndex).add(key);
+    }
+    return { rows, cols, boxes };
+}
 
-//     // --- 2. Check for Elimination Techniques ---
-//     try {
-//         // Locked Candidates
-//         const lockedResult = findLockedCandidates(candidatesMap); // Pass the map
-//         if (lockedResult.stepInfo && lockedResult.eliminations.length > 0) {
-//             // Try applying the eliminations to our *local copy* of the map
-//             if (applyEliminations(candidatesMap, lockedResult.eliminations)) {
-//                 console.log("Applied Locked Candidates - Returning Step");
-//                 // Return the stepInfo derived from the *original* state before applyEliminations
-//                 return { status: 'found_step', steps: [lockedResult.stepInfo] };
-//             } else {
-//                 console.log("Locked Candidates found, but caused no effective eliminations on current map.");
-//             }
-//         }
+/**
+ * Converts a 'r-c' key string to [r, c] coordinates.
+ * @param {string} key
+ * @returns {[number, number]}
+ */
+function keyToCoords(key) {
+    return key.split('-').map(Number);
+}
 
-//         // Naked Pairs
-//         const nakedPairResult = findNakedPairs(candidatesMap); // Pass the map
-//         if (nakedPairResult.stepInfo && nakedPairResult.eliminations.length > 0) {
-//             if (applyEliminations(candidatesMap, nakedPairResult.eliminations)) {
-//                 console.log("Applied Naked Pair - Returning Step");
-//                 return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
-//             } else {
-//                 console.log("Naked Pair found, but caused no effective eliminations on current map.");
-//             }
-//         }
+/**
+ * Converts [r, c] coordinates to a 'r-c' key string.
+ * @param {number} r
+ * @param {number} c
+ * @returns {string}
+ */
+function coordsToKey(r, c) {
+    return `${r}-${c}`;
+}
 
-//         // Hidden Pairs
-//         const hiddenPairResult = findHiddenPairs(candidatesMap, board); // Pass map and board
-//         if (hiddenPairResult.stepInfo && hiddenPairResult.eliminations.length > 0) {
-//             if (applyEliminations(candidatesMap, hiddenPairResult.eliminations)) {
-//                 console.log("Applied Hidden Pair - Returning Step");
-//                 return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
-//             } else {
-//                 console.log("Hidden Pair found, but caused no effective eliminations on current map.");
-//             }
-//         }
+// [solver_advanced.js] - Add after findYWing or findXWing
 
-//         // --- X-Wing --- << ADDED HERE
-//         const xWingResult = findXWing(candidatesMap);
-//         if (xWingResult.stepInfo && xWingResult.eliminations.length > 0) {
-//             if (applyEliminations(candidatesMap, xWingResult.eliminations)) {
-//                 console.log("Applied X-Wing - Returning Step");
-//                 return { status: 'found_step', steps: [xWingResult.stepInfo] };
-//             } else {
-//                 console.log("X-Wing found, but caused no effective eliminations on current map.");
-//             }
-//         }
+/**
+ * Finds the FIRST Skyscraper pattern that results in actual eliminations.
+ * Looks for two rows (or two columns) with exactly two candidates for a digit,
+ * where two candidates align in one column (or row) - the "base".
+ * Eliminations occur for candidates seeing the other two candidates (the "roof").
+ *
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+ */
+function findSkyscraper(candidatesMap) {
+    for (let n = 1; n <= BOARD_SIZE; n++) {
+        const locations = getCandidateLocations(candidatesMap, n);
+        if (locations.size < 4) continue; // Need at least 4 candidates for a Skyscraper
+        const { rows, cols } = groupLocationsByUnit(locations);
 
-//         // Y-Wing <<<< ADDED HERE
-//         const yWingResult = findYWing(candidatesMap);
-//         if (yWingResult.stepInfo && applyEliminations(candidatesMap, yWingResult.eliminations)) {
-//             console.log("Applied Y-Wing - Returning Step");
-//             return { status: 'found_step', steps: [yWingResult.stepInfo] };
-//         } else{
-//             console.log("no Y-Wing eliminations found.");
-//         }
+        // --- Check for Row-based Skyscraper (Base in a Column) ---
+        const candidateRows = new Map(); // Map<rowIndex, [col1Key, col2Key]>
+        for (const [r, rowLocations] of rows.entries()) {
+            if (rowLocations.size === 2) {
+                candidateRows.set(r, Array.from(rowLocations));
+            }
+        }
 
-//         // --- W-Wing --- << ADDED HERE
-//         const wWingResult = findWWing(candidatesMap);
-//         if (wWingResult.stepInfo && applyEliminations(candidatesMap, wWingResult.eliminations)) {
-//             console.log("Applied W-Wing - Returning Step");
-//             return { status: 'found_step', steps: [wWingResult.stepInfo] };
-//         }
+        if (candidateRows.size >= 2) {
+            const rowIndices = Array.from(candidateRows.keys());
+            const rowCombinations = getCombinations(rowIndices, 2);
 
-//         console.log("Solver: No effective step found with w");
+            for (const [r1, r2] of rowCombinations) {
+                const [key1a, key1b] = candidateRows.get(r1); // e.g., 'r1-c1a', 'r1-c1b'
+                const [key2a, key2b] = candidateRows.get(r2); // e.g., 'r2-c2a', 'r2-c2b'
+                const [, c1a] = keyToCoords(key1a);
+                const [, c1b] = keyToCoords(key1b);
+                const [, c2a] = keyToCoords(key2a);
+                const [, c2b] = keyToCoords(key2b);
 
-//         // --- Add more complex elimination techniques here ---
-//         // e.g., findSwordfish, findJellyfish, findSkyscraper...
+                let baseCol = -1;
+                let roofKey1 = null;
+                let roofKey2 = null;
 
-//     } catch (error) {
-//         console.error("Solver caught contradiction:", error);
-//         return { status: 'error', steps: [], message: error.message || 'Contradiction found during solving.' };
-//     }
+                // Find base and roof
+                if (c1a === c2a && c1b !== c2b) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2b; }
+                else if (c1a === c2b && c1b !== c2a) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2a; }
+                else if (c1b === c2a && c1a !== c2b) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2b; }
+                else if (c1b === c2b && c1a !== c2a) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2a; }
 
-//     // --- 3. If no step was found ---
-//     console.log("Solver stuck: No placement or effective elimination found based on current candidates.");
-//     return { status: 'stuck', steps: [], message: 'No further progress possible with implemented techniques on the current candidate state.' };
-// }
+                if (baseCol !== -1) {
+                    const [roof_r1, roof_c1] = keyToCoords(roofKey1);
+                    const [roof_r2, roof_c2] = keyToCoords(roofKey2);
+
+                    // Find common peers of the two ROOF cells
+                    const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2);
+                    const skyscraperElims = [];
+
+                    for (const peerKey of commonPeersKeys) {
+                        // Ensure not eliminating from the base or roof cells themselves
+                        if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+                            if (candidatesMap.get(peerKey)?.has(n)) {
+                                skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    if (skyscraperElims.length > 0) {
+                        const baseKey1 = coordsToKey(r1, baseCol);
+                        const baseKey2 = coordsToKey(r2, baseCol);
+                        const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)];
+                        const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)];
+
+                        const stepInfo = {
+                            technique: `Skyscraper (Rows, Digit ${n})`,
+                            description: `Digit ${n} in Rows ${r1 + 1} and ${r2 + 1} forms a Skyscraper with base in Col ${baseCol + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
+                            eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                            highlights: [
+                                // Highlight base cells
+                                ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                // Highlight roof cells
+                                ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                // Highlight eliminations
+                                ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' }))
+                            ]
+                        };
+                        console.log(`  >> Found Row Skyscraper (Digit ${n}, Base Col ${baseCol + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
+                        return { eliminations: skyscraperElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        } // End Row-based check
+
+        // --- Check for Column-based Skyscraper (Base in a Row) ---
+        const candidateCols = new Map(); // Map<colIndex, [row1Key, row2Key]>
+        for (const [c, colLocations] of cols.entries()) {
+            if (colLocations.size === 2) {
+                candidateCols.set(c, Array.from(colLocations));
+            }
+        }
+
+        if (candidateCols.size >= 2) {
+            const colIndices = Array.from(candidateCols.keys());
+            const colCombinations = getCombinations(colIndices, 2);
+
+            for (const [c1, c2] of colCombinations) {
+                const [key1a, key1b] = candidateCols.get(c1); // 'r1a-c1', 'r1b-c1'
+                const [key2a, key2b] = candidateCols.get(c2); // 'r2a-c2', 'r2b-c2'
+                const [r1a,] = keyToCoords(key1a);
+                const [r1b,] = keyToCoords(key1b);
+                const [r2a,] = keyToCoords(key2a);
+                const [r2b,] = keyToCoords(key2b);
+
+                let baseRow = -1;
+                let roofKey1 = null;
+                let roofKey2 = null;
+
+                // Find base and roof
+                if (r1a === r2a && r1b !== r2b) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2b; }
+                else if (r1a === r2b && r1b !== r2a) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2a; }
+                else if (r1b === r2a && r1a !== r2b) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2b; }
+                else if (r1b === r2b && r1a !== r2a) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2a; }
+
+                if (baseRow !== -1) {
+                    const [roof_r1, roof_c1] = keyToCoords(roofKey1);
+                    const [roof_r2, roof_c2] = keyToCoords(roofKey2);
+
+                    // Find common peers of the two ROOF cells
+                    const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2);
+                    const skyscraperElims = [];
+
+                    for (const peerKey of commonPeersKeys) {
+                        if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+                            if (candidatesMap.get(peerKey)?.has(n)) {
+                                skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    if (skyscraperElims.length > 0) {
+                        const baseKey1 = coordsToKey(baseRow, c1);
+                        const baseKey2 = coordsToKey(baseRow, c2);
+                        const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)];
+                        const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)];
+
+                        const stepInfo = {
+                            technique: `Skyscraper (Cols, Digit ${n})`,
+                            description: `Digit ${n} in Cols ${c1 + 1} and ${c2 + 1} forms a Skyscraper with base in Row ${baseRow + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
+                            eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                            highlights: [
+                                ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' }))
+                            ]
+                        };
+                        console.log(`  >> Found Col Skyscraper (Digit ${n}, Base Row ${baseRow + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
+                        return { eliminations: skyscraperElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        } // End Col-based check
+
+    } // End digit loop
+
+    return { eliminations: [], stepInfo: null };
+}
+
+// [solver_advanced.js] - Add after findSkyscraper
+
+/**
+ * Finds the FIRST 2-String Kite pattern that results in actual eliminations.
+ * Looks for a row and a column each with exactly two candidates for a digit.
+ * One candidate from the row must share a box with one candidate from the column (but not be the same cell).
+ * Eliminations occur for candidates seeing the other two "end" candidates.
+ *
+ * @param {Map<string, Set<number>>} candidatesMap
+ * @returns {{eliminations: Array<{cellKey: string, values: number[]}>, stepInfo: Step | null}}
+ */
+function find2StringKite(candidatesMap) {
+    for (let n = 1; n <= BOARD_SIZE; n++) {
+        const locations = getCandidateLocations(candidatesMap, n);
+        if (locations.size < 4) continue;
+        const { rows, cols } = groupLocationsByUnit(locations);
+
+        const candidateRows = []; // Array of { r: number, keys: [string, string] }
+        for (const [r, rowLocations] of rows.entries()) {
+            if (rowLocations.size === 2) {
+                candidateRows.push({ r, keys: Array.from(rowLocations) });
+            }
+        }
+
+        const candidateCols = []; // Array of { c: number, keys: [string, string] }
+        for (const [c, colLocations] of cols.entries()) {
+            if (colLocations.size === 2) {
+                candidateCols.push({ c, keys: Array.from(colLocations) });
+            }
+        }
+
+        if (candidateRows.length === 0 || candidateCols.length === 0) continue;
+
+        for (const rowInfo of candidateRows) {
+            const r = rowInfo.r;
+            const [keyR1, keyR2] = rowInfo.keys; // e.g., 'r-c1', 'r-c2'
+            const [r1, c1] = keyToCoords(keyR1);
+            const [r2, c2] = keyToCoords(keyR2); // r1 === r2 === r
+            const boxR1 = Math.floor(r1 / BOX_SIZE) * BOX_SIZE + Math.floor(c1 / BOX_SIZE);
+            const boxR2 = Math.floor(r2 / BOX_SIZE) * BOX_SIZE + Math.floor(c2 / BOX_SIZE);
+
+            for (const colInfo of candidateCols) {
+                const c = colInfo.c;
+                // Avoid trivial case where row and column are the same cell's units
+                if (c === c1 && r === r2) continue; // Should be redundant due to checks below
+                if (c === c2 && r === r1) continue;
+
+                const [keyC1, keyC2] = colInfo.keys; // e.g., 'rA-c', 'rB-c'
+                const [rA, cA] = keyToCoords(keyC1); // cA === c === c
+                const [rB, cB] = keyToCoords(keyC2); // cB === c === c
+                const boxC1 = Math.floor(rA / BOX_SIZE) * BOX_SIZE + Math.floor(cA / BOX_SIZE);
+                const boxC2 = Math.floor(rB / BOX_SIZE) * BOX_SIZE + Math.floor(cB / BOX_SIZE);
+
+                let linkKeyRow = null;
+                let linkKeyCol = null;
+                let endKeyRow = null;
+                let endKeyCol = null;
+
+                // Check for the box link (one cell from row pair shares box with one from col pair, but not the same cell)
+                if (keyR1 !== keyC1 && boxR1 === boxC1) { linkKeyRow = keyR1; linkKeyCol = keyC1; endKeyRow = keyR2; endKeyCol = keyC2; }
+                else if (keyR1 !== keyC2 && boxR1 === boxC2) { linkKeyRow = keyR1; linkKeyCol = keyC2; endKeyRow = keyR2; endKeyCol = keyC1; }
+                else if (keyR2 !== keyC1 && boxR2 === boxC1) { linkKeyRow = keyR2; linkKeyCol = keyC1; endKeyRow = keyR1; endKeyCol = keyC2; }
+                else if (keyR2 !== keyC2 && boxR2 === boxC2) { linkKeyRow = keyR2; linkKeyCol = keyC2; endKeyRow = keyR1; endKeyCol = keyC1; }
+
+                if (linkKeyRow) { // Found a valid kite structure
+                    const [endR_r, endR_c] = keyToCoords(endKeyRow);
+                    const [endC_r, endC_c] = keyToCoords(endKeyCol);
+
+                    // Cannot eliminate from the 4 defining cells
+                    const definingKeys = new Set([keyR1, keyR2, keyC1, keyC2]);
+
+                    // Find common peers of the two END cells
+                    const commonPeersKeys = getCommonPeers(endR_r, endR_c, endC_r, endC_c);
+                    const kiteElims = [];
+
+                    for (const peerKey of commonPeersKeys) {
+                        if (!definingKeys.has(peerKey) && candidatesMap.get(peerKey)?.has(n)) {
+                            kiteElims.push({ cellKey: peerKey, values: [n] });
+                        }
+                    }
+
+                    if (kiteElims.length > 0) {
+                        const [lr_r, lr_c] = keyToCoords(linkKeyRow);
+                        const [lc_r, lc_c] = keyToCoords(linkKeyCol);
+                        const definingCoords = [keyToCoords(keyR1), keyToCoords(keyR2), keyToCoords(keyC1), keyToCoords(keyC2)];
+
+                        const stepInfo = {
+                            technique: `2-String Kite (Digit ${n})`,
+                            description: `Digit ${n} forms a 2-String Kite. Row ${r + 1} has candidates at C${c1 + 1}, C${c2 + 1}. Column ${c + 1} has candidates at R${rA + 1}, R${rB + 1}. Link between R${lr_r + 1}C${lr_c + 1} and R${lc_r + 1}C${lc_c + 1} via their box. Candidate ${n} removed from cells seeing both ends R${endR_r + 1}C${endR_c + 1} and R${endC_r + 1}C${endC_c + 1}.`,
+                            eliminations: kiteElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                            highlights: [
+                                // Highlight the 4 defining cells
+                                ...definingCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                // Highlight eliminations
+                                ...kiteElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' }))
+                            ]
+                        };
+                        console.log(`  >> Found 2-String Kite (Digit ${n}, Row ${r + 1}, Col ${c + 1}, Ends ${endKeyRow}/${endKeyCol}). Eliminations:`, kiteElims.map(e => e.cellKey));
+                        return { eliminations: kiteElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        } // End row loop
+    } // End digit loop
+
+    return { eliminations: [], stepInfo: null };
+}
+
+// findCrane here
+
+// PUZZLE SOLVER
 
 function findNextLogicalStep(board, currentCandidatesMap) {
 
@@ -1449,6 +1622,20 @@ function findNextLogicalStep(board, currentCandidatesMap) {
             return { status: 'found_step', steps: [hiddenTripleResult.stepInfo] };
         }
 
+         // SE 4.0 (Skyscraper)
+         const skyscraperResult = findSkyscraper(candidatesMap);
+         if (skyscraperResult.stepInfo && applyEliminations(candidatesMap, skyscraperResult.eliminations)) {
+             console.log("Applied Skyscraper - Returning Step");
+             return { status: 'found_step', steps: [skyscraperResult.stepInfo] };
+         }
+ 
+         // SE 4.0 (2-String Kite)
+         const kiteResult = find2StringKite(candidatesMap);
+         if (kiteResult.stepInfo && applyEliminations(candidatesMap, kiteResult.eliminations)) {
+             console.log("Applied 2-String Kite - Returning Step");
+             return { status: 'found_step', steps: [kiteResult.stepInfo] };
+         }
+
 
         // SE 4.2
         const yWingResult = findYWing(candidatesMap);
@@ -1460,8 +1647,12 @@ function findNextLogicalStep(board, currentCandidatesMap) {
         // SE 4.3 (Requires findHiddenQuads)
         // ...
 
-        // SE 4.4 (Requires findXYZWing)
-        // ...
+        // SE 4.4 (Crane)
+        // const craneResult = findCrane(candidatesMap);
+        // if (craneResult.stepInfo && applyEliminations(candidatesMap, craneResult.eliminations)) {
+        //     console.log("Applied Crane - Returning Step");
+        //     return { status: 'found_step', steps: [craneResult.stepInfo] };
+        // }
 
         // Add other techniques in order of increasing SE score...
 
@@ -1491,18 +1682,9 @@ export function solveSingleStep(board, candidatesMap) {
 }
 
 
+// PUZZLE GENERATION 
 
-// --- Placeholder Functions for Generation and Full Solve ---
-// These functions are placeholders and should be replaced with actual implementations
-
-
-// /** Placeholder: Generates a Sudoku puzzle. */
-// export function generatePuzzle(difficulty = 40) {
-//     console.warn("Using basic solver for puzzle generation.");
-//     return SolverBasic.generate(difficulty);
-// }
-
-/** Placeholder: Solves the entire Sudoku board using backtracking. */
+// helper for solve; simple backtracking algo
 export function solve(board, initialBoard = null) {
     console.warn("Using basic backtracking solver for full solve.");
     let boardCopy = deepCopy2DArray(board);
@@ -1517,8 +1699,6 @@ export function solve(board, initialBoard = null) {
     };
 }
 
-// HELPER for generating difficulty puzzles
-// --- Replace the old placeholder ---
 /**
  * Generates a Sudoku puzzle based on desired logical difficulty.
  * @param {DifficultyLevel} difficultyLevel - The target difficulty level enum/constant.
@@ -1533,6 +1713,7 @@ export async function generatePuzzle(difficultyLevel = DifficultyLevel.MEDIUM) {
         case DifficultyLevel.MEDIUM: minClues = 28; maxClues = 31; break;
         case DifficultyLevel.HARD: minClues = 25; maxClues = 29; break;
         case DifficultyLevel.VERY_HARD: minClues = 22; maxClues = 27; break;
+        case DifficultyLevel.EXTREME: minClues = 20; maxClues = 26; break;
     }
 
     const result = await generatePuzzleAdvanced(difficultyLevel, 65, minClues, maxClues); // 100 attempts
@@ -1738,109 +1919,6 @@ export async function generatePuzzleAdvanced(
     console.error(`Failed to generate a puzzle of level ${desiredLevel} after ${maxAttempts} attempts.`);
     return null;
 }
-
-// /**
-//  * Generates a Sudoku puzzle targeting a specific difficulty level.
-//  *
-//  * @param {DifficultyLevel} desiredLevel - The target difficulty level (e.g., DifficultyLevel.MEDIUM).
-//  * @param {number} maxAttempts - Maximum number of puzzles to generate and rate before giving up.
-//  * @param {number} minClues - Optional minimum clues desired (approximate).
-//  * @param {number} maxClues - Optional maximum clues desired (approximate).
-//  * @returns {{puzzle: number[][], solution: number[][], difficulty: DifficultyLevel, score: number, techniques: Set<string>} | null} The generated puzzle and its info, or null if failed.
-//  */
-// export async function generatePuzzleAdvanced(desiredLevel, maxAttempts = 100, minClues = 25, maxClues = 40) {
-//     console.log(`--- Generating Puzzle: Target Level = ${desiredLevel} ---`);
-
-//     if (!DIFFICULTY_THRESHOLDS[desiredLevel]) {
-//         console.error(`Invalid desiredLevel: ${desiredLevel}`);
-//         return null;
-//     }
-
-//     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-//         console.log(`Generation Attempt ${attempt}/${maxAttempts}`);
-//         let board = Array(BOARD_SIZE).fill(0).map(() => Array(BOARD_SIZE).fill(0));
-
-//         // 1. Generate a fully solved board (using basic solver is fine)
-//         let digitArray = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-//         digitArray.sort(() => Math.random() - 0.5);
-
-
-//         if (!SolverBasic.solve(board, digitArray)) {
-//         // if (!basicSolve(board, digitArray)) {
-//              console.warn("Generation Error: Failed to create initial solved board.");
-//              continue; // Try next attempt
-//         }
-//         const solution = deepCopy2DArray(board);
-//         //log the solution if needed
-//         console.log("Generated Solution:", solution);
-
-//         // 2. Remove cells (adapted from basic generator)
-//         let cells = Array.from({ length: BOARD_SIZE * BOARD_SIZE }, (_, i) => i);
-//         cells.sort(() => Math.random() - 0.5); // Randomize removal order
-
-//         let currentPuzzle = deepCopy2DArray(solution);
-//         let removedCount = 0;
-//         const totalCells = BOARD_SIZE * BOARD_SIZE;
-
-//         for (const cellIndex of cells) {
-//             const row = Math.floor(cellIndex / BOARD_SIZE);
-//             const col = cellIndex % BOARD_SIZE;
-
-//             if (currentPuzzle[row][col] === 0) continue;
-
-//             const tempValue = currentPuzzle[row][col];
-//             currentPuzzle[row][col] = 0;
-//             removedCount++;
-
-//             // Check uniqueness
-//             const boardCheckCopy = deepCopy2DArray(currentPuzzle);
-//             const numSolutions = SolverBasic.countSolutions(boardCheckCopy);
-
-//             if (numSolutions !== 1) {
-//                 // Put back if it breaks uniqueness
-//                 currentPuzzle[row][col] = tempValue;
-//                 removedCount--;
-//                  // console.log(`Could not remove ${row}-${col}, breaks uniqueness.`);
-//             } else {
-//                 // break if barely less than maxClues
-//                 let clueCount = totalCells - removedCount;
-//                 if (clueCount < maxClues) {
-//                     console.log(`Removed ${removedCount} cells, stopping removal.`);
-//                     break; // Stop removing clues if we reach the desired range
-//                 }
-//             }
-
-//         }
-
-//         const finalClueCount = totalCells - removedCount;
-//         console.log(`Generated candidate puzzle with ${finalClueCount} clues.`);
-
-//         // 3. Rate the generated puzzle
-//         const ratingResult = await ratePuzzleDifficulty(currentPuzzle); // Use the async wrapper if needed
-
-//         if (ratingResult && ratingResult.difficulty === desiredLevel) {
-//              // Additional Check: Ensure the number of clues is reasonable for the level? (Optional)
-//              // e.g., if (finalClueCount > someMaxForHard && desiredLevel === DifficultyLevel.HARD) continue;
-
-//             console.log(`--- Success! Found ${desiredLevel} puzzle on attempt ${attempt} ---`);
-//             return {
-//                 puzzle: currentPuzzle,
-//                 solution: solution,
-//                 difficulty: ratingResult.difficulty,
-//                 score: ratingResult.score,
-//                 techniques: ratingResult.techniques
-//             };
-//         } else if (ratingResult) {
-//              console.log(`-> Puzzle rated as ${ratingResult.difficulty} (Score: ${ratingResult.score}). Discarding.`);
-//         } else {
-//             console.log("-> Puzzle rating failed (invalid/error). Discarding.");
-//         }
-
-//     } // End attempts loop
-
-//     console.error(`Failed to generate a puzzle of level ${desiredLevel} after ${maxAttempts} attempts.`);
-//     return null;
-// }
 
 /**
  * Simulates solving a puzzle step-by-step using only the implemented logical techniques.
