@@ -176,8 +176,8 @@ export class SudokuGame {
                     this.board.clearBoard();
                     this.board.setGrid(puzzle, true); // Set puzzle grid as initial grid
                     this._setSelectedCell(null, null);
+                    this._startTimerAndUnpause();
                     this._updateUI();
-                    this.timer.start();
                     this.startAutoSave();
                     this._saveGame();
                     console.log(`Successfully generated ${difficultyValue} board.`);
@@ -553,53 +553,10 @@ export class SudokuGame {
                     this.currentState.focusedDigits.clear(); // Clear focus
                     this.undoStack = [];
                     this.redoStack = [];
+                    this._startTimerAndUnpause();
                     this._updateUI(); // Redraw, clears highlights
-                    this.timer.start();
                 });
             },
-            // onSolveRequest: (visual) => {
-            //     // Note: Basic solver modifies the board directly.
-            //     // Consider creating a copy if you want to preserve the user's state.
-            //      this.ui.showConfirm("Show solution?", async () => {
-            //          this.timer.pause(); // Pause timer while solving
-            //          this.currentState.isPaused = true;
-            //          this.ui.updatePauseButton(true);
-            //          const boardCopy = this.board.getGrid(); // Work on a copy
-
-            //          if (visual) {
-            //              console.log("Solving visually...");
-            //               // solveVisual needs the board passed directly to modify it
-            //               const solveSuccess = await Solver.solveVisual(boardCopy,
-            //                 async () => {
-            //                     // This callback updates the UI during visual solve
-            //                     // We need to temporarily update the main board's grid for display
-            //                     this.board.setGrid(boardCopy); // Update board for UI
-            //                     this._updateUI(); // Redraw
-            //                 }, 50); // Adjust delay as needed
-
-            //              if (solveSuccess) {
-            //                  this.board.setGrid(boardCopy); // Keep solved state on board
-            //                  this._updateUI();
-            //                  celebrate();
-            //              } else {
-            //                  console.log("Visual solver couldn't find a solution (or was interrupted).");
-            //                  // Optionally restore original board state here
-            //              }
-
-            //          } else {
-            //              console.log("Solving instantly...");
-            //              if (Solver.solve(boardCopy)) {
-            //                  this.board.setGrid(boardCopy); // Apply solution
-            //                  this._updateUI();
-            //                  celebrate();
-            //              } else {
-            //                  console.log("No solution found.");
-            //                   // Optionally show a message to the user
-            //                   alert("Could not find a solution for the current board.");
-            //              }
-            //          }
-            //      });
-            // },
             onSolveRequest: (visual) => { // Kept for full solve, not hint
                 this.ui.showConfirm("Show solution? Current state will be overwritten.", async () => {
                     this.timer.pause();
@@ -632,10 +589,7 @@ export class SudokuGame {
                     } else {
                         console.log("No solution found or visual solve failed.");
                         alert("Could not find a solution for the current board.");
-                        // Optionally restore original state if needed, though usually not for 'solve'
-                        this.timer.start(); // Resume timer if solve failed? Or leave paused?
-                        this.currentState.isPaused = false; // Decide if solve failure unpauses
-                        this.ui.updatePauseButton(false);
+                        this._startTimerAndUnpause();
                     }
                 });
             },
@@ -720,6 +674,12 @@ export class SudokuGame {
             },
             onResize: () => this._detectPlatform(),
         };
+    }
+
+    _startTimerAndUnpause() {
+        this.timer.start();
+        this.currentState.isPaused = false;
+        this.ui.updatePauseButton(false);
     }
 
     // --- Keyboard Handling ---

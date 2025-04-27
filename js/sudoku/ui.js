@@ -129,6 +129,7 @@ export class SudokuUI {
 
     updatePauseButton(isPaused) {
         if (!this.pauseButtonIcon) return;
+        console.log("Updating pause button icon:", isPaused);
         if (isPaused) {
             this.pauseButtonIcon.classList.remove('fa-pause');
             this.pauseButtonIcon.classList.add('fa-play');
