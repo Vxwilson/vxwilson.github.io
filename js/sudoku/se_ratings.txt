@@ -9,18 +9,19 @@
  2.6 Pointing
  2.8 Claiming
  3.0 Naked Pair
- 3.1 W-Wing
+
  3.2 X-Wing
  3.4 Hidden Pair
  3.6 Naked Triplet
  3.8 Swordfish
  4.0 Hidden Triplet
  4.0 Skyscrapper (self-defined)
- 4.0 2-String Kite (self-defined)
+ 4.1 2-String Kite 
  4.2 Crane
  4.2 XY-Wing (Y-Wing)
  4.3 [Direct Hidden Quad]
  4.4 XYZ-Wing
+ 4.5 W-Wing
  4.5 UR Types 1 or 2 or 4 or 3 w/ hidden pair
  4.6 UR Type 3 w/ naked pair or hidden triplet
      UL Types 1 or 2 or 4 or 3 w/ hidden pair (6 cells)

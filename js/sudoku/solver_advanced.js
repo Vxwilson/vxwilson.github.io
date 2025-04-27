@@ -186,12 +186,12 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             }
         }
 
-        const wWingResult = findWWing(candidatesMap);
-        if (wWingResult.stepInfo) {
+        const hiddenPairResult = findHiddenPairs(candidatesMap, board);
+        if (hiddenPairResult.stepInfo) {
             let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, wWingResult.eliminations)) {
-                console.log(`Found ${wWingResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [wWingResult.stepInfo] };
+            if (applyEliminations(checkMap, hiddenPairResult.eliminations)) {
+                console.log(`Found ${hiddenPairResult.stepInfo.technique}`);
+                return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
             }
         }
 
@@ -201,15 +201,6 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             if (applyEliminations(checkMap, xWingResult.eliminations)) {
                 console.log(`Found ${xWingResult.stepInfo.technique}`);
                 return { status: 'found_step', steps: [xWingResult.stepInfo] };
-            }
-        }
-
-        const hiddenPairResult = findHiddenPairs(candidatesMap, board);
-        if (hiddenPairResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, hiddenPairResult.eliminations)) {
-                console.log(`Found ${hiddenPairResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
             }
         }
 
@@ -255,6 +246,16 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             if (applyEliminations(checkMap, yWingResult.eliminations)) {
                 console.log(`Found ${yWingResult.stepInfo.technique}`);
                 return { status: 'found_step', steps: [yWingResult.stepInfo] };
+            }
+        }
+
+
+        const wWingResult = findWWing(candidatesMap);
+        if (wWingResult.stepInfo) {
+            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
+            if (applyEliminations(checkMap, wWingResult.eliminations)) {
+                console.log(`Found ${wWingResult.stepInfo.technique}`);
+                return { status: 'found_step', steps: [wWingResult.stepInfo] };
             }
         }
 

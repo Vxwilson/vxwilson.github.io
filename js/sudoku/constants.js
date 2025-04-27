@@ -53,11 +53,13 @@ const SE_SCORES = {
 
     // Fish / Wings
     'X-Wing': 32,                      // SE 3.2   
-    'W-Wing': 33,                      // SE 3.3                
+    'Swordfish': 38,                   // SE 3.8
+             
     'Skyscraper': 40,                  // SE 4.0 
-    '2-String Kite': 40,               // SE 4.0 
+    '2-String Kite': 41,               // SE 4.0 
     'Y-Wing': 40,                      // SE 4.2 (XY-Wing)
-    'Crane': 44,                       // SE 4.4
+    'Crane': 42,                       // SE 4.4
+    'W-Wing': 45,                      // SE 4.5   
 
     // Subsets (Triples) - Requires implementing findNakedTriples/findHiddenTriples
     'Naked Triplet': 36,               // SE 3.6
@@ -79,10 +81,10 @@ export const DIFFICULTY_THRESHOLDS = {
     // That one CANNOT EXCEED
     [DifficultyLevel.BABY]: 15,   
     [DifficultyLevel.EASY]: 24,   
-    [DifficultyLevel.MEDIUM]: 30,
-    [DifficultyLevel.HARD]: 35,  
-    [DifficultyLevel.VERY_HARD]: 41,
-    [DifficultyLevel.EXTREME]: 55,
+    [DifficultyLevel.MEDIUM]: 31,
+    [DifficultyLevel.HARD]: 40,  
+    [DifficultyLevel.VERY_HARD]: 45,
+    // [DifficultyLevel.EXTREME]: 55,
 };
 
 // --- Helper Functions ---
