@@ -17,6 +17,8 @@ export class SudokuUI {
         this.undoButton = document.getElementById('undo');
         this.hintButton = document.getElementById('hintButton'); // Added hint button
 
+        this.hintDisplayElement = document.getElementById('hint-display'); // Added hint display element
+
         // Modals / Floating Boxes (assuming IDs match HTML)
         this.settingsPanel = document.getElementById('settingsPanel');
         this.exportBox = document.getElementById('exportBox');
@@ -94,7 +96,6 @@ export class SudokuUI {
 
     // --- Display Updates ---
     displayBoard(boardData) {
-        // ... (displayBoard logic remains mostly the same)
         const { grid, initialGrid, pencilMarks } = boardData;
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
@@ -132,24 +133,19 @@ export class SudokuUI {
 
     updatePauseButton(isPaused) {
         if (!this.pauseButtonIcon) return;
-        console.log("Updating pause button icon:", isPaused);
-        if (isPaused) {
-            this.pauseButtonIcon.classList.remove('fa-pause');
-            this.pauseButtonIcon.classList.add('fa-play');
-        } else {
-            this.pauseButtonIcon.classList.remove('fa-play');
-            this.pauseButtonIcon.classList.add('fa-pause');
-        }
+        this.pauseButtonIcon.classList.toggle('fa-pause', !isPaused);
+        this.pauseButtonIcon.classList.toggle('fa-play', isPaused);
     }
 
     updateModeButtons(currentMode) {
         this.pencilModeButton?.classList.toggle('selected', currentMode === Modes.MARKING);
         this.focusModeButton?.classList.toggle('selected', currentMode === Modes.FOCUS);
-        // If other buttons need updating based on mode
     }
 
     updateDifficultyButton(difficultyValue) {
-        this.difficultyButton.textContent = difficultyValue;
+        if (this.difficultyButton) {
+            this.difficultyButton.textContent = String(difficultyValue || DifficultyLevel.MEDIUM); // Provide a default if null/undefined
+        }
     }
 
     selectCell(row, col, prevRow, prevCol) {
@@ -157,106 +153,103 @@ export class SudokuUI {
         if (prevRow !== null && prevCol !== null) {
             this.getCellElement(prevRow, prevCol)?.classList.remove('selected');
         }
+        // Deselect all currently selected (safer if state gets out of sync)
+        this.gridContainer.querySelectorAll('.sudoku-cell.selected').forEach(c => c.classList.remove('selected'));
+
         // Select new cell
         if (row !== null && col !== null) {
             this.getCellElement(row, col)?.classList.add('selected');
         }
     }
 
+    // updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
+    //     this.numButtons.forEach(button => {
+    //         const num = parseInt(button.dataset.num, 10);
+    //         let isDisabled = true; // Default to disabled
+
+    //         if (isPrefilled && !isMarkingMode) { // Can't change prefilled in normal mode
+    //             isDisabled = true;
+    //         } else if (num === 0) { // Erase button
+    //             isDisabled = !canErase;
+    //         } else if (isMarkingMode) { // Marking mode
+    //             isDisabled = false; // Always allow marking toggles 1-9
+    //         } else { // Normal mode, non-prefilled cell
+    //             isDisabled = !validInputs.includes(num);
+    //         }
+    //         button.disabled = isDisabled;
+    //     });
+    // }
     updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
         this.numButtons.forEach(button => {
             const num = parseInt(button.dataset.num, 10);
-            let isDisabled = true; // Default to disabled
+            let isDisabled = true;
 
-            if (isPrefilled && !isMarkingMode) { // Can't change prefilled in normal mode
-                isDisabled = true;
-            } else if (num === 0) { // Erase button
-                isDisabled = !canErase;
+            if (num === 0) { // Erase button
+                isDisabled = !canErase || isPrefilled; // Cannot erase prefilled
             } else if (isMarkingMode) { // Marking mode
-                isDisabled = false; // Always allow marking toggles 1-9
-            } else { // Normal mode, non-prefilled cell
-                isDisabled = !validInputs.includes(num);
+                isDisabled = isPrefilled; // Cannot add pencil marks to prefilled cells
+            } else { // Normal input mode
+                isDisabled = isPrefilled; // Cannot change prefilled cell value
+                // If not prefilled, enable if input is valid OR always enable (let game logic handle validation feedback)
+                // Let's enable all 1-9, Game logic shows error if invalid
+                if (!isPrefilled) isDisabled = false;
+                // OR if you want to pre-disable based on validity:
+                // isDisabled = isPrefilled || !validInputs.includes(num);
             }
             button.disabled = isDisabled;
         });
     }
 
-    // Highlight cells with a specific number or pencil mark
-    applyFocus(value) {
-        this.clearFocus(); // Clear previous focus first
+    // // Highlight cells with a specific number or pencil mark
+    // applyFocus(value) {
+    //     this.clearFocus(); // Clear previous focus first
 
-        if (value < 1 || value > 9) return; // Only focus 1-9
+    //     if (value < 1 || value > 9) return; // Only focus 1-9
 
-        this.cells.flat().forEach(cell => {
-            const cellText = cell.querySelector('.cell-text');
-            const cellValue = parseInt(cellText.textContent, 10);
+    //     this.cells.flat().forEach(cell => {
+    //         const cellText = cell.querySelector('.cell-text');
+    //         const cellValue = parseInt(cellText.textContent, 10);
 
-            if (cellValue === value) {
-                cell.classList.add('focused');
-            } else {
-                // Check pencil marks if cell is empty
-                const pencilMark = cell.querySelector(`.pencil-mark[data-num="${value}"].marked`);
-                if (pencilMark) {
-                    pencilMark.classList.add('focused'); // Focus the specific mark
-                    // Optionally highlight the cell containing the focused mark
-                    // cell.classList.add('focused-pencil');
-                }
-            }
-        });
-    }
+    //         if (cellValue === value) {
+    //             cell.classList.add('focused');
+    //         } else {
+    //             // Check pencil marks if cell is empty
+    //             const pencilMark = cell.querySelector(`.pencil-mark[data-num="${value}"].marked`);
+    //             if (pencilMark) {
+    //                 pencilMark.classList.add('focused'); // Focus the specific mark
+    //                 // Optionally highlight the cell containing the focused mark
+    //                 // cell.classList.add('focused-pencil');
+    //             }
+    //         }
+    //     });
+    // }
 
-    clearFocus() {
-        this.cells.flat().forEach(cell => {
-            cell.classList.remove('focused');
-            // cell.classList.remove('focused-pencil');
-            cell.querySelectorAll('.pencil-mark.focused').forEach(mark => {
-                mark.classList.remove('focused');
-            });
-        });
-    }
+    // clearFocus() {
+    //     this.cells.flat().forEach(cell => {
+    //         cell.classList.remove('focused');
+    //         // cell.classList.remove('focused-pencil');
+    //         cell.querySelectorAll('.pencil-mark.focused').forEach(mark => {
+    //             mark.classList.remove('focused');
+    //         });
+    //     });
+    // }
 
-    showBoardError(row, col) { // Example: flash cell red on invalid input attempt
+
+    showBoardError(row, col) {
         const cell = this.getCellElement(row, col);
         if (cell) {
             cell.classList.add('error');
-            setTimeout(() => cell.classList.remove('error'), 500); // Temporary feedback
+            // Ensure removal even if another error happens quickly
+            cell.errorTimeout = setTimeout(() => {
+                cell.classList.remove('error');
+                delete cell.errorTimeout;
+            }, 500);
         }
     }
 
     // --- Modals / Popups ---
-
-    // showConfirm(prompt, confirmCallback, cancelCallback) {
-    //     this.confirmText.textContent = prompt;
-    //     // Clone and replace to remove previous listeners
-    //     const newConfirmButton = this.confirmButton.cloneNode(true);
-    //     this.confirmButton.parentNode.replaceChild(newConfirmButton, this.confirmButton);
-    //     this.confirmButton = newConfirmButton;
-
-    //     const newCancelButton = this.cancelButton.cloneNode(true);
-    //     this.cancelButton.parentNode.replaceChild(newCancelButton, this.cancelButton);
-    //     this.cancelButton = newCancelButton;
-
-    //     this.confirmButton.onclick = () => {
-    //         this.hideConfirm();
-    //         if (confirmCallback) confirmCallback();
-    //     };
-    //     this.cancelButton.onclick = () => {
-    //         this.hideConfirm();
-    //         if (cancelCallback) cancelCallback();
-    //     };
-    //     this.confirmBox.classList.add('show');
-    // }
-
-    // hideConfirm() {
-    //     this.confirmBox.classList.remove('show');
-    //     this.confirmButton.onclick = null; // Clean up listener
-    //     this.cancelButton.onclick = null;  // Clean up listener
-    // }
-    // js/sudoku/ui.js
-
     showConfirm(prompt, confirmCallback, cancelCallback) {
         this.confirmText.textContent = prompt;
-        // Clone and replace to remove previous listeners (keep this)
         const newConfirmButton = this.confirmButton.cloneNode(true);
         this.confirmButton.parentNode.replaceChild(newConfirmButton, this.confirmButton);
         this.confirmButton = newConfirmButton;
@@ -266,72 +259,31 @@ export class SudokuUI {
         this.cancelButton = newCancelButton;
 
         this.confirmButton.onclick = () => {
-            // 1. Hide the box visually *immediately*
             this.hideConfirm();
-
-            // 2. Schedule the potentially long-running callback to execute
-            //    in the next event loop cycle using setTimeout.
-            //    This allows the browser to repaint and hide the confirm box first.
-            setTimeout(() => {
-                if (confirmCallback) {
-                    try {
-                        // Execute the original callback (which calls _generateNewBoard)
-                        confirmCallback();
-                    } catch (e) {
-                        console.error("Error executing confirm callback:", e);
-                        // Optional: Handle synchronous errors in the callback if needed
-                        // Maybe hide the loading indicator if it somehow got shown
-                        this.hideLoading();
-                    }
-                }
-            }, 0); // 0ms delay is sufficient to yield to the event loop
+            setTimeout(() => { if (confirmCallback) confirmCallback(); }, 0);
         };
-
         this.cancelButton.onclick = () => {
-            // Cancel button logic doesn't involve heavy work, so no setTimeout needed
             this.hideConfirm();
             if (cancelCallback) cancelCallback();
         };
 
-        // Show the confirm box
         this.confirmBox.classList.add('show');
     }
 
-    // hideConfirm method remains the same
     hideConfirm() {
         this.confirmBox.classList.remove('show');
-        // Clean up listeners immediately (though cloneNode handles the old ones)
         if (this.confirmButton) this.confirmButton.onclick = null;
         if (this.cancelButton) this.cancelButton.onclick = null;
     }
 
-    showExportBox(code) {
-        this.exportCodeDisplay.textContent = code;
-        this.exportBox.classList.add('show');
-    }
+    showExportBox(code) { /* ... */ this.exportCodeDisplay.textContent = code; this.exportBox.classList.add('show'); }
+    hideExportBox() { /* ... */ this.exportBox.classList.remove('show'); }
+    showLoadBox() { /* ... */ this.loadCodeInput.value = ''; this.loadBox.classList.add('show'); }
+    hideLoadBox() { /* ... */ this.loadBox.classList.remove('show'); }
+    showSettingsPanel() { /* ... */ this.settingsPanel.classList.add('show'); }
+    hideSettingsPanel() { /* ... */ this.settingsPanel.classList.remove('show'); }
 
-    hideExportBox() {
-        this.exportBox.classList.remove('show');
-    }
-
-    showLoadBox() {
-        this.loadCodeInput.value = ''; // Clear previous input
-        this.loadBox.classList.add('show');
-    }
-
-    hideLoadBox() {
-        this.loadBox.classList.remove('show');
-    }
-
-    showSettingsPanel() {
-        this.settingsPanel.classList.add('show');
-    }
-
-    hideSettingsPanel() {
-        this.settingsPanel.classList.remove('show');
-    }
-
-    // *** NEW: Loading Indicator Methods ***
+    // Loading Indicator Methods
     showLoading(initialText = "attempt ") {
         if (this.loadingIndicator && this.loadingProgressText) {
             this.loadingProgressText.textContent = initialText;
@@ -349,10 +301,10 @@ export class SudokuUI {
                 this.loadingProgressText.textContent = `[${currentAttempt}]`;
                 // console.log("loading progress: Difficulty is null or undefined, showing attempt progress.");
             }
-            else{
+            else {
                 this.loadingProgressText.textContent = `[${currentAttempt}] ${difficulty}`;
             }
-            
+
             // this.loadingProgressText.textContent = `${currentAttempt} of ${totalAttempts}`;
             console.log(`Loading progress: ${currentAttempt}/${totalAttempts}, difficulty: ${difficulty}`);
         }
@@ -365,36 +317,27 @@ export class SudokuUI {
         }
     }
 
-    // --- NEW/MODIFIED Highlighting ---
-
-    /**
-     * Applies focus highlighting based on selected number(s).
-     * @param {number | Set<number>} focusTarget - A single number or a Set of numbers to focus.
-     */
+    // --- Focus Highlighting (Keep separate from Hint) ---
     applyFocusHighlight(focusTarget) {
-        this.clearFocusHighlight(); // Clear previous focus first
+        this.clearFocusHighlight();
         if (focusTarget === null || focusTarget === undefined) return;
-
         const numbersToFocus = (typeof focusTarget === 'number') ? new Set([focusTarget]) : focusTarget;
-
-        if (numbersToFocus.size === 0) return; // Nothing to focus
+        if (numbersToFocus.size === 0) return;
 
         this.cells.flat().forEach(cell => {
+            if (!cell) return;
             const cellText = cell.querySelector('.cell-text');
-            const cellValue = parseInt(cellText.textContent, 10) || 0; // Get value or 0 if empty
+            const cellValue = parseInt(cellText.textContent, 10) || 0;
 
-            // Highlight cell if its value matches
             if (cellValue !== 0 && numbersToFocus.has(cellValue)) {
-                cell.classList.add('focus-highlight-cell'); // Renamed class
+                cell.classList.add('focus-highlight-cell');
             }
-
-            // Highlight pencil marks if cell is empty
             if (cellValue === 0) {
-                const pencilMarks = cell.querySelectorAll('.pencil-mark.marked');
-                pencilMarks.forEach(mark => {
-                    const num = parseInt(mark.dataset.num, 10);
-                    if (numbersToFocus.has(num)) {
-                        mark.classList.add('focus-highlight-pencil'); // Renamed class
+                const pencilMarksDiv = cell.querySelector('.pencil-marks');
+                numbersToFocus.forEach(num => {
+                    const markElement = pencilMarksDiv?.querySelector(`.pencil-mark[data-num="${num}"].marked`);
+                    if (markElement) {
+                        markElement.classList.add('focus-highlight-pencil');
                     }
                 });
             }
@@ -402,62 +345,115 @@ export class SudokuUI {
     }
 
     clearFocusHighlight() {
-        this.cells.flat().forEach(cell => {
-            cell.classList.remove('focus-highlight-cell'); // Renamed class
-            cell.querySelectorAll('.pencil-mark.focus-highlight-pencil').forEach(mark => { // Renamed class
-                mark.classList.remove('focus-highlight-pencil'); // Renamed class
-            });
-        });
+        this.gridContainer.querySelectorAll('.focus-highlight-cell').forEach(c => c.classList.remove('focus-highlight-cell'));
+        this.gridContainer.querySelectorAll('.focus-highlight-pencil').forEach(m => m.classList.remove('focus-highlight-pencil'));
+    }
+
+
+    // --- NEW/MODIFIED Hint Logic ---
+
+    /**
+     * Displays the hint technique name in the designated area.
+     * @param {string} techniqueName - The name of the technique found.
+     */
+    displayHintTechnique(techniqueName) {
+        if (this.hintDisplayElement) {
+            this.hintDisplayElement.textContent = techniqueName || '';
+            // Add 'visible' class only if there's text to display
+            this.hintDisplayElement.classList.toggle('visible', !!techniqueName);
+        } else {
+            console.warn("Hint display element not found.");
+        }
     }
 
     /**
-     * Applies visual highlights for a solver hint.
-     * @param {Array<{row: number, col: number, candidates: number[]}>} highlights - Data from solver.
+     * Clears the hint technique name display area.
      */
-    applyHintHighlight(highlights) {
-        this.clearHintHighlight(); // Clear previous hint highlights
-        if (!highlights || highlights.length === 0) return;
+    clearHintTechnique() {
+        if (this.hintDisplayElement) {
+            this.hintDisplayElement.textContent = '';
+            this.hintDisplayElement.classList.remove('visible');
+        }
+    }
 
-        console.log("Applying hint highlights:", highlights);
+    /**
+         * Applies visual highlights to the board for hints.
+         * @param {Array<Object>} highlights - Array of highlight objects from the solver step.
+         *                                     Expected format: { row: number, col: number, candidates: number[], type: string }
+         * @param {boolean} showCandidates - If true, highlight specific candidates within cells.
+         */
+    applyHintHighlight(highlights, showCandidates) {
+        console.log(`Applying highlights (Show Cands: ${showCandidates})`, highlights);
+        // Clear previous board highlights *but keep the text display*
+        this.clearHintHighlight(false);
 
-        highlights.forEach(item => {
-            const { row, col, candidates } = item;
-            const cell = this.getCellElement(row, col);
-            if (!cell) return;
+        if (!highlights || highlights.length === 0) {
+            console.log("No highlights provided to apply.");
+            return;
+        }
 
-            // General highlight for involved cells
-            cell.classList.add('hint-involved');
+        highlights.forEach(hl => {
+            const cell = this.getCellElement(hl.row, hl.col);
+            if (!cell) {
+                console.warn(`Hint highlight skipped: Cell R${hl.row}C${hl.col} not found.`);
+                return;
+            }
 
-            // Specific highlight for key candidates/values
-            if (candidates && candidates.length > 0) {
-                candidates.forEach(num => {
-                    const markElement = cell.querySelector(`.pencil-mark[data-num="${num}"]`);
-                    if (markElement) {
-                        markElement.classList.add('hint-value'); // Highlight specific pencil mark
-                    }
-                    // Optionally highlight the main number if the hint is placing a value?
-                    const cellText = cell.querySelector('.cell-text');
-                    if (parseInt(cellText?.textContent || '0') === num) {
-                        // Maybe add hint-value to cellText span? Needs CSS target.
-                    }
-                });
-            } else {
-                // If candidates array is empty/null, maybe highlight the cell's main number?
-                // This depends on how 'highlights' is structured for placed values vs elims.
-                // For now, hint-involved covers the cell.
+            const highlightTypeClass = `hint-${hl.type || 'involved'}`; // e.g., hint-target, hint-unit
+            cell.classList.add('hint-highlight', highlightTypeClass);
+
+            // Apply candidate highlights if requested and applicable
+            if (showCandidates && hl.candidates && hl.candidates.length > 0) {
+                const pencilMarksDiv = cell.querySelector('.pencil-marks');
+                if (pencilMarksDiv) { // Check if pencil marks container exists
+                    hl.candidates.forEach(cand => {
+                        const markElement = pencilMarksDiv.querySelector(`.pencil-mark[data-num="${cand}"]`);
+                        if (markElement) {
+                            markElement.classList.add('hint-highlight-candidate');
+                            // Add stronger highlight for the single candidate in placement hints
+                            if (hl.type === 'target' && hl.candidates.length === 1 && cand === hl.value) { // Assuming step result includes 'value' for placement
+                                markElement.classList.add('hint-highlight-candidate-strong');
+                                cell.classList.add('hint-placement'); // Extra class on cell for placement
+                            }
+                        } else {
+                            // console.warn(`Hint highlight: Pencil mark ${cand} not found in R${hl.row}C${hl.col}`);
+                        }
+                    });
+                }
+            } else if (showCandidates && hl.type === 'target' && hl.value) {
+                // Handle Full House/Single placement highlight directly on the cell text
+                const cellText = cell.querySelector('.cell-text');
+                if (cellText && !cellText.textContent) { // Only if cell is visually empty
+                    // Maybe add a temporary visual indicator for the number to be placed?
+                    // Or rely on the 'hint-placement' class on the cell.
+                    cell.classList.add('hint-placement');
+                }
             }
         });
     }
 
-    clearHintHighlight() {
-        // console.log("Clearing hint highlights");
-        this.cells.flat().forEach(cell => {
-            cell.classList.remove('hint-involved');
-            cell.querySelectorAll('.pencil-mark.hint-value').forEach(mark => {
-                mark.classList.remove('hint-value');
-            });
-            // Clear potential highlights on the main number if implemented
+    /**
+         * Clears all visual hint highlights from the board (cells and candidates).
+         * @param {boolean} [alsoClearText=true] - Whether to also clear the technique text display.
+         */
+    clearHintHighlight(alsoClearText = true) {
+        const board = this.gridContainer; // Use cached grid container
+
+        // Remove cell background highlights
+        board.querySelectorAll('.hint-highlight').forEach(cell => {
+            // Remove all possible hint type classes efficiently
+            cell.className = cell.className.replace(/\bhint-(highlight|target|unit|defining|causing|involved|elimination|placement)\b/g, '').trim();
         });
+
+        // Remove candidate highlights
+        board.querySelectorAll('.hint-highlight-candidate, .hint-highlight-candidate-strong').forEach(mark => {
+            mark.classList.remove('hint-highlight-candidate', 'hint-highlight-candidate-strong');
+        });
+
+        // Clear text display if requested
+        if (alsoClearText) {
+            this.clearHintTechnique();
+        }
     }
 
     // --- Event Listeners Setup ---
@@ -472,15 +468,34 @@ export class SudokuUI {
             }
         });
 
+        // // Click outside grid to deselect
+        // document.addEventListener('click', (event) => {
+        //     if (!event.target.closest('.sudoku') && // Clicked outside grid
+        //         !event.target.closest('.num-button') && // Not on numpad
+        //         !event.target.closest('.mode-button') && // Not on mode buttons
+        //         !event.target.closest('.floatingBox') && // Not inside floating boxes
+        //         this.callbacks.onClickOutside) {
+        //         this.callbacks.onClickOutside();
+        //     }
+        // });
+
         // Click outside grid to deselect
         document.addEventListener('click', (event) => {
-            if (!event.target.closest('.sudoku') && // Clicked outside grid
-                !event.target.closest('.num-button') && // Not on numpad
-                !event.target.closest('.mode-button') && // Not on mode buttons
-                !event.target.closest('.floatingBox') && // Not inside floating boxes
+            const target = event.target;
+            // Check if the click is outside the grid AND relevant controls
+            if (!target.closest('.sudoku') &&           // Not inside grid container
+                !target.closest('.num-button') &&       // Not on numpad button
+                !target.closest('.mode-button') &&      // Not on Pencil/Focus mode button
+                !target.closest('.buttons .sudoku-button') && // Not on bottom action buttons (Undo, Reset etc)
+                !target.closest('.header-button-container button') && // Not on top header buttons (Home, Settings etc)
+                !target.closest('.timer .play-pause') && // Not on the pause button
+                !target.closest('#hintButton') &&       // *** ADDED: Not on the Hint button itself ***
+                !target.closest('.floatingBox') &&      // Not inside any floating box
                 this.callbacks.onClickOutside) {
+                console.log("Click outside detected, target:", target);
                 this.callbacks.onClickOutside();
             }
+            // Removed console.log from previous step if present
         });
 
 
@@ -557,4 +572,70 @@ export class SudokuUI {
         this.showHintAlertToggle.checked = settings.showHintAlert;
         this.updateDifficultyButton(settings.difficulty);
     }
+
+    // // --- Event Listeners Setup ---
+    // _attachEventListeners() {
+    //     // Grid Clicks (Event Delegation) - Seems fine
+    //     this.gridContainer.addEventListener('click', (event) => { /* ... */ });
+    //     // Click outside grid - Seems fine
+    //     document.addEventListener('click', (event) => { /* ... */ });
+    //     // Mobile Numpad - Seems fine
+    //     this.numButtons.forEach(button => { /* ... */ });
+    //     // Keyboard Input - Seems fine
+    //     document.addEventListener('keydown', (event) => { /* ... */ });
+
+    //     // --- Buttons (Using existing inline onclicks, ensure callbacks map correctly in main.js) ---
+    //     // Keep the inline onclick attributes in HTML for now, and rely on main.js
+    //     // to expose the game instance's methods globally or map them.
+    //     // Example (how main.js should handle it):
+    //     // window.requestHint = () => game.callbacks.onHintRequest(); // Map global func to callback
+    //     // window.togglepause = () => game.callbacks.onPauseToggle();
+    //     // etc.
+
+    //     // The listeners added below are mostly for elements *inside* floating boxes
+    //     // or specific cases not covered by simple onclicks.
+
+    //     // --- Floating Box Buttons / Internal Controls ---
+    //     // Settings Save
+    //     const settingsSaveButton = document.querySelector('#settingsPanel button[onclick*="closeAndSaveSettings"]');
+    //     if (settingsSaveButton) settingsSaveButton.onclick = () => this.callbacks.onSettingsSave();
+    //     else console.warn("Settings save button not found");
+
+    //     // Export Copy Code
+    //     const copyCodeButton = document.querySelector('#exportBox button[onclick*="copyCode"]');
+    //     if (copyCodeButton) copyCodeButton.onclick = () => this.callbacks.onExportConfirm(this.exportCodeDisplay.textContent);
+    //     else console.warn("Export copy code button not found");
+
+    //     // Export Copy URL
+    //     const copyUrlButton = document.querySelector('#exportBox button[onclick*="copyURL"]');
+    //     if (copyUrlButton) copyUrlButton.onclick = () => this.callbacks.onExportConfirmURL(this.exportCodeDisplay.textContent);
+    //     else console.warn("Export copy URL button not found");
+
+    //      // Export Close (If you add one)
+    //     // const closeExportButton = document.querySelector('#exportBox button[onclick*="closeExport"]');
+    //     // if (closeExportButton) closeExportButton.onclick = () => this.hideExportBox();
+
+    //     // Load Confirm
+    //     const loadConfirmButton = document.querySelector('#loadBox button[onclick*="loadBoard"]');
+    //     if (loadConfirmButton) loadConfirmButton.onclick = () => this.callbacks.onLoadConfirm(this.loadCodeInput.value);
+    //     else console.warn("Load confirm button not found");
+
+    //     // Load Close
+    //     const loadCloseButton = document.querySelector('#loadBox button[onclick*="closeLoad"]');
+    //     if (loadCloseButton) loadCloseButton.onclick = () => this.hideLoadBox();
+    //     else console.warn("Load close button not found");
+
+    //     // --- Settings Toggles ---
+    //     // Check if elements exist before adding listeners
+    //     if (this.pencilmarkToggle) this.pencilmarkToggle.onchange = (e) => this.callbacks.onSettingChange('autoPencilMarks', e.target.checked);
+    //     if (this.saveDifficultyToggle) this.saveDifficultyToggle.onchange = (e) => this.callbacks.onSettingChange('saveDifficulty', e.target.checked);
+    //     if (this.showHintAlertToggle) this.showHintAlertToggle.onchange = (e) => this.callbacks.onSettingChange('showHintAlert', e.target.checked);
+
+    //     // Window Resize
+    //     window.addEventListener('resize', () => {
+    //         if (this.callbacks.onResize) this.callbacks.onResize();
+    //     });
+
+    //     console.log("UI Event Listeners attached/verified.");
+    // }
 }

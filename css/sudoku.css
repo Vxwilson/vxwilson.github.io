@@ -1,7 +1,5 @@
 /* css file for a sudoku grid */
 
-
-
 header {
   padding: 20px 16px !important;
 }
@@ -107,7 +105,8 @@ button {
 .mode-button {
   color: rgb(110, 135, 156);
   border: 0px solid rgb(110, 135, 156);
-  transition: border 0.2s ease-in-out; /* Smooth border transition */
+  transition: border 0.2s ease-in-out;
+  /* Smooth border transition */
 }
 
 .mode-button.selected {
@@ -209,8 +208,8 @@ button {
 }
 
 .sudoku-cell.selected {
-  background-color: #c6af7a30;
-  background-color: #d9c9a780;
+  /* background-color: #c6af7a30; */
+  background-color: #a19b9032;
 }
 
 
@@ -218,11 +217,6 @@ button {
   /* Example: hide number when paused */
   /* color: transparent; */
 }
-
-/* .sudoku-cell.focused{
-    background-color: rgba(185, 129, 129, 0.2) !important;
-  } */
-
 
 /* --- Focus Highlighting (Auto & Persistent) --- */
 .sudoku-cell.focus-highlight-cell {
@@ -236,77 +230,143 @@ button {
   outline: 1px solid rgba(158, 91, 91, 0.65);
 }
 
+.game .first-row {
+  margin-bottom: 10px !important;
+}
 
-/* --- Hint Highlighting --- */
+
+/* --- Hint Display --- */
+.hint-display {
+  line-height: 16px;
+  display: none; 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0;
+
+  color: rgb(110, 135, 156);
+  font-size: 0.8em;
+  display: flex;
+  width: 90%;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  border-radius: 6px;
+  background-color: #e5e0d800;
+  border: none;
+}
+
+.hint-display.visible {
+  /* display: block;  */
+  opacity: 1;
+}
+
+
+/* --- Hint Highlighting (Cells) --- */
+.sudoku-cell.hint-highlight {
+  /* Base style applied to all hinted cells */
+  transition: background-color 0.2s ease-in-out;
+  /* Ensure hint background is drawn over other potential backgrounds (like focus) */
+  /* You might need to adjust specificity or use !important if conflicts arise */
+  position: relative; /* Needed if using pseudo-elements for borders */
+  z-index: 5; /* Ensure hint highlights are above focus highlights if needed */
+}
+
+.sudoku-cell.hint-target {
+  background-color: rgba(132, 179, 134, 0.4); /* Light Green */
+}
+.sudoku-cell.hint-placement { /* Added for placement hints like Full House/Singles */
+   background-color: rgba(0, 150, 136, 0.5); /* Teal/Stronger Green */
+   /* Maybe add a subtle border */
+   /* box-shadow: inset 0 0 0 2px rgba(0, 150, 136, 0.8); */
+}
+.sudoku-cell.hint-unit {
+  background-color: rgba(108, 174, 228, 0.25); /* Lighter Blue */
+}
+.sudoku-cell.hint-causing {
+   background-color: rgba(255, 193, 7, 0.3); /* Light Orange/Yellow */
+}
+.sudoku-cell.hint-involved { /* Default/fallback type */
+   background-color: rgba(158, 158, 158, 0.3); /* Neutral Grey */
+}
+.sudoku-cell.hint-elimination {
+   background-color: rgba(244, 67, 54, 0.2); /* Light Reddish */
+}
+
 .sudoku-cell.hint-involved {
   background-color: rgba(129, 185, 144, 0.3) !important;
-  /* Greenish tint for involved cells */
-  /* box-shadow: inset 0 0 0 2px rgba(100, 160, 110, 0.5); */
-  /* Optional inset border */
+
+}
+
+.sudoku-cell.hint-defining {
+  background-color: rgba(173, 216, 230, 0.5);
+}
+
+
+/* --- Hint Highlighting (Pencil Marks) --- */
+/* Target the inner pencil mark divs */
+.pencil-mark.hint-highlight-candidate {
+  /* color: #D32F2F !important; 
+  font-weight: bold;
+  background-color: rgba(255, 235, 59, 0.4); 
+  border-radius: 3px;
+  position: relative; 
+  z-index: 10;  */
+
+  color: rgba(158, 149, 91, 0.95) !important;
+  background-color: rgba(240, 231, 210, 0.5);
+  border-radius: 2px;
+  outline: 1px solid rgba(158, 151, 91, 0.65);
+}
+
+.pencil-mark.hint-highlight-candidate-strong {
+  /* Stronger highlight for the *actual* candidate being placed in a single step */
+  color: #1B5E20 !important; /* Dark Green */
+  background-color: rgba(76, 175, 80, 0.5); /* Green background */
+  font-weight: bold;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px #1B5E20; /* Subtle outline */
+  position: relative;
+  z-index: 11;
+}
+
+
+.pencil-mark.hint-value {
+  color: rgba(50, 110, 60, 0.95) !important;
+  background-color: rgba(180, 240, 190, 0.65);
+  border-radius: 2px;
+  outline: 1px solid rgba(50, 110, 60, 0.7);
+}
+
+.pencil-mark.hint-target-value {
+  color: #006400;
+  font-weight: bold;
+}
+
+
+.pencil-mark.hint-defining-value {
+  color: #0000CD;
+  background-color: rgba(210, 230, 240, 0.65);
+  border-radius: 2px;
+}
+
+
+.pencil-mark.hint-eliminated-value {
+  color: #DC143C;
+  background-color: rgba(255, 220, 225, 0.7);
+  border-radius: 2px;
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
 }
 
 .pencil-mark.hint-value {
   color: rgba(50, 110, 60, 0.95) !important;
-  /* Darker green for key pencil mark */
-  background-color: rgba(180, 240, 190, 0.65);
-  /* Brighter green background */
-  border-radius: 2px;
-  outline: 1px solid rgba(50, 110, 60, 0.7);
-}
-
-/* CSS Enhancements update */
-
-/* General involved cell */
-.sudoku-cell.hint-involved {
-  background-color: rgba(200, 230, 201, 0.4); /* Light green */
-}
-
-/* Cell where a single is placed */
-.sudoku-cell.hint-target {
-  background-color: rgba(144, 238, 144, 5); /* Brighter green */
-  box-shadow: inset 0 0 0 2px rgba(50, 150, 50, 0.7);
-}
-.pencil-mark.hint-target-value { /* If you highlight the pencil mark too */
-   color: #006400; font-weight: bold;
-}
-
-/* Cells defining a pattern (pair, locked candidates line/box) */
-.sudoku-cell.hint-defining {
-  background-color: rgba(173, 216, 230, 0.5); /* Light blue */
-}
-.pencil-mark.hint-defining-value {
-   color: #0000CD; /* Medium blue */
-   background-color: rgba(210, 230, 240, 0.65);
-   border-radius: 2px;
-}
-
-
-/* Cells/candidates being eliminated */
-.sudoku-cell.hint-eliminated {
-   background-color: rgba(255, 192, 203, 0.4); /* Light pink/red */
-}
-.pencil-mark.hint-eliminated-value {
-   color: #DC143C; /* Crimson */
-   background-color: rgba(255, 220, 225, 0.7);
-   border-radius: 2px;
-   text-decoration: line-through; /* Optional: strike-through */
-   text-decoration-thickness: 1px;
-}
-
-/* Other cells in a unit (e.g., for hidden single) */
-.sudoku-cell.hint-unit {
-   background-color: rgba(240, 240, 160, 0.3); /* Light yellow */
-}
-
-/* Generic highlight for specific candidate values if type isn't used */
-.pencil-mark.hint-value { /* This might be less specific now */
-  color: rgba(50, 110, 60, 0.95) !important;
   background-color: rgba(180, 240, 190, 0.65);
   border-radius: 2px;
   outline: 1px solid rgba(50, 110, 60, 0.7);
 }
-
-/* end CSS Enhancements update */
 
 
 /* --- Pencil Marks --- */
@@ -581,50 +641,25 @@ button {
   background-color: #ffff0000;
 }
 
-
-/* alert box */
-/* Styles for the confirm box */
-/* 
-
-#confirmBox #confirmButton{
-    background-color: #a0c4a1;
-    color: white;
-}
-
-#confirmBox #cancelButton {
-    background-color: #ddadaa;
-    color: white;
-} */
-
-/* generator floating box for puzzle */
-/* css/sudoku.css */
-
-/* ... (existing styles) ... */
-
 .loading-indicator {
-  /* Inherit base floatingBox styles */
-  width: 250px; /* Adjust width as needed */
+  width: 250px;
   text-align: center;
-  padding: 20px; /* More padding for visual balance */
+  padding: 20px;
 }
 
-.loading-indicator  .row{
+.loading-indicator .row {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 0px; /* Space between rows */
+  margin-bottom: 0px;
 }
 
-/* Style the spinner icon */
 .loading-indicator .loader-icon {
   color: rgb(110, 135, 156);
-  /* margin-bottom: 15px; Space between spinner and text */
 }
 
-/* Style the progress text */
 .loading-indicator .progress-text {
   font-size: 0.8em;
   color: rgb(80, 100, 116);
-  margin-bottom: 0px; /* Space between text and spinner */
-  /* font-weight: 500; */
+  margin-bottom: 0px;
 }

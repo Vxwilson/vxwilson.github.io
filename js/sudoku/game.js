@@ -29,7 +29,10 @@ export class SudokuGame {
                 autoPencilMarks: true,
                 saveDifficulty: true,
                 showHintAlert: true,
-            }
+            },
+            // --- NEW Hint State ---
+            hintStage: 0, // 0: inactive, 1: technique name, 2: cells, 3: candidates
+            currentHintStep: null, // Stores the result from solveSingleStep
         };
 
         this.undoStack = [];
@@ -63,7 +66,7 @@ export class SudokuGame {
             } catch (err) {
                 console.error("Caught error creating worker:", err);
                 alert(`Failed to create the puzzle generator. This might be due to browser settings or extensions. Error: ${err.message}`);
-                this.generationWorker = null; 
+                this.generationWorker = null;
             }
 
         } else {
@@ -103,7 +106,7 @@ export class SudokuGame {
                 }
                 break;
             case 'error':
-                this.ui.hideLoading(); 
+                this.ui.hideLoading();
                 console.error("[Main] Worker reported error:", data.message);
                 alert(`Failed to generate puzzle: ${data.message}`);
                 this.board.clearBoard();
@@ -120,6 +123,7 @@ export class SudokuGame {
     _initializeGame() {
         console.log("Initializing Sudoku Game...");
         this._detectPlatform();
+        this._resetHintState(); // Ensure hints are reset on load/new game
 
         let successfullyLoaded = false;
         const urlHash = window.location.hash;
@@ -190,13 +194,7 @@ export class SudokuGame {
             this.ui.updateDifficultyButton(this.currentState.difficulty);
         }
 
-        // --- Final steps ---
-        // _updateUI is called within _initializeGame logic branches now
-        if (!successfullyLoaded) {
-            this._updateUI(); // Draw the newly generated board state if needed
-        } else if (!urlHash) { // Only call updateUI again if we loaded from localStorage (hash load calls it)
-            this._updateUI(); // Initial UI draw based on loaded state
-        }
+        this._updateUI(); // Draw the newly generated board state if needed
 
         // log difficulty and settings
         console.log("Current difficulty:", this.currentState.difficulty);
@@ -241,14 +239,14 @@ export class SudokuGame {
         if (!this.generationWorker) {
             alert("Puzzle generator is not available. Cannot create a new board.");
             console.error("Attempted to generate board but worker is not initialized.");
-            return; 
+            return;
         }
 
         this.stopAutoSave();
         this.timer.reset();
         this.undoStack = [];
         this.redoStack = [];
-        this.currentState.focusedDigits.clear(); 
+        this.currentState.focusedDigits.clear();
 
         console.log(`[Main] Requesting new board from worker: ${difficultyValue}`);
 
@@ -280,7 +278,13 @@ export class SudokuGame {
         this._updateNumPadVisibility();
 
         // --- Handle Highlights ---
-        this.ui.clearHintHighlight(); // Clear hint highlights on general UI update
+        // this.ui.clearHintHighlight(); // Clear hint highlights on general UI update
+
+        // new: only clear hint highlights if the hint state is inactive
+        if (this.currentState.hintStage === 0) {
+            this.ui.clearHintHighlight(); // Clear visual board highlights
+            this.ui.clearHintTechnique(); // Clear text display
+        }
 
         if (this.currentState.mode === Modes.FOCUS) {
             this.ui.applyFocusHighlight(this.currentState.focusedDigits); // Apply persistent focus highlights
@@ -301,6 +305,8 @@ export class SudokuGame {
     }
 
     _setSelectedCell(row, col) {
+        // this._resetHintStateIfNeeded(); // Reset if a hint was active
+
         const prevRow = this.currentState.selectedRow;
         const prevCol = this.currentState.selectedCol;
         if (row === prevRow && col === prevCol) return;
@@ -351,6 +357,8 @@ export class SudokuGame {
     }
 
     _setMode(newMode) {
+        this._resetHintStateIfNeeded(); // Reset hint on mode change
+
         const oldMode = this.currentState.mode;
         if (oldMode === newMode) {
             // Clicking the same mode button again toggles it off (back to NORMAL)
@@ -400,10 +408,12 @@ export class SudokuGame {
         const { selectedRow, selectedCol, mode } = this.currentState;
         if (selectedRow === null || selectedCol === null) return;
 
-        const isPrefilled = this.board.isPrefilled(selectedRow, selectedCol);
-
         // --- Clear Hint Highlights on any input ---
-        this.ui.clearHintHighlight();
+        // this.ui.clearHintHighlight();
+        // --- Reset Hint State on ANY valid input action ---
+        this._resetHintStateIfNeeded();
+
+        const isPrefilled = this.board.isPrefilled(selectedRow, selectedCol);
 
         // Handle Marking Mode
         if (mode === Modes.MARKING) {
@@ -461,6 +471,7 @@ export class SudokuGame {
     }
 
     _handleWin() {
+        this._resetHintState(); // Clear hint on win
         console.log("Congratulations! Board Solved!");
         this.timer.pause();
         this.currentState.isPaused = true; // Reflect pause state
@@ -482,6 +493,7 @@ export class SudokuGame {
     }
 
     _autoFillPencilMarks() {
+        this._resetHintStateIfNeeded();
         console.log("Auto-filling pencil marks...");
         this._addUndoState();
         const currentGrid = this.board.getGrid();
@@ -525,6 +537,7 @@ export class SudokuGame {
     }
 
     _clearAllPencilMarks() {
+        this._resetHintStateIfNeeded();
         let hasMarks = false;
         // Efficiently check if any marks exist
         outerLoop:
@@ -553,7 +566,10 @@ export class SudokuGame {
     _addUndoState() {
         const state = {
             grid: this.board.getGrid(),
-            pencilMarks: this.board.getAllPencilMarks()
+            pencilMarks: this.board.getAllPencilMarks(),
+            // --- Store Hint State for Undo ---
+            hintStage: this.currentState.hintStage,
+            currentHintStep: this.currentState.currentHintStep ? JSON.parse(JSON.stringify(this.currentState.currentHintStep)) : null // 
         };
         this.undoStack.push(state);
         if (this.undoStack.length > MAX_UNDO_STEPS) {
@@ -568,8 +584,29 @@ export class SudokuGame {
         const previousState = this.undoStack.pop();
         this.board.setGrid(previousState.grid);
         this.board.setAllPencilMarks(previousState.pencilMarks);
+
+        // --- Restore Hint State ---
+        this.currentState.hintStage = previousState.hintStage;
+        this.currentState.currentHintStep = previousState.currentHintStep;
         console.log("Undo performed.");
         this._updateUI(); // Redraw and update highlights
+
+        // --- Re-apply hint visuals based on restored state ---
+        // This is crucial after undo
+        if (this.currentState.hintStage === 1) {
+            this.ui.clearHintHighlight(); // Clear board visuals
+            this.ui.displayHintTechnique(this.currentState.currentHintStep.steps[0].technique);
+        } else if (this.currentState.hintStage === 2) {
+            this.ui.displayHintTechnique(this.currentState.currentHintStep.steps[0].technique);
+            this.ui.applyHintHighlight(this.currentState.currentHintStep.steps[0].highlights, false); // Cells only
+        } else if (this.currentState.hintStage === 3) {
+            this.ui.displayHintTechnique(this.currentState.currentHintStep.steps[0].technique);
+            this.ui.applyHintHighlight(this.currentState.currentHintStep.steps[0].highlights, true); // Cells and candidates
+        } else {
+            // If stage is 0, _updateUI would have already cleared everything.
+            this.ui.clearHintHighlight();
+            this.ui.clearHintTechnique();
+        }
     }
 
     // --- UI Callback Getters ---
@@ -577,12 +614,13 @@ export class SudokuGame {
         return {
             onCellClick: (row, col) => {
                 // Clear hint highlights when a cell is clicked
-                this.ui.clearHintHighlight();
+                // this.ui.clearHintHighlight();
                 this._setSelectedCell(row, col);
             },
             onClickOutside: () => {
                 // Clear hint highlights when clicking outside
-                this.ui.clearHintHighlight();
+                // this.ui.clearHintHighlight();
+                this._resetHintStateIfNeeded();
                 this._setSelectedCell(null, null);
             },
             onNumberInput: (num) => this._handleCellInput(num), // Already clears hints
@@ -593,19 +631,22 @@ export class SudokuGame {
                 this.currentState.isPaused = isNowPaused;
                 this.ui.updatePauseButton(isNowPaused);
                 // Clear highlights when pausing/unpausing
-                this.ui.clearFocusHighlight();
-                this.ui.clearHintHighlight();
+                this._resetHintState();
+                // this.ui.clearFocusHighlight();
+                // this.ui.clearHintHighlight();
                 this._updateUI(); // Redraw board which might hide numbers if needed
             },
             onDifficultyCycle: () => this._cycleDifficulty(),
             onNewGameRequest: () => {
                 this.ui.showConfirm("Start a new game?", () => {
+                    this._resetHintState();
                     this._generateNewBoard(this.currentState.difficulty);
                 });
             },
             onResetRequest: () => {
                 this.ui.showConfirm("Reset the board?", () => {
                     this.timer.reset();
+                    this._resetHintState();
                     this._addUndoState();
                     this.board.resetToInitial();
                     this.currentState.focusedDigits.clear(); // Clear focus
@@ -617,6 +658,7 @@ export class SudokuGame {
             },
             onSolveRequest: (visual) => { // Kept for full solve, not hint
                 this.ui.showConfirm("Show solution? Current state will be overwritten.", async () => {
+                    this._resetHintState();
                     this.timer.pause();
                     this.currentState.isPaused = true;
                     this.ui.updatePauseButton(true);
@@ -651,10 +693,9 @@ export class SudokuGame {
                     }
                 });
             },
-            onHintRequest: () => this._handleHintRequest(), // Add hint request callback
+            onHintRequest: () => this._handleHintRequest(),
             onUndoRequest: () => this._undo(),
             onAutoMarkRequest: () => this._clearAllPencilMarks(),
-            onAutoMarkRequest: () => this._clearAllPencilMarks(), // Current button toggles clear/auto-fill
             onExportRequest: () => {
                 const gameStateToExport = {
                     board: this.board,
@@ -693,6 +734,7 @@ export class SudokuGame {
                 if (decodedState) {
                     this.ui.showConfirm("Load this board state? Current progress will be lost.", () => {
                         this.stopAutoSave();
+                        this._resetHintState();
                         this.timer.reset();
                         this.board.setGrid(decodedState.grid);
                         this.board.setInitialGrid(decodedState.initialGrid);
@@ -747,8 +789,11 @@ export class SudokuGame {
 
         // --- Clear Hint Highlights on most key presses ---
         // (Except maybe arrow keys or modifier keys alone)
-        if (!['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta'].includes(key)) {
-            this.ui.clearHintHighlight();
+        const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
+        const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase())); // Don't reset on copy/paste etc.
+
+        if (shouldResetHint) {
+            this._resetHintStateIfNeeded();
         }
 
         // Prevent browser shortcuts
@@ -765,7 +810,8 @@ export class SudokuGame {
         if (key === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; } // Toggle focus mode
         if (key === 'Escape') { // Escape key exits modes, clears selection/highlights
             event.preventDefault();
-            this.ui.clearHintHighlight();
+            this._resetHintState();
+            // this.ui.clearHintHighlight();
             if (this.currentState.mode === Modes.FOCUS) {
                 this._setMode(Modes.NORMAL); // Exit focus mode
             } else if (this.currentState.mode === Modes.MARKING) {
@@ -830,12 +876,11 @@ export class SudokuGame {
         }
     }
 
-    // HINT
     /**
-     * Creates a candidate map based on the current grid and pencil marks.
-     * Performs basic validation.
-     * @returns {Map<string, Set<number>> | null} The candidate map or null if an immediate contradiction is found.
-     */
+ * Creates a candidate map based on the current grid and pencil marks.
+ * Performs basic validation.
+ * @returns {Map<string, Set<number>> | null} The candidate map or null if an immediate contradiction is found.
+ */
     _getCurrentCandidatesMap() {
         const grid = this.board.getGrid();
         const pencilMarks = this.board.getAllPencilMarks();
@@ -903,92 +948,215 @@ export class SudokuGame {
         return candidatesMap;
     }
 
+    // --- HINT SYSTEM LOGIC ---
+    /**
+     * Resets the hint state and clears UI indicators.
+     */
+    _resetHintState() {
+        if (this.currentState.hintStage !== 0 || this.currentState.currentHintStep !== null) {
+            console.log("Resetting hint state.");
+            this.currentState.hintStage = 0;
+            this.currentState.currentHintStep = null;
+            this.ui.clearHintHighlight(); // Clear board highlights
+            this.ui.clearHintTechnique(); // Clear text display
+        }
+    }
 
-    // --- MODIFIED HINT REQUEST ---
-    async _handleHintRequest() {
-        console.log("Hint requested...");
-        const currentGrid = this.board.getGrid(); // Still need the grid
+    /**
+      * Calls _resetHintState only if a hint is currently active (stage > 0).
+      * Used before actions that should interrupt an ongoing hint sequence.
+      */
+    _resetHintStateIfNeeded() {
+        if (this.currentState.hintStage > 0) {
+            console.log("Resetting hint state due to new action.");
+            this._resetHintState();
+        }
+    }
+
+    /**
+     * Handles progressive hint requests.
+     */
+    _handleHintRequest() {
+        console.log(`Hint requested. Current stage: ${this.currentState.hintStage}`);
+        const currentGrid = this.board.getGrid();
 
         if (this.currentState.isPaused || !findNextEmptyCell(currentGrid)) {
             console.log("Hint ignored (paused or solved).");
+            this._resetHintState(); // Ensure hint UI is cleared if board is solved/paused
             return;
         }
 
-        // Clear persistent focus and its highlights before getting hint
+        // --- Clear persistent focus highlights if focus mode is active ---
         if (this.currentState.mode === Modes.FOCUS) {
             this.currentState.focusedDigits.clear();
             this.ui.clearFocusHighlight();
+            // Maybe switch back to normal mode? Optional.
+            // this._setMode(Modes.NORMAL);
         }
-        this.ui.clearHintHighlight(); // Clear previous hint highlights
+        // We don't clear hint highlights here initially, as we progress stages.
+        // Resetting happens when starting stage 0->1 or via _resetHintState.
 
-        // --- Generate candidate map from current state ---
-        const currentCandidatesMap = this._getCurrentCandidatesMap();
+        // --- Progression Logic ---
+        const currentStage = this.currentState.hintStage;
 
-        if (!currentCandidatesMap) {
-            console.error("Cannot generate hint: Contradiction found in current pencil marks or board state.");
-            alert("Hint Error: The current pencil marks lead to a contradiction."); // Inform user
-            return;
-        }
-        if (currentCandidatesMap.size === 0 && findNextEmptyCell(currentGrid)) {
-            // Edge case: Board not solved, but no empty cells have candidates in the map
-            // This might happen if auto-pencil isn't on and user hasn't marked anything.
-            // The solver's initializeCandidatesMap *would* have found candidates.
-            // Let's try running the solver's initializer in this specific case.
-            console.warn("No candidates found in current marks. Trying solver initialization.");
-            // Fallback to solver's initialization if user marks are empty/missing
-            // This requires passing the board to solveSingleStep again. We'll adjust the solver signature.
-            // NOTE: This fallback means the first hint might ignore user marks if they are completely absent.
-            const result = SolverAdvanced.solveSingleStep(currentGrid, null); // Pass null map to trigger internal init
-            this._processSolverResult(result); // Refactored result processing
-            return;
+        if (currentStage === 0) {
+            // --- Stage 0 -> 1: Find Hint & Show Technique Name ---
+            console.log("Hint Stage 0 -> 1: Finding step...");
+            this.ui.clearHintHighlight(); // Clear any previous board highlights
+            this.ui.clearHintTechnique(); // Clear previous text
 
-        }
+            const currentCandidatesMap = this._getCurrentCandidatesMap(); // Use map based on board state, ignoring invalid user marks now
 
-        // --- Call solver with the grid AND the generated map ---
-        // We pass the grid because some techniques (Hidden Subsets) need to know
-        // which cells are *actually* empty vs. having a value.
-        const result = SolverAdvanced.solveSingleStep(currentGrid, currentCandidatesMap);
-        this._processSolverResult(result); // Refactored result processing
-    }
-
-    // --- NEW HELPER for processing result ---
-    _processSolverResult(result) {
-        console.log("Solver Result:", result);
-        let alertMessage = "";
-
-        switch (result.status) {
-            case 'error':
-                alertMessage = `Error: ${result.message || 'Board state is invalid or solver failed.'}`;
-                break;
-            case 'solved':
-                alertMessage = "Board is already solved!";
-                break;
-            case 'stuck':
-                alertMessage = result.message || "No simple hint could be found with current techniques.";
-                break;
-            case 'found_step':
-                const step = result.steps[0];
-                alertMessage = `Hint (${step.technique}):\n${step.description}`;
-                // Use setTimeout to allow the alert to close before applying highlights
-                setTimeout(() => {
-                    console.log("Applying hint highlights for:", step.technique);
-                    this.ui.applyHintHighlight(step.highlights); // Pass highlights to UI
-                }, 0); // Timeout 0 usually works, increase if needed
-                break;
-            default:
-                alertMessage = "Solver returned an unexpected status.";
-                break;
-        }
-
-        // Show the alert message
-        if (alertMessage) {
-            if (this.currentState.settings.showHintAlert) {
-                alert(alertMessage); // Using basic alert
-            } else {
-                console.log("Hint Info (Alert Disabled):", alertMessage);
+            if (!currentCandidatesMap) {
+                console.error("Cannot generate hint: Contradiction found in board state.");
+                // Error message should have been displayed by _getCurrentCandidatesMap
+                this._resetHintState(); // Ensure state is reset
+                return;
             }
+
+            // Call solver with the grid and the *generated* map based on valid candidates
+            const result = SolverAdvanced.solveSingleStep(currentGrid, currentCandidatesMap);
+            console.log("Solver Result:", result);
+
+            if (result.status === 'found_step' && result.steps && result.steps.length > 0) {
+                const step = result.steps[0];
+                this.currentState.currentHintStep = result; // Store the whole result
+                this.currentState.hintStage = 1;
+                this.ui.displayHintTechnique(step.technique); // Show only name
+                console.log(`Hint found: ${step.technique}. Stage set to 1.`);
+            } else {
+                // Handle 'stuck', 'error', 'solved'
+                let message = "Hint Error";
+                if (result.status === 'stuck') message = result.message || "No simple hint found.";
+                else if (result.status === 'error') message = result.message || "Solver error.";
+                else if (result.status === 'solved') message = "Board is solved!";
+
+                console.log(`Hint request outcome: ${result.status} - ${message}`);
+                this.ui.displayHintTechnique(message); // Display status message
+                this.currentState.currentHintStep = null; // No step stored
+                this.currentState.hintStage = 0; // Remain at stage 0
+                // Optional: Auto-clear the message after a delay?
+                // setTimeout(() => { if (this.currentState.hintStage === 0 && !this.currentState.currentHintStep) this.ui.clearHintTechnique(); }, 3000);
+            }
+
+        } else if (currentStage === 1) {
+            // --- Stage 1 -> 2: Show Cells ---
+            if (!this.currentState.currentHintStep) { // Safety check
+                console.error("Hint Stage 1 error: No current hint step stored.");
+                this._resetHintState();
+                return;
+            }
+            console.log("Hint Stage 1 -> 2: Highlighting cells...");
+            const highlights = this.currentState.currentHintStep.steps[0].highlights;
+            this.ui.applyHintHighlight(highlights, false); // false = cells only
+            this.currentState.hintStage = 2;
+            // Technique name remains displayed from previous stage
+
+        } else if (currentStage === 2) {
+            // --- Stage 2 -> 3: Show Candidates ---
+            if (!this.currentState.currentHintStep) { // Safety check
+                console.error("Hint Stage 2 error: No current hint step stored.");
+                this._resetHintState();
+                return;
+            }
+            console.log("Hint Stage 2 -> 3: Highlighting candidates...");
+            const highlights = this.currentState.currentHintStep.steps[0].highlights;
+            this.ui.applyHintHighlight(highlights, true); // true = cells and candidates
+            this.currentState.hintStage = 3;
+            // Technique name remains displayed
+
+        } else if (currentStage === 3) {
+            // --- Stage 3 -> 0: Reset ---
+            console.log("Hint Stage 3 -> 0: Resetting hint.");
+            this._resetHintState(); // Clicking again resets
         }
     }
+
+    // --- MODIFIED HINT REQUEST ---
+    // async _handleHintRequest() {
+    //     console.log("Hint requested...");
+    //     const currentGrid = this.board.getGrid(); // Still need the grid
+
+    //     if (this.currentState.isPaused || !findNextEmptyCell(currentGrid)) {
+    //         console.log("Hint ignored (paused or solved).");
+    //         return;
+    //     }
+
+    //     // Clear persistent focus and its highlights before getting hint
+    //     if (this.currentState.mode === Modes.FOCUS) {
+    //         this.currentState.focusedDigits.clear();
+    //         this.ui.clearFocusHighlight();
+    //     }
+    //     this.ui.clearHintHighlight(); // Clear previous hint highlights
+
+    //     // --- Generate candidate map from current state ---
+    //     const currentCandidatesMap = this._getCurrentCandidatesMap();
+
+    //     if (!currentCandidatesMap) {
+    //         console.error("Cannot generate hint: Contradiction found in current pencil marks or board state.");
+    //         alert("Hint Error: The current pencil marks lead to a contradiction."); // Inform user
+    //         return;
+    //     }
+    //     if (currentCandidatesMap.size === 0 && findNextEmptyCell(currentGrid)) {
+    //         // Edge case: Board not solved, but no empty cells have candidates in the map
+    //         // This might happen if auto-pencil isn't on and user hasn't marked anything.
+    //         // The solver's initializeCandidatesMap *would* have found candidates.
+    //         // Let's try running the solver's initializer in this specific case.
+    //         console.warn("No candidates found in current marks. Trying solver initialization.");
+    //         // Fallback to solver's initialization if user marks are empty/missing
+    //         // This requires passing the board to solveSingleStep again. We'll adjust the solver signature.
+    //         // NOTE: This fallback means the first hint might ignore user marks if they are completely absent.
+    //         const result = SolverAdvanced.solveSingleStep(currentGrid, null); // Pass null map to trigger internal init
+    //         this._processSolverResult(result); // Refactored result processing
+    //         return;
+
+    //     }
+
+    //     // --- Call solver with the grid AND the generated map ---
+    //     // We pass the grid because some techniques (Hidden Subsets) need to know
+    //     // which cells are *actually* empty vs. having a value.
+    //     const result = SolverAdvanced.solveSingleStep(currentGrid, currentCandidatesMap);
+    //     this._processSolverResult(result); // Refactored result processing
+    // }
+
+    // // --- NEW HELPER for processing result ---
+    // _processSolverResult(result) {
+    //     console.log("Solver Result:", result);
+    //     let alertMessage = "";
+
+    //     switch (result.status) {
+    //         case 'error':
+    //             alertMessage = `Error: ${result.message || 'Board state is invalid or solver failed.'}`;
+    //             break;
+    //         case 'solved':
+    //             alertMessage = "Board is already solved!";
+    //             break;
+    //         case 'stuck':
+    //             alertMessage = result.message || "No simple hint could be found with current techniques.";
+    //             break;
+    //         case 'found_step':
+    //             const step = result.steps[0];
+    //             alertMessage = `Hint (${step.technique}):\n${step.description}`;
+    //             // Use setTimeout to allow the alert to close before applying highlights
+    //             setTimeout(() => {
+    //                 console.log("Applying hint highlights for:", step.technique);
+    //                 this.ui.applyHintHighlight(step.highlights); // Pass highlights to UI
+    //             }, 0); // Timeout 0 usually works, increase if needed
+    //             break;
+    //         default:
+    //             alertMessage = "Solver returned an unexpected status.";
+    //             break;
+    //     }
+
+    //     // Show the alert message
+    //     if (alertMessage) {
+    //         if (this.currentState.settings.showHintAlert) {
+    //             alert(alertMessage); // Using basic alert
+    //         } else {
+    //             console.log("Hint Info (Alert Disabled):", alertMessage);
+    //         }
+    //     }
+    // }
 
     // END HINT
 }
