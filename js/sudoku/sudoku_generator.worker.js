@@ -1,4 +1,4 @@
-import {BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS} from './constants.js'; // getTechniqueScore might not be needed here anymore
+import {BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS} from './constants.js'; 
 import {deepCopy2DArray} from './utils.js';
 import * as SolverBasic from './solver_basic.js';
 import {ratePuzzleDifficulty } from './solver_rating.js';

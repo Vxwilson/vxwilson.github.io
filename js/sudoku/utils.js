@@ -293,3 +293,29 @@ export function keyToCoords(key) {
 export function coordsToKey(r, c) {
     return `${r}-${c}`;
 }
+
+/**
+ * Checks if a given cell (r, c) is inside the specified box index (0-8).
+ * @param {number} r Row index (0-8)
+ * @param {number} c Column index (0-8)
+ * @param {number} boxIndex Box index (0-8)
+ * @returns {boolean} True if the cell is in the box, false otherwise.
+ */
+export function isCellInBox(r, c, boxIndex) {
+    const boxStartRow = Math.floor(boxIndex / BOX_SIZE) * BOX_SIZE;
+    const boxStartCol = (boxIndex % BOX_SIZE) * BOX_SIZE;
+    return r >= boxStartRow && r < boxStartRow + BOX_SIZE &&
+           c >= boxStartCol && c < boxStartCol + BOX_SIZE;
+}
+
+/**
+ * Gets the box index (0-8) for a given cell.
+ * @param {number} r Row index (0-8)
+ * @param {number} c Column index (0-8)
+ * @returns {number} Box index (0-8)
+ */
+export function getBoxIndex(r, c) {
+    const boxRow = Math.floor(r / BOX_SIZE);
+    const boxCol = Math.floor(c / BOX_SIZE);
+    return boxRow * BOX_SIZE + boxCol;
+}

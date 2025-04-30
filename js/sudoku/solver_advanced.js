@@ -1,6 +1,6 @@
 import { BOARD_SIZE, DifficultyLevel, getTechniqueScore, getDifficultyLevelFromScore } from './constants.js';
 import {
-    checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, keyToCoords, coordsToKey // Keep core utils
+    checkInputValid, getPeers, findNextEmptyCell, deepCopy2DArray, keyToCoords, coordsToKey
 } from './utils.js';
 // --- Import technique functions ---
 import { findFullHouse, findNakedSinglesMap, findHiddenSinglesMap } from './techniques/singles.js';
@@ -8,6 +8,7 @@ import { findNakedPairs, findNakedTriples, findHiddenPairs, findHiddenTriples } 
 import { findLockedCandidates } from './techniques/intersections.js';
 import { findXWing, findSkyscraper, find2StringKite, findSwordfish } from './techniques/fish.js';
 import { findYWing, findWWing } from './techniques/wings.js';
+import { findEmptyRectangle } from './techniques/rectangles.js';
 
 /**
  * @typedef {'found_step' | 'stuck' | 'solved' | 'error'} SolverStatus
@@ -148,17 +149,6 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
     try {
         // place technique here to easily test it in development
 
-        // const swordfishResult = findSwordfish(candidatesMap);
-        // if (swordfishResult.stepInfo) {
-        //     let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-        //     // Use the same checkMap logic to ensure effectiveness against the *current* state
-        //     if (applyEliminations(checkMap, swordfishResult.eliminations)) {
-        //         console.log(`Found ${swordfishResult.stepInfo.technique}`);
-        //         return { status: 'found_step', steps: [swordfishResult.stepInfo] };
-        //     }
-        //     // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
-        // }
-
         // --- Technique Order ---
         const fullHouseStep = findFullHouse(board, candidatesMap);
         if (fullHouseStep) return { status: 'found_step', steps: [fullHouseStep] };
@@ -288,6 +278,14 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             }
         }
 
+        const emptyRectResult = findEmptyRectangle(candidatesMap);
+        if (emptyRectResult.stepInfo) {
+            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
+            if (applyEliminations(checkMap, emptyRectResult.eliminations)) {
+                console.log(`Found ${emptyRectResult.stepInfo.technique}`);
+                return { status: 'found_step', steps: [emptyRectResult.stepInfo] };
+            }
+        }
         // other techniques...
 
     } catch (error) {

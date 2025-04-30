@@ -22,7 +22,7 @@ export const DifficultyLevel = Object.freeze({
     MEDIUM: 'Medium',     
     HARD: 'Hard',       
     VERY_HARD: '?!',
-    // EXTREME: '?!!',   
+    EXTREME: '?!!',   
     // UNFAIR: '?!!!',       
     UNKNOWN: 'Unknown'
 });
@@ -68,6 +68,9 @@ const SE_SCORES = {
     // Subsets (Quads) - Requires implementing findNakedQuads/findHiddenQuads
     'Naked Quad': 50,                  // Approx SE 5.0 (example value)
     'Hidden Quad': 43,                 // SE 4.3
+
+    // Rectangles
+    'Empty Rectangle': 45,             // SE 4.5
 };
 
 // --- Difficulty Thresholds (Based on MAX score for the level) ---
@@ -78,8 +81,8 @@ export const DIFFICULTY_THRESHOLDS = {
     [DifficultyLevel.EASY]: 24,   
     [DifficultyLevel.MEDIUM]: 31,
     [DifficultyLevel.HARD]: 40,  
-    [DifficultyLevel.VERY_HARD]: 45,
-    // [DifficultyLevel.EXTREME]: 55,
+    [DifficultyLevel.VERY_HARD]: 43,
+    [DifficultyLevel.EXTREME]: 55,
 };
 
 // --- Helper Functions ---

@@ -19,9 +19,10 @@
  4.2 Crane
  4.2 XY-Wing (Y-Wing)
  4.3 [Direct Hidden Quad]
-    Finned X-Wing
+     Finned X-Wing
  4.4 XYZ-Wing
  4.5 W-Wing
+     Empty Rectangle
  4.5 UR Types 1 or 2 or 4 or 3 w/ hidden pair
  4.6 UR Type 3 w/ naked pair or hidden triplet
      UL Types 1 or 2 or 4 or 3 w/ hidden pair (6 cells)

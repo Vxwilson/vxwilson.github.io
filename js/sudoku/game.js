@@ -1022,7 +1022,11 @@ export class SudokuGame {
                 const step = result.steps[0];
                 this.currentState.currentHintStep = result; // Store the whole result
                 this.currentState.hintStage = 1;
-                this.ui.displayHintTechnique(step.technique); // Show only name
+
+                const baseTechnique = step.technique.split(' (')[0];
+                // USE BASE TECHNIQUE NAME to hide specifics, only show the name of the technique
+                this.ui.displayHintTechnique(baseTechnique); 
+                // this.ui.displayHintTechnique(step.technique); 
                 console.log(`Hint found: ${step.technique}. Stage set to 1.`);
             } else {
                 // Handle 'stuck', 'error', 'solved'
