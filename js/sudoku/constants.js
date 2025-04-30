@@ -57,7 +57,7 @@ const SE_SCORES = {
              
     'Skyscraper': 40,                  // SE 4.0 
     '2-String Kite': 41,               // SE 4.0 
-    'Y-Wing': 40,                      // SE 4.2 (XY-Wing)
+    'Y-Wing': 41,                      // SE 4.2 (XY-Wing)
     'Crane': 42,                       // SE 4.4
     'W-Wing': 45,                      // SE 4.5   
 
@@ -68,11 +68,6 @@ const SE_SCORES = {
     // Subsets (Quads) - Requires implementing findNakedQuads/findHiddenQuads
     'Naked Quad': 50,                  // Approx SE 5.0 (example value)
     'Hidden Quad': 43,                 // SE 4.3
-
-    // Add other techniques here as you implement them
-    // 'Swordfish': 38,                // SE 3.8
-    // 'XYZ-Wing': 44,                 // SE 4.4
-    // ... etc
 };
 
 // --- Difficulty Thresholds (Based on MAX score for the level) ---

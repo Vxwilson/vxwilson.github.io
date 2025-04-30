@@ -148,16 +148,16 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
     try {
         // place technique here to easily test it in development
 
-        const swordfishResult = findSwordfish(candidatesMap);
-        if (swordfishResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            // Use the same checkMap logic to ensure effectiveness against the *current* state
-            if (applyEliminations(checkMap, swordfishResult.eliminations)) {
-                console.log(`Found ${swordfishResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [swordfishResult.stepInfo] };
-            }
-            // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
-        }
+        // const swordfishResult = findSwordfish(candidatesMap);
+        // if (swordfishResult.stepInfo) {
+        //     let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
+        //     // Use the same checkMap logic to ensure effectiveness against the *current* state
+        //     if (applyEliminations(checkMap, swordfishResult.eliminations)) {
+        //         console.log(`Found ${swordfishResult.stepInfo.technique}`);
+        //         return { status: 'found_step', steps: [swordfishResult.stepInfo] };
+        //     }
+        //     // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
+        // }
 
         // --- Technique Order ---
         const fullHouseStep = findFullHouse(board, candidatesMap);
@@ -226,6 +226,20 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             }
         }
 
+        // 3.8
+        const swordfishResult = findSwordfish(candidatesMap);
+        if (swordfishResult.stepInfo) {
+            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
+            // Use the same checkMap logic to ensure effectiveness against the *current* state
+            if (applyEliminations(checkMap, swordfishResult.eliminations)) {
+                console.log(`Found ${swordfishResult.stepInfo.technique}`);
+                return { status: 'found_step', steps: [swordfishResult.stepInfo] };
+            }
+            // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
+        }
+
+
+        // 4.0
         const hiddenTripleResult = findHiddenTriples(candidatesMap, board);
         if (hiddenTripleResult.stepInfo) {
             let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
@@ -244,6 +258,8 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
             }
         }
 
+
+        // 4.1
         const kiteResult = find2StringKite(candidatesMap);
         if (kiteResult.stepInfo) {
             let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
