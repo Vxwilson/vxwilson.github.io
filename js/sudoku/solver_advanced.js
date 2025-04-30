@@ -6,7 +6,7 @@ import {
 import { findFullHouse, findNakedSinglesMap, findHiddenSinglesMap } from './techniques/singles.js';
 import { findNakedPairs, findNakedTriples, findHiddenPairs, findHiddenTriples } from './techniques/subsets.js';
 import { findLockedCandidates } from './techniques/intersections.js';
-import { findXWing, findSkyscraper, find2StringKite } from './techniques/fish.js';
+import { findXWing, findSkyscraper, find2StringKite, findSwordfish } from './techniques/fish.js';
 import { findYWing, findWWing } from './techniques/wings.js';
 
 /**
@@ -146,7 +146,20 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
     }
 
     try {
-        // --- Technique Order (Remains the same) ---
+        // place technique here to easily test it in development
+
+        const swordfishResult = findSwordfish(candidatesMap);
+        if (swordfishResult.stepInfo) {
+            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
+            // Use the same checkMap logic to ensure effectiveness against the *current* state
+            if (applyEliminations(checkMap, swordfishResult.eliminations)) {
+                console.log(`Found ${swordfishResult.stepInfo.technique}`);
+                return { status: 'found_step', steps: [swordfishResult.stepInfo] };
+            }
+            // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
+        }
+
+        // --- Technique Order ---
         const fullHouseStep = findFullHouse(board, candidatesMap);
         if (fullHouseStep) return { status: 'found_step', steps: [fullHouseStep] };
 

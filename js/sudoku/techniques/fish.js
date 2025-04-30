@@ -290,3 +290,169 @@ export function find2StringKite(candidatesMap) {
     }
     return { eliminations: [], stepInfo: null };
 }
+
+export function findSwordfish(candidatesMap) {
+    // Use imported getCombinations, coordsToKey, keyToCoords
+    for (let n = 1; n <= BOARD_SIZE; n++) {
+        // --- Row-based Swordfish ---
+        const candidateRows = new Map(); // Map<rowIndex, colIndices[]>
+        for (let r = 0; r < BOARD_SIZE; r++) {
+            const colsWithN = [];
+            for (let c = 0; c < BOARD_SIZE; c++) {
+                if (candidatesMap.get(coordsToKey(r, c))?.has(n)) {
+                    colsWithN.push(c);
+                }
+            }
+            // Swordfish allows 2 or 3 candidates per defining unit
+            if (colsWithN.length === 2 || colsWithN.length === 3) {
+                candidateRows.set(r, colsWithN);
+            }
+        }
+
+        if (candidateRows.size >= 3) {
+            const rowIndices = Array.from(candidateRows.keys());
+            const rowCombinations = getCombinations(rowIndices, 3); // Combinations of 3 rows
+
+            for (const [r1, r2, r3] of rowCombinations) {
+                const cols1 = candidateRows.get(r1);
+                const cols2 = candidateRows.get(r2);
+                const cols3 = candidateRows.get(r3);
+
+                const allCols = new Set([...cols1, ...cols2, ...cols3]);
+
+                // Check if these candidates span exactly 3 columns
+                if (allCols.size === 3) {
+                    const swordfishCols = Array.from(allCols);
+                    const [c1, c2, c3] = swordfishCols;
+                    const swordfishElims = [];
+                    const definingCellsCoords = []; // Store coords for highlighting
+
+                    // Identify defining cells (where the candidate MUST be)
+                    const definingCellsKeys = new Set();
+                     for (const r of [r1, r2, r3]) {
+                        for (const c of swordfishCols) {
+                            const key = coordsToKey(r,c);
+                            if (candidatesMap.get(key)?.has(n)){
+                                // Check if this cell is actually one of the candidates forming the pattern
+                                const colsForRow = candidateRows.get(r);
+                                if (colsForRow.includes(c)) {
+                                    definingCellsKeys.add(key);
+                                    definingCellsCoords.push([r,c]);
+                                }
+                            }
+                        }
+                    }
+
+
+                    // Find eliminations: Check other cells in the 3 columns
+                    for (const targetCol of swordfishCols) {
+                        for (let targetRow = 0; targetRow < BOARD_SIZE; targetRow++) {
+                            const targetCellKey = coordsToKey(targetRow, targetCol);
+                            // Eliminate if it's in one of the columns, HAS the candidate, but is NOT one of the defining cells
+                            if (!definingCellsKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
+                                swordfishElims.push({ cellKey: targetCellKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    if (swordfishElims.length > 0) {
+                        const stepInfo = {
+                            technique: `Swordfish (Rows, Digit ${n})`,
+                            description: `Digit ${n} in Rows ${r1 + 1}, ${r2 + 1}, and ${r3 + 1} forms a Swordfish in Columns ${c1 + 1}, ${c2 + 1}, and ${c3 + 1}. Digit ${n} can be removed from other cells in these columns.`,
+                            eliminations: swordfishElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                            highlights: [
+                                ...definingCellsCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                ...swordfishElims.map(elim => {
+                                    const [er, ec] = keyToCoords(elim.cellKey);
+                                    return { row: er, col: ec, candidates: [n], type: 'eliminated' };
+                                })
+                            ]
+                        };
+                        // console.log(`  >> Found Row Swordfish (${n} in R${r1 + 1},R${r2 + 1},R${r3 + 1} / C${c1 + 1},C${c2 + 1},C${c3 + 1}). Elims:`, swordfishElims.map(e=>e.cellKey));
+                        return { eliminations: swordfishElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        }
+
+        // --- Column-based Swordfish ---
+        const candidateCols = new Map(); // Map<colIndex, rowIndices[]>
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            const rowsWithN = [];
+            for (let r = 0; r < BOARD_SIZE; r++) {
+                if (candidatesMap.get(coordsToKey(r, c))?.has(n)) {
+                    rowsWithN.push(r);
+                }
+            }
+            if (rowsWithN.length === 2 || rowsWithN.length === 3) {
+                candidateCols.set(c, rowsWithN);
+            }
+        }
+
+        if (candidateCols.size >= 3) {
+            const colIndices = Array.from(candidateCols.keys());
+            const colCombinations = getCombinations(colIndices, 3); // Combinations of 3 columns
+
+            for (const [c1, c2, c3] of colCombinations) {
+                const rows1 = candidateCols.get(c1);
+                const rows2 = candidateCols.get(c2);
+                const rows3 = candidateCols.get(c3);
+
+                const allRows = new Set([...rows1, ...rows2, ...rows3]);
+
+                // Check if these candidates span exactly 3 rows
+                if (allRows.size === 3) {
+                    const swordfishRows = Array.from(allRows);
+                    const [r1, r2, r3] = swordfishRows;
+                    const swordfishElims = [];
+                    const definingCellsCoords = [];
+
+                    const definingCellsKeys = new Set();
+                    for (const c of [c1, c2, c3]) {
+                        for (const r of swordfishRows) {
+                           const key = coordsToKey(r,c);
+                           if (candidatesMap.get(key)?.has(n)) {
+                                const rowsForCol = candidateCols.get(c);
+                                if (rowsForCol.includes(r)){
+                                    definingCellsKeys.add(key);
+                                    definingCellsCoords.push([r,c]);
+                                }
+                           }
+                        }
+                    }
+
+
+                    // Find eliminations: Check other cells in the 3 rows
+                    for (const targetRow of swordfishRows) {
+                        for (let targetCol = 0; targetCol < BOARD_SIZE; targetCol++) {
+                            const targetCellKey = coordsToKey(targetRow, targetCol);
+                            if (!definingCellsKeys.has(targetCellKey) && candidatesMap.get(targetCellKey)?.has(n)) {
+                                swordfishElims.push({ cellKey: targetCellKey, values: [n] });
+                            }
+                        }
+                    }
+
+                    if (swordfishElims.length > 0) {
+                        const stepInfo = {
+                            technique: `Swordfish (Cols, Digit ${n})`,
+                            description: `Digit ${n} in Columns ${c1 + 1}, ${c2 + 1}, and ${c3 + 1} forms a Swordfish in Rows ${r1 + 1}, ${r2 + 1}, and ${r3 + 1}. Digit ${n} can be removed from other cells in these rows.`,
+                            eliminations: swordfishElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                            highlights: [
+                                ...definingCellsCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                ...swordfishElims.map(elim => {
+                                    const [er, ec] = keyToCoords(elim.cellKey);
+                                    return { row: er, col: ec, candidates: [n], type: 'eliminated' };
+                                })
+                            ]
+                        };
+                        // console.log(`  >> Found Col Swordfish (${n} in C${c1 + 1},C${c2 + 1},C${c3 + 1} / R${r1 + 1},R${r2 + 1},R${r3 + 1}). Elims:`, swordfishElims.map(e=>e.cellKey));
+                        return { eliminations: swordfishElims, stepInfo: stepInfo };
+                    }
+                }
+            }
+        }
+    }
+
+    // No Swordfish found
+    return { eliminations: [], stepInfo: null };
+}
