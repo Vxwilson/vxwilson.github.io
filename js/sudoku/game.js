@@ -93,6 +93,7 @@ export class SudokuGame {
                     this._setSelectedCell(null, null);
                     this._startTimerAndUnpause();
                     this._updateUI();
+                    this.ui.updateUndoRedoButtons(false, false);
                     this.startAutoSave();
                     this._saveGame();
                 } else {
@@ -247,6 +248,7 @@ export class SudokuGame {
         this.undoStack = [];
         this.redoStack = [];
         this.currentState.focusedDigits.clear();
+        this.ui.updateUndoRedoButtons(this.undoStack.length > 0, false); 
 
         console.log(`[Main] Requesting new board from worker: ${difficultyValue}`);
 
@@ -647,6 +649,8 @@ export class SudokuGame {
         if (this.undoStack.length > MAX_UNDO_STEPS) {
             this.undoStack.shift();
         }
+
+        this.ui.updateUndoRedoButtons(this.undoStack.length > 0, false); 
         this.redoStack = [];
         // Update UI button state if necessary
     }
@@ -679,6 +683,8 @@ export class SudokuGame {
             this.ui.clearHintHighlight();
             this.ui.clearHintTechnique();
         }
+
+        this.ui.updateUndoRedoButtons(this.undoStack.length > 0, false); 
     }
 
     // --- UI Callback Getters ---

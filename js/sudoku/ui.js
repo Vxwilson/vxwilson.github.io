@@ -38,6 +38,8 @@ export class SudokuUI {
         this.saveDifficultyToggle = document.getElementById('save-difficulty-toggle');
         this.showHintAlertToggle = document.getElementById('show-hint-alert-toggle');
 
+        this.updateUndoRedoButtons(false, false);
+        
         this._createGridDOM();
         this._attachEventListeners();
     }
@@ -562,4 +564,18 @@ export class SudokuUI {
         this.showHintAlertToggle.checked = settings.showHintAlert;
         this.updateDifficultyButton(settings.difficulty);
     }
+
+    // Add this method to the TrainingUI class
+    updateUndoRedoButtons(canUndo, canRedo) {
+    if (this.undoButton) {
+        this.undoButton.disabled = !canUndo;
+        // Add/remove a class for styling if desired
+        this.undoButton.classList.toggle('disabled', !canUndo);
+    }
+    // Handle redo button if you add it later
+    // if (this.redoButton) {
+    //     this.redoButton.disabled = !canRedo;
+    //     this.redoButton.classList.toggle('disabled', !canRedo);
+    // }
+}
 }

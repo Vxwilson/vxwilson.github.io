@@ -1,51 +1,58 @@
-// js/sudoku/training_game.js
 import { SudokuBoard } from './board.js';
-import { TrainingUI } from './training_ui.js'; // Assuming a separate UI class for training
-import * as Persistence from './persistence.js'; // If needed for settings
-import { Modes, Platform, BOARD_SIZE, DifficultyLevel } from './constants.js';
-import { checkInputValid, findNextEmptyCell, deepCopy2DArray, keyToCoords, coordsToKey } from './utils.js';
-import { celebrate, triggerMiniConfetti } from './confetti.js';
+import { TrainingUI } from './training_ui.js'; // Use the specific training UI class
+import * as Persistence from './persistence.js';
+import { Modes, Platform, BOARD_SIZE, DifficultyLevel } from './constants.js'; // Added DifficultyLevel just in case
+import { checkInputValid, findNextEmptyCell, deepCopy2DArray, keyToCoords, coordsToKey, getPeers } from './utils.js'; // Added getPeers
+import { celebrate, triggerMiniConfetti } from './confetti.js'; // Keep confetti for success
+
+// Removed MAX_UNDO_STEPS as undo isn't implemented here yet
+const MAX_UNDO_STEPS = 20;
 
 export class SudokuTrainingGame {
     constructor() {
         this.board = new SudokuBoard();
-        this.ui = new TrainingUI(this._getUICallbacks()); // Reuse UI class for now
+        // Instantiate TrainingUI, passing the callbacks
+        this.ui = new TrainingUI(this._getUICallbacks());
 
         this.currentState = {
-            mode: Modes.NORMAL, // Default to normal for placement, switch for elimination
+            mode: Modes.NORMAL,
             platform: Platform.Desktop,
             selectedRow: null,
             selectedCol: null,
-            focusedDigits: new Set(),
+            focusedDigits: new Set(), // <-- ADDED for focus mode
             hintStage: 0, // 0: inactive, 2: cells shown, 3: candidates shown
             isTrainingActive: false,
             selectedTechnique: null,
-            targetStep: null, // Stores the step the user needs to make
-            initialBoardState: null, // Store the board state received from worker
-            initialPencilMarks: null, // Store the marks received from worker
-            settings: { // Load default/saved settings if needed
-                autoPencilMarks: false, // Probably disable auto-marks for training eliminations
+            targetStep: null,
+            initialBoardState: null,
+            initialPencilMarks: null,
+            settings: {
+                autoPencilMarks: false, // Keep false for training
+                saveDifficulty: false, // Not relevant here
+                showHintAlert: true, // Can keep if hints have alerts
             },
+            // --- Added from game.js (though not all used yet) ---
+            currentHintStep: null, // Store hint details if needed beyond targetStep
         };
 
+        this.undoStack = []; // <-- ADDED: Initialize undo stack
+
         this.generationWorker = null;
-        this._initializeWorker(); // Reuse worker initialization
+        this._initializeWorker();
 
-        // Initial setup
         this._detectPlatform();
-        // Load settings if needed
+        // Load settings (optional, if TrainingUI uses them)
         // const loadedSettings = Persistence.loadSettings();
-        // if (loadedSettings) this.currentState.settings = loadedSettings;
-        // this.ui.applySettings(this.currentState.settings);
+        // if (loadedSettings) { ... apply settings ... }
+        // this.ui.applySettings(this.currentState.settings); // If UI needs them
 
-        // Disable buttons until technique selected
-        const nextButton = document.getElementById('next-training-puzzle');
-        if (nextButton) nextButton.disabled = true;
-        // Disable board interaction initially
+        // Initial UI state
+        this.requestTechniqueList(); // Ask worker for available techniques
+        this._disableInteraction(); // Disable board/buttons initially
+        this._updateUI(); // Initial draw (empty board)
     }
 
     _initializeWorker() {
-        // identical to game.js _initializeWorker, but handle 'result_training' message type
         if (window.Worker) {
             console.log("[Training] Initializing generation worker...");
             try {
@@ -54,50 +61,83 @@ export class SudokuTrainingGame {
                 this.generationWorker.onmessage = (event) => {
                     this._handleWorkerMessage(event.data);
                 };
-                this.generationWorker.onerror = (error) => { /* ... error handling ... */ };
+
+                this.generationWorker.onerror = (error) => {
+                    console.error("[Training] Error initializing generation worker:", error.message, error);
+                    alert(`Failed to load the training component. Please try reloading. Error: ${error.message}`);
+                    this.ui.hideLoading();
+                    this._disableInteraction();
+                };
                 console.log("[Training] Generation worker initialized.");
-            } catch (err) { /* ... error handling ... */ }
-        } else { /* ... error handling ... */ }
+
+            } catch (err) {
+                console.error("[Training] Caught error creating worker:", err);
+                alert(`Failed to create the training component. Error: ${err.message}`);
+                this.generationWorker = null;
+                this._disableInteraction();
+            }
+        } else {
+            console.error("[Training] Web Workers are not supported in this browser.");
+            alert("Sorry, your browser doesn't support a feature required for training generation.");
+            this._disableInteraction();
+        }
     }
 
     _handleWorkerMessage(data) {
         console.log("[Training] Received message from worker:", data);
         switch (data.type) {
-            case 'progress':
-                this.ui.updateLoadingProgress(data.current, data.total, data.difficulty); // Can reuse UI update
+            case 'progress': // Reuse progress update
+                this.ui.updateLoadingProgress(data.current, data.total, data.difficulty || ""); // Pass empty string if no difficulty
                 break;
-            case 'result_training': // Handle the new result type
+            case 'technique_list': // Populate the dropdown
+                if (data.payload && data.payload.techniques) {
+                    this.ui.populateTechniqueSelector(data.payload.techniques);
+                    // Enable the selector now
+                    const selector = document.getElementById('technique-select');
+                    if (selector) selector.disabled = false;
+                    // Set default selection prompt
+                    const defaultOption = document.getElementById('technique-option');
+                    if (defaultOption) defaultOption.textContent = 'Select Technique...';
+                } else {
+                    console.error("[Training] Invalid technique list received from worker.");
+                    alert("Could not load the list of training techniques.");
+                }
+                break;
+            case 'result_training':
                 this.ui.hideLoading();
                 const result = data.payload;
-                if (result && result.puzzle && result.targetStep) {
+                if (result && result.puzzle && result.targetStep && result.initialPencilMarks) { // Ensure marks are received
                     console.log(`[Training] Worker successfully generated training puzzle for ${result.technique}.`);
                     this.board.clearBoard();
-                    this.board.setGrid(result.puzzle, false); // Set puzzle, NOT as initial grid
-                    this.board.setAllPencilMarks(result.initialPencilMarks); // Set the specific pencil marks
+                    // Set the grid, but don't mark it as 'initial' in the Board class sense
+                    this.board.setGrid(result.puzzle, false); // false = don't set as initial grid
+                    this.board.setAllPencilMarks(result.initialPencilMarks);
 
-                    // Store the state needed for verification
+                    // Store state needed for verification and display
                     this.currentState.targetStep = result.targetStep;
+                    // Store the specific grid state *as provided by the worker* for display styling
                     this.currentState.initialBoardState = deepCopy2DArray(result.puzzle);
-                    this.currentState.initialPencilMarks = deepCopy2DArray(result.initialPencilMarks);
+                    this.currentState.initialPencilMarks = result.initialPencilMarks.map(row => row.map(cellMarks => [...cellMarks])); // Deep copy
                     this.currentState.isTrainingActive = true;
+                    this.currentState.selectedTechnique = result.technique; // Ensure selected technique is stored
 
                     // Update UI
-                    this._setSelectedCell(null, null); // Deselect
-                    this._updateUI();
+                    this._setSelectedCell(null, null); // Deselect any previously selected cell
+                    this._resetHintState(); // Clear any previous hint visuals
+                    this.currentState.focusedDigits.clear(); // Clear focus from previous puzzle
+                    this._updateUI(); // Full redraw
 
-                    // Enable interaction
-                    const nextButton = document.getElementById('next-training-puzzle');
-                    if (nextButton) nextButton.disabled = false;
+                    this.ui.updateUndoRedoButtons(false, false);
+                    this._enableInteraction(); // Enable buttons/board
 
-                    // Potentially highlight the area of interest based on targetStep.highlights
-                    // this.ui.applyHintHighlight(result.targetStep.highlights, false); // Show cells involved?
+                    // Optional: Auto-show hint stage 1 (technique name) or stage 2 (cells)?
+                    // this._handleHintRequest(); // Auto-show first hint stage
 
                 } else {
                     console.error("[Training] Worker sent invalid training result:", result);
                     alert("Failed to prepare training puzzle. Please try again or select a different technique.");
                     this.currentState.isTrainingActive = false;
-                    const nextButton = document.getElementById('next-training-puzzle');
-                    if (nextButton) nextButton.disabled = true;
+                    this._disableInteraction(); // Re-disable interaction
                 }
                 break;
             case 'error':
@@ -105,478 +145,658 @@ export class SudokuTrainingGame {
                 console.error("[Training] Worker reported error:", data.message);
                 alert(`Failed to generate training puzzle: ${data.message}`);
                 this.currentState.isTrainingActive = false;
-                const nextButton = document.getElementById('next-training-puzzle');
-                if (nextButton) nextButton.disabled = true;
+                this._disableInteraction();
                 break;
             default:
                 console.warn("[Training] Received unknown message type from worker:", data.type);
         }
     }
 
+    requestTechniqueList() {
+        if (this.generationWorker) {
+            console.log("[Training] Requesting technique list from worker.");
+            this.generationWorker.postMessage({ type: 'get_techniques' });
+        } else {
+            // Retry or show error?
+            console.error("[Training] Worker not ready to request technique list.");
+            // Maybe disable selector permanently or show an error message.
+            const selector = document.getElementById('technique-select');
+            if (selector) selector.disabled = true;
+            const defaultOption = document.getElementById('technique-option');
+            if (defaultOption) defaultOption.textContent = 'Generator Error';
+
+        }
+    }
+
+    // Called when the user selects a technique from the dropdown
     startTraining(technique) {
         if (!technique) return;
         console.log(`[Training] Starting training for: ${technique}`);
         this.currentState.selectedTechnique = technique;
-        this.currentState.isTrainingActive = false; // Reset active state
+        this.currentState.isTrainingActive = false; // Reset active state until puzzle arrives
         this.currentState.targetStep = null;
-        this.ui.clearHintHighlight();
-        this._resetHintState();
+        this.currentState.focusedDigits.clear(); // Clear focus
+        this.ui.clearHintHighlight(); // Clear visual hints
+        this._resetHintState(); // Reset hint stage
 
-        // Update technique display
-        const techDisplay = document.getElementById('training-technique-display');
-        if (techDisplay) techDisplay.textContent = `Technique: ${technique}`;
+        // Update UI or display if needed (e.g., show selected technique name)
+        // const techDisplay = document.getElementById('training-technique-display');
+        // if (techDisplay) techDisplay.textContent = `Technique: ${technique}`;
 
         this.requestNextPuzzle(); // Request the first puzzle for this technique
     }
 
+    // Requests the next puzzle from the worker (used initially and by the 'Next' button)
     requestNextPuzzle() {
         if (!this.currentState.selectedTechnique) {
-            alert("Please select a technique first.");
+            // This shouldn't happen if the 'Next' button calls it, but good safety check
+            alert("Internal error: No technique selected.");
             return;
         }
         if (!this.generationWorker) {
-            alert("Generator component not ready.");
+            alert("Generator component not ready. Please reload.");
             return;
         }
 
         console.log(`[Training] Requesting new puzzle for ${this.currentState.selectedTechnique}`);
-        this.ui.showLoading("Generating...");
-        const nextButton = document.getElementById('next-training-puzzle');
-        if (nextButton) nextButton.disabled = true;
-        this.ui.clearHintHighlight();
-
-        this._resetHintState();
+        this.ui.showLoading("Generating..."); // Show loading indicator
+        this._disableInteraction(); // Disable buttons/board while loading
+        this.ui.clearHintHighlight(); // Clear hints from previous puzzle
+        this._resetHintState(); // Reset hint stage
+        this.currentState.focusedDigits.clear(); // Clear focus
 
         // Send message to worker
         this.generationWorker.postMessage({
             type: 'generate_training',
+            // Send the *value* of the selected technique
             selectedTechnique: this.currentState.selectedTechnique,
-            maxAttempts: 50
+            maxAttempts: 50 // Or adjust as needed
         });
     }
 
-    // _updateUI() {
-    //     // Similar to game.js, but might hide/show different things
-    //     this.ui.displayBoard({
-    //         grid: this.board.getGrid(),
-    //         initialGrid: this.board.getInitialGrid(),
-    //         // initialGrid: this.currentState.initialBoardState || [], // Example: Style initial clues
-    //         pencilMarks: this.board.getAllPencilMarks()
-    //     });
-    //     this.ui.updateModeButtons(this.currentState.mode);
-    //     // Hide/disable irrelevant buttons in training UI update if needed
-    //     this.ui.selectCell(this.currentState.selectedRow, this.currentState.selectedCol, null, null);
-    //     this._updateNumPadVisibility(); // Reuse numpad logic
+    _disableInteraction() {
+        const nextButton = document.getElementById('next-training-puzzle');
+        if (nextButton) nextButton.disabled = true;
+        this.ui.gridContainer.classList.add('disabled'); // Add class to grey out/disable board clicks via CSS
+        // Disable numpad buttons too? Yes.
+        this.ui.numButtons.forEach(btn => btn.disabled = true);
+        // Disable mode buttons
+        this.ui.pencilModeButton.disabled = true;
+        this.ui.focusModeButton.disabled = true;
+        this.ui.hintButton.disabled = true;
+        // ... disable others like solve/reset if they exist and aren't hidden ...
+    }
 
-    //     // Clear hint highlights if not showing specific areas initially
-    //     // this.ui.clearHintHighlight(); // Or apply highlights based on targetStep
-    //     this.ui.clearFocusHighlight(); // No focus mode needed here?
-    // }
+    _enableInteraction() {
+        const nextButton = document.getElementById('next-training-puzzle');
+        if (nextButton) nextButton.disabled = false; // Enable 'Next' only AFTER completion? Or always if puzzle loaded? Let's enable here.
+        this.ui.gridContainer.classList.remove('disabled'); // Allow board clicks
+        // Numpad state will be handled by _updateNumPadVisibility based on selection/mode
+        // Enable mode buttons
+        this.ui.pencilModeButton.disabled = false;
+        this.ui.focusModeButton.disabled = false;
+        this.ui.hintButton.disabled = false;
 
-    // In training_game.js
+        this._updateNumPadVisibility(); // Explicitly update numpad state
+    }
+
+    // --- State Update and UI Sync (Adapted from game.js) ---
     _updateUI() {
         this.ui.displayBoard({
             grid: this.board.getGrid(),
-            // Use initialBoardState for prefilled styling IF you want that distinction visually
-            // Otherwise, keep initialGrid empty or use the board's default initialGrid
-            initialGrid: this.currentState.initialBoardState || [], // Example: Style initial clues
+            // Use initialBoardState for styling prefilled numbers *from the specific training puzzle*
+            initialGrid: this.currentState.initialBoardState || [],
             pencilMarks: this.board.getAllPencilMarks()
         });
-        this.ui.updateModeButtons(this.currentState.mode);
-        this.ui.selectCell(this.currentState.selectedRow, this.currentState.selectedCol, null, null);
-        this._updateNumPadVisibility();
+        this.ui.updateModeButtons(this.currentState.mode); // Handles Pencil/Focus button selection state
+        // Hide/disable irrelevant buttons in training (e.g., difficulty, timer handled by TrainingUI constructor/CSS)
+        this.ui.selectCell(this.currentState.selectedRow, this.currentState.selectedCol, null, null); // Update selection highlight
 
         // --- Handle Highlights ---
-        // Only clear hint highlights if the hint state is inactive
-        if (this.currentState.hintStage === 0) {
-            // Don't clear hint highlights just because UI updated if a hint is active
-            // Highlighting handled by _handleHintRequest or _checkTrainingStepCompletion
-        }
+        // Hint highlights are managed by _handleHintRequest or _checkTrainingStepCompletion
+        // We only need to reapply them if UI updates for other reasons while a hint is active.
+        // Focus highlights need to be applied based on mode.
 
-        // Apply Focus Highlights based on mode
         if (this.currentState.mode === Modes.FOCUS) {
-            this.ui.applyFocusHighlight(this.currentState.focusedDigits); // Apply persistent focus highlights
+            // Apply persistent focus highlights from the set
+            this.ui.applyFocusHighlight(this.currentState.focusedDigits);
         } else {
-            // Apply auto-focus based on selected cell in Normal/Marking mode
-            // (Optional for training, but keeps consistency)
+            // Apply auto-focus based on selected cell value in Normal/Marking mode
             const { selectedRow, selectedCol } = this.currentState;
             if (selectedRow !== null && selectedCol !== null) {
                 const value = this.board.getValue(selectedRow, selectedCol);
                 if (value > 0) {
-                    this.ui.applyFocusHighlight(value); // Highlight selected number
+                    this.ui.applyFocusHighlight(value); // Highlight cells with the same number
                 } else {
-                    this.ui.clearFocusHighlight(); // Clear if empty cell selected
+                    this.ui.clearFocusHighlight(); // Clear if cell is empty
                 }
             } else {
                 this.ui.clearFocusHighlight(); // Clear if no cell selected
             }
         }
+
+        // Update Numpad state *after* updating highlights/selection
+        this._updateNumPadVisibility();
     }
 
     _setSelectedCell(row, col) {
-        // Simplified selection logic
+        // Reset hint if user clicks somewhere *unexpected* during hint display?
+        // For now, let hint progression handle visual resets.
+        // this._resetHintStateIfNeeded(); // Maybe only if clicking outside highlighted hint cells?
+
         const prevRow = this.currentState.selectedRow;
         const prevCol = this.currentState.selectedCol;
+        if (row === prevRow && col === prevCol) return;
+
         this.currentState.selectedRow = row;
         this.currentState.selectedCol = col;
-        this.ui.selectCell(row, col, prevRow, prevCol);
-        this._updateNumPadVisibility(); // Update numpad based on selection
 
-                // Update auto-focus highlights only if not in persistent Focus mode
-                if (this.currentState.mode !== Modes.FOCUS) {
-                    const value = (row !== null && col !== null) ? this.board.getValue(row, col) : 0;
-                    if (value > 0) {
-                        this.ui.applyFocusHighlight(value);
-                    } else {
-                        this.ui.clearFocusHighlight();
-                    }
-                }
+        // Update UI for cell selection itself (e.g., background color)
+        // this.ui.selectCell handles the visual change.
+        // Call full UI update to synchronize highlights and numpad.
+        this._updateUI();
     }
 
+    // --- MODIFIED: Update Numpad Visibility/State (Adapted from game.js) ---
     _updateNumPadVisibility() {
-        // Mostly reused from game.js, but adapted for training context
-        const { selectedRow, selectedCol, mode } = this.currentState;
-        if (selectedRow !== null && selectedCol !== null) {
-            // In training, all cells are conceptually 'user input'
-            const isPrefilled = false; // Treat as not prefilled for interaction
-            let validInputs = []; // Not needed if we allow any input and verify later
-            let canErase = this.board.getValue(selectedRow, selectedCol) !== 0;
+        const { selectedRow, selectedCol, mode, isTrainingActive } = this.currentState;
 
-            this.ui.updateNumPad(validInputs, canErase, mode === Modes.MARKING, isPrefilled);
-        } else {
-            this.ui.updateNumPad([], false, false, false); // No cell selected
+        // If training is not active, disable everything
+        if (!isTrainingActive) {
+            this.ui.updateNumPad([], false, false, false, mode);
+            return;
+        }
+
+        // --- Handle FOCUS mode separately - Always enable focus toggling ---
+        if (mode === Modes.FOCUS) {
+            const validInputs = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            const canErase = true; // Erase button clears focus
+            // Pass mode, ignore cell selection/prefilled status for enabling buttons
+            this.ui.updateNumPad(validInputs, canErase, false, false, mode);
+            return; // Focus mode numpad handled
+        }
+
+        // --- For NORMAL and MARKING modes, visibility depends on selection ---
+        if (selectedRow === null || selectedCol === null) {
+            // No cell selected AND not in Focus mode: Disable numpad
+            this.ui.updateNumPad([], false, false, false, mode); // Pass current mode (Normal/Marking)
+            return;
+        }
+
+        // --- Cell IS selected, handle Normal/Marking modes ---
+        // In training, all cells are interactable (conceptually not 'prefilled')
+        const isPrefilled = false; // Treat cells as interactable
+        let validInputs = [1, 2, 3, 4, 5, 6, 7, 8, 9]; // Enable all numbers
+        let canErase = false;
+
+        if (mode === Modes.MARKING) {
+            // Marking Mode: Enable 1-9 for toggling marks.
+            // Enable erase only if marks exist in the cell? Or always? Let's always enable erase for marks.
+            canErase = this.board.getPencilMarksForCell(selectedRow, selectedCol).some(mark => mark); // Enable only if marks exist
+            // Or: canErase = true; // Always allow clearing marks
+            this.ui.updateNumPad(validInputs, canErase, true, isPrefilled, mode);
+
+        } else { // NORMAL Mode (for placement)
+            // Normal Mode: Enable 1-9 for placement.
+            // Enable erase if the cell has a value.
+            canErase = this.board.getValue(selectedRow, selectedCol) !== 0;
+            this.ui.updateNumPad(validInputs, canErase, false, isPrefilled, mode);
         }
     }
 
-    // _setMode(newMode) {
-    //     // Allow switching between Normal and Marking
-    //     if (this.currentState.mode === newMode) {
-    //         this.currentState.mode = Modes.NORMAL; // Toggle off
-    //     } else {
-    //         this.currentState.mode = newMode;
-    //     }
-    //     this._updateUI();
-    // }
-    // In training_game.js
+    // --- MODIFIED: Set Mode (Adapted from game.js) ---
     _setMode(newMode) {
-        this._resetHintStateIfNeeded(); // Reset hint on mode change
+        // Don't reset hint on mode change in training, as focus might be used *during* analysis
+        // this._resetHintStateIfNeeded();
 
         const oldMode = this.currentState.mode;
-        if (oldMode === newMode) {
+        let targetMode = newMode;
+
+        if (oldMode === newMode && newMode !== Modes.NORMAL) {
             // Clicking the same mode button again toggles it off (back to NORMAL)
-            if (newMode !== Modes.NORMAL) {
-                this.currentState.mode = Modes.NORMAL;
-            }
-        } else {
-            this.currentState.mode = newMode;
+            targetMode = Modes.NORMAL;
         }
+        // Allow switching directly between MARKING and FOCUS
+        this.currentState.mode = targetMode;
         const currentMode = this.currentState.mode;
 
         console.log("[Training] Mode changed from", oldMode, "to:", currentMode);
 
-        // --- Handle Focus Mode State ---
+        // --- Handle Focus Mode State Transitions ---
         if (oldMode === Modes.FOCUS && currentMode !== Modes.FOCUS) {
-            console.log("[Training] Exiting Focus Mode: Clearing focused digits and highlights.");
-            this.currentState.focusedDigits.clear();
-            this.ui.clearFocusHighlight(); // Clear persistent highlights explicitly
-        } else if (currentMode === Modes.FOCUS) {
-            console.log("[Training] Entering Focus Mode: Clearing potential auto-focus.");
-            this.ui.clearFocusHighlight(); // Clear auto-highlights based on selection
-            // Re-apply persistent highlights if any exist from previous focus session
-            this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+            console.log("[Training] Exiting Focus Mode: Clearing visual highlights.");
+            // Keep the focusedDigits set, just clear the visual effect.
+            this.ui.clearFocusHighlight();
         }
+        // Entering focus mode visual update is handled by _updateUI
 
         // --- General UI Update ---
-        // Update button styles and potentially other UI elements affected by mode
-        // _updateUI will handle applying the correct focus highlights based on the new mode
-        this._updateUI();
+        this._updateUI(); // Updates button styles, highlights, and numpad
     }
 
+    // --- MODIFIED: Handle Cell Input (Adapted from game.js + Training Logic) ---
+    // _handleCellInput(value) {
+    //     const { mode } = this.currentState; // Get mode first
 
+    //     // --- FOCUS Mode Input (Overrides regular input, works without cell selection) ---
+    //     if (mode === Modes.FOCUS) {
+    //         // Don't reset hint when just toggling focus
+    //         // this._resetHintStateIfNeeded();
+
+    //         if (value >= 1 && value <= BOARD_SIZE) {
+    //             // Toggle focus for the digit
+    //             const digit = value;
+    //             if (this.currentState.focusedDigits.has(digit)) {
+    //                 this.currentState.focusedDigits.delete(digit);
+    //             } else {
+    //                 this.currentState.focusedDigits.add(digit);
+    //             }
+    //             console.log("[Training] Toggled focus digit:", digit, " | Current focus:", Array.from(this.currentState.focusedDigits));
+    //             this.ui.applyFocusHighlight(this.currentState.focusedDigits); // Update visual highlights
+    //         } else if (value === 0) { // Erase button (or Backspace/Delete) in focus mode
+    //             // Clear *all* focused digits
+    //             if (this.currentState.focusedDigits.size > 0) {
+    //                 console.log("[Training] Clearing all focused digits.");
+    //                 this.currentState.focusedDigits.clear();
+    //                 this.ui.clearFocusHighlight(); // Update UI
+    //             }
+    //         }
+    //         // Update the numpad state after focus change
+    //         this._updateNumPadVisibility();
+    //         return; // Focus mode input handled, stop here.
+    //     }
+
+    //     // --- For Normal/Marking modes, require training to be active and a cell selected ---
+    //     if (!this.currentState.isTrainingActive || !this.currentState.targetStep) {
+    //          console.log("[Training] Input ignored: Training not active.");
+    //          return;
+    //     }
+    //     const { selectedRow, selectedCol } = this.currentState;
+    //     if (selectedRow === null || selectedCol === null) {
+    //          console.log("[Training] Input ignored: No cell selected (and not in Focus Mode).");
+    //          return;
+    //     }
+
+    //     // Reset hint state only if a non-focus input action is taken
+    //     this._resetHintStateIfNeeded();
+
+    //     let actionTaken = false;
+
+    //     // --- MARKING Mode Input (for Elimination Training) ---
+    //     if (mode === Modes.MARKING) {
+    //         if (value >= 1 && value <= BOARD_SIZE) {
+    //             // Check if the target cell *had* this candidate initially (optional strictness)
+    //             // const initialMark = this.currentState.initialPencilMarks[selectedRow][selectedCol][value - 1];
+    //             // if (!initialMark) { console.log("Attempted to toggle a mark not initially present."); return; }
+
+    //             this.board.togglePencilMark(selectedRow, selectedCol, value);
+    //             actionTaken = true;
+    //         } else if (value === 0) {
+    //             // Clear all marks in the selected cell?
+    //              if (this.board.getPencilMarksForCell(selectedRow, selectedCol).some(mark => mark)) {
+    //                 // Maybe add undo state here if implementing undo for training
+    //                 this.board.clearPencilMarksForCell(selectedRow, selectedCol);
+    //                 actionTaken = true; // Count clearing as an action
+    //             }
+    //         }
+    //     }
+    //     // --- NORMAL Mode Input (for Placement Training) ---
+    //     else { // mode === Modes.NORMAL
+    //         if (value >= 0 && value <= BOARD_SIZE) { // Allow 0 for erase
+    //             const currentValue = this.board.getValue(selectedRow, selectedCol);
+    //             if (currentValue !== value) {
+    //                  // Maybe add undo state here if implementing undo for training
+    //                 this.board.setValue(selectedRow, selectedCol, value);
+    //                 // Clear pencil marks automatically if a number is placed (standard Sudoku behavior)
+    //                 if (value !== 0) this.board.clearPencilMarksForCell(selectedRow, selectedCol);
+    //                 actionTaken = true;
+    //             }
+    //         }
+    //     }
+
+    //     if (actionTaken) {
+    //         this._updateUI(); // Show the change immediately
+    //         // Check completion *after* the UI updates
+    //         // Use setTimeout to allow UI to render before potential alert/confetti
+    //         setTimeout(() => this._checkTrainingStepCompletion(), 0);
+    //     }
+    // }
+
+    // --- MODIFIED: Handle Cell Input (Adapted from game.js + Training Logic) ---
     _handleCellInput(value) {
-        // this._resetHintStateIfNeeded(); // <-- ADD THIS LINE
+        const { mode } = this.currentState; // Get mode first
 
-        if (!this.currentState.isTrainingActive || !this.currentState.targetStep) return; // Ignore input if not ready
+        // --- FOCUS Mode Input --- (No board change, no undo needed here)
+        if (mode === Modes.FOCUS) {
+            // ... focus logic ...
+            return;
+        }
 
-        const { selectedRow, selectedCol, mode, targetStep } = this.currentState;
-        if (selectedRow === null || selectedCol === null) return;
+        // --- For Normal/Marking modes, require training to be active and a cell selected ---
+        if (!this.currentState.isTrainingActive || !this.currentState.targetStep) {
+            // console.log("[Training] Input ignored: Training not active.");
+            return;
+        }
+        const { selectedRow, selectedCol } = this.currentState;
+        if (selectedRow === null || selectedCol === null) {
+            // console.log("[Training] Input ignored: No cell selected (and not in Focus Mode).");
+            return;
+        }
+
+        // Reset hint state only if a non-focus input action is taken
+        this._resetHintStateIfNeeded();
 
         let actionTaken = false;
+        let boardChanged = false; // Track if the actual board state will change
 
+        // --- MARKING Mode Input (for Elimination Training) ---
         if (mode === Modes.MARKING) {
-            // User is toggling pencil marks (for elimination techniques)
             if (value >= 1 && value <= BOARD_SIZE) {
+                const currentlyMarked = this.board.getPencilMarksForCell(selectedRow, selectedCol)[value - 1];
+                // Add undo state *before* toggling
+                this._addUndoState(); // Assume toggle will happen
                 this.board.togglePencilMark(selectedRow, selectedCol, value);
                 actionTaken = true;
+                boardChanged = true;
             } else if (value === 0) {
-                // Could potentially add 'clear all marks in cell' here if needed
+                // Clear all marks in the selected cell
+                if (this.board.getPencilMarksForCell(selectedRow, selectedCol).some(mark => mark)) {
+                    this._addUndoState(); // Add undo state before clearing
+                    this.board.clearPencilMarksForCell(selectedRow, selectedCol);
+                    actionTaken = true;
+                    boardChanged = true;
+                }
             }
-        } else { // Normal Mode (for placement techniques like Full House/Singles)
+        }
+        // --- NORMAL Mode Input (for Placement Training) ---
+        else { // mode === Modes.NORMAL
             if (value >= 0 && value <= BOARD_SIZE) { // Allow 0 for erase
-                this.board.setValue(selectedRow, selectedCol, value);
-                // Clear pencil marks if a number is placed
-                if (value !== 0) this.board.clearPencilMarksForCell(selectedRow, selectedCol);
-                actionTaken = true;
+                const currentValue = this.board.getValue(selectedRow, selectedCol);
+                if (currentValue !== value) {
+                    this._addUndoState(); // Add undo state before setting value
+                    this.board.setValue(selectedRow, selectedCol, value);
+                    if (value !== 0) this.board.clearPencilMarksForCell(selectedRow, selectedCol);
+                    actionTaken = true;
+                    boardChanged = true;
+                }
             }
         }
 
         if (actionTaken) {
             this._updateUI(); // Show the change immediately
-            this._checkTrainingStepCompletion(); // Verify if the step is done
+            // Check completion only if the board actually changed state
+            if (boardChanged) {
+                setTimeout(() => this._checkTrainingStepCompletion(), 0);
+            }
         }
     }
 
     _checkTrainingStepCompletion() {
-        const { targetStep } = this.currentState;
-        if (!targetStep) return;
+        const { targetStep, initialBoardState } = this.currentState;
+        if (!targetStep || !this.currentState.isTrainingActive) return; // Only check if active and step exists
 
         let isComplete = false;
+        const currentGrid = this.board.getGrid();
+        const currentMarks = this.board.getAllPencilMarks();
 
         // --- Verification Logic ---
         if (targetStep.value !== undefined && targetStep.cell) {
-            // --- Placement Technique Verification (Singles, Full House) ---
+            // --- Placement Technique Verification (e.g., Singles, Full House) ---
             const [targetRow, targetCol] = targetStep.cell;
-            const currentValue = this.board.getValue(targetRow, targetCol);
-            if (currentValue === targetStep.value) {
-                // Check if *only* the target cell was changed from initial state (optional strictness)
-                // For simplicity, just check the target cell value
+            const placedValue = currentGrid[targetRow][targetCol];
+
+            if (placedValue === targetStep.value) {
+                // Basic check: Is the correct value in the target cell?
                 isComplete = true;
-                console.log("[Training] Placement step correctly applied!");
+
+                // Stricter check (Optional): Ensure no *other* cells were changed from the initial state
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        if (r === targetRow && c === targetCol) continue; // Skip the target cell
+                        if (currentGrid[r][c] !== initialBoardState[r][c]) {
+                            console.log("[Training] Incorrect: Other cells were modified.");
+                            isComplete = false; // Failed strict check
+                            // Maybe flash error on the incorrect cell (r, c)?
+                            // this.ui.showBoardError(r,c);
+                            break;
+                        }
+                    }
+                    if (!isComplete) break;
+                }
+            } else {
+                // console.log(`[Training] Placement check failed: Expected ${targetStep.value} at [${targetRow},${targetCol}], found ${placedValue}`);
             }
 
         } else if (targetStep.eliminations && targetStep.eliminations.length > 0) {
             // --- Elimination Technique Verification ---
-            // This is more complex. Compare current pencil marks against initial + expected elims.
             isComplete = true; // Assume complete initially
-            const currentMarks = this.board.getAllPencilMarks();
             const initialMarks = this.currentState.initialPencilMarks;
 
+            // 1. Check if all expected eliminations *are* gone
             for (const elim of targetStep.eliminations) {
                 const [r, c] = elim.cell;
                 for (const val of elim.values) {
-                    // Check if the candidate *was* present initially and is *now* absent
-                    if (initialMarks[r][c][val - 1] && currentMarks[r][c][val - 1]) {
-                        // If an expected elimination is still present, the step is not complete
+                    // Check if the candidate is *now* absent (currentMarks[r][c][val-1] is false)
+                    if (currentMarks[r][c][val - 1]) {
+                        console.log(`[Training] Elimination check failed: Candidate ${val} still present at [${r},${c}].`);
                         isComplete = false;
                         break;
                     }
-                    // Optional: Check if *other* candidates in the cell were *not* removed (stricter)
                 }
                 if (!isComplete) break;
             }
 
-            // Optional Strictness: Check if *only* the expected eliminations were made
-            // Iterate through all cells/candidates, compare initial vs current, ensuring
-            // only the target eliminations differ. This prevents accidental removals.
+            // 2. Stricter check (Optional): Ensure no *other* pencil marks were changed
             if (isComplete) {
-                this._resetHintState();
-                console.log("[Training] Elimination step appears correctly applied!");
+                for (let r = 0; r < BOARD_SIZE; r++) {
+                    for (let c = 0; c < BOARD_SIZE; c++) {
+                        for (let val = 1; val <= BOARD_SIZE; val++) {
+                            const isTargetElimination = targetStep.eliminations.some(elim =>
+                                elim.cell[0] === r && elim.cell[1] === c && elim.values.includes(val)
+                            );
+                            // If it's NOT a target elimination, its state should match the initial state
+                            if (!isTargetElimination && currentMarks[r][c][val - 1] !== initialMarks[r][c][val - 1]) {
+                                console.log(`[Training] Incorrect: Non-target pencil mark ${val} at [${r},${c}] was changed.`);
+                                isComplete = false;
+                                // Maybe flash error on the specific pencil mark?
+                                // this.ui.showPencilMarkError(r, c, val);
+                                break;
+                            }
+                        }
+                        if (!isComplete) break;
+                    }
+                    if (!isComplete) break;
+                }
             }
         }
 
         // --- Handle Completion ---
         if (isComplete) {
             console.log(`[Training] Technique ${targetStep.technique} completed!`);
-            this.currentState.isTrainingActive = false;
-            triggerMiniConfetti();
+            this.currentState.isTrainingActive = false; // Mark as inactive AFTER check
+            triggerMiniConfetti(); // Celebrate!
+            this._resetHintState(); // Clear hint visuals
 
-            // Highlight the completed step clearly
-            // this.ui.applyHintHighlight(targetStep.highlights, true); // Show cells and candidates involved
+            // OPTIONAL: reapply to stage 2 (without candidates)
+            this.ui.applyHintHighlight(targetStep.highlights, false); // Show cells only
 
-            // Consider adding a visual confirmation message
-            // Maybe automatically request next puzzle after a short delay? Or wait for button press.
+            // Re-enable the 'Next' button and disable the board/numpad until next puzzle requested
+            this._disableInteraction(); // Disable board input etc.
             const nextButton = document.getElementById('next-training-puzzle');
-            if (nextButton) nextButton.focus(); // Focus the next button
+            if (nextButton) {
+                nextButton.disabled = false; // Explicitly enable Next
+                nextButton.focus(); // Focus the next button
+            }
+        } else {
+            // console.log("[Training] Step not yet complete.");
         }
     }
 
-    // --- Callback Getter ---
+    // --- Callback 
     _getUICallbacks() {
-        // Adapt callbacks for training mode
+        const game = this; 
         return {
-            onCellClick: (row, col) => this._setSelectedCell(row, col),
-            onClickOutside: () => this._setSelectedCell(null, null),
-            onNumberInput: (num) => this._handleCellInput(num),
-            onKeydown: (event) => this._handleKeydown(event), // Reuse or adapt keydown
-            onModeToggleRequest: (mode) => this._setMode(mode),
-            // Disable/remove callbacks not used in training:
-            // onPauseToggle: () => {},
-            // onDifficultyCycle: () => {},
-            // onNewGameRequest: () => {},
-            // onResetRequest: () => {},
-            // onSolveRequest: () => {},
-            onHintRequest: () => this._handleHintRequest(),
-            // onUndoRequest: () => {}, // Maybe add later?
-            // onAutoMarkRequest: () => {}, // Maybe allow manual fill?
-            // ... other callbacks ...
-            onResize: () => this._detectPlatform(),
+            onCellClick: (row, col) => game._setSelectedCell(row, col),
+            onClickOutside: () => {
+                game._setSelectedCell(null, null);
+            },
+            onNumberInput: (num) => game._handleCellInput(num),
+            onKeydown: (event) => game._handleKeydown(event),
+            onModeToggleRequest: (mode) => game._setMode(mode),
+            // onPauseToggle: null,
+            // onAutoMarkRequest: null,
+            onHintRequest: () => game._handleHintRequest(),
+            onUndoRequest: () => game._undo(),
+            onResetRequest: () => game._resetTrainingBoard(),
+            onTechniqueSelect: (techniqueValue) => game.startTraining(techniqueValue),
+            onNextPuzzleRequest: () => game.requestNextPuzzle(),
+            onResize: () => game._detectPlatform(),
+
+            onSettingsOpen: () => game.ui.showSettingsPanel(),
+            onSettingsSave: () => { // Save only settings if needed
+                game.ui.hideSettingsPanel();
+                // Persistence.saveSettings(game.currentState.settings); // Example
+            },
+            onSettingChange: (settingName, value) => {
+                if (game.currentState.settings.hasOwnProperty(settingName)) {
+                    game.currentState.settings[settingName] = value;
+                    console.log(`[Training] Setting ${settingName} changed to ${value}`);
+                    // Apply immediate UI changes if necessary
+                }
+            },
+            onExportRequest: () => console.warn("[Training] Export not implemented."),
+            onLoadRequest: () => console.warn("[Training] Load not implemented."),
         };
     }
 
-    // _handleKeydown(event) {
-    //     // Reuse keydown logic from game.js, but simplify/adapt
-    //     const key = event.key;
-
-    //     // Define keys that *shouldn't* reset the hint state during progression
-    //     const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
-    //     const isCtrl = event.ctrlKey || event.metaKey;
-    //     const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase()));
-
-    //     if (shouldResetHint) {
-    //         //    this._resetHintStateIfNeeded(); // <-- ADD THIS LINE (conditionally)
-    //     }
-
-
-    //     const { selectedRow, selectedCol } = this.currentState;
-
-    //     // Basic Navigation
-    //     if (key.startsWith('Arrow')) {
-    //         event.preventDefault();
-    //         let nextRow = selectedRow !== null ? selectedRow : 0; // Default to top-left if none selected
-    //         let nextCol = selectedCol !== null ? selectedCol : 0;
-    //         // ... (arrow key logic from game.js) ...
-    //         if (selectedRow === null || selectedCol === null) { // if nothing was selected, start at 0,0
-    //             this._setSelectedCell(0, 0);
-    //         } else if (nextRow !== selectedRow || nextCol !== selectedCol) {
-    //             this._setSelectedCell(nextRow, nextCol);
-    //         }
-    //         return;
-    //     }
-
-    //     if (selectedRow === null || selectedCol === null) return; // Need selection for input
-
-    //     // Input / Erase
-    //     if (key >= '0' && key <= '9') {
-    //         this._handleCellInput(parseInt(key, 10));
-    //     } else if (key === 'Backspace' || key === 'Delete') {
-    //         this._handleCellInput(0); // Erase
-    //     }
-
-    //     // Mode Toggle
-    //     if (key.toLowerCase() === 'm') {
-    //         this._setMode(Modes.MARKING);
-    //     }
-    //     if (key === 'Escape') {
-    //         this._setSelectedCell(null, null); // Deselect
-    //     }
-    // }
-
-    // In training_game.js
     _handleKeydown(event) {
         const key = event.key;
-        const isCtrl = event.ctrlKey || event.metaKey; // Keep ctrl check if needed
+        const isCtrl = event.ctrlKey || event.metaKey;
 
-        // Define keys that *shouldn't* reset the hint state during progression
-        const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
-        const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase()));
+        // --- Hint Reset Logic ---
+        const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12', 'Tab'];
+        const isModifierOnly = ['Shift', 'Control', 'Alt', 'Meta'].includes(key);
+        const isKnownShortcut = isCtrl && ['c', 'v', 'x', 'z', 'y'].includes(key.toLowerCase()); // Removed training irrelevant shortcuts
+        const shouldResetHint = !isModifierOnly && !keysToIgnoreForReset.includes(key) && !isKnownShortcut;
 
-        if (shouldResetHint) {
-            this._resetHintStateIfNeeded(); // Reset hint if needed
+        if (shouldResetHint && this.currentState.mode !== Modes.FOCUS) { // Don't reset hint if just toggling focus
+            this._resetHintStateIfNeeded();
         }
 
-        // --- Global Shortcuts (Keep simple ones if desired) ---
-        // if (isCtrl && key.toLowerCase() === 'z') { /* Add undo if implemented */ return; }
+        // --- Prevent Default Actions ---
+        // Basic prevention (Space scroll, Arrows if cell selected, Backspace nav)
+        if (key === ' ' && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement)) {
+            event.preventDefault();
+        }
+        if (key.startsWith('Arrow') && this.currentState.selectedRow !== null) {
+            event.preventDefault();
+        }
+        // Prevent backspace only if not in an input field
+        if ((key === 'Backspace' || key === 'Delete') && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement)) {
+            if (this.currentState.selectedRow !== null) { // Prevent if cell selected too
+                event.preventDefault();
+            }
+        }
 
-        // --- Mode Toggles ---
-        if (key === 'm' && !isCtrl) { this._setMode(Modes.MARKING); return; }
-        if (key === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; } // <-- ADD FOCUS TOGGLE
-
-        // --- Escape Key ---
+        // --- Global/Mode Shortcuts ---
+        // No Undo/Redo/AutoMark shortcuts needed for now
+        if (key.toLowerCase() === 'm' && !isCtrl) { this._setMode(Modes.MARKING); return; }
+        if (key.toLowerCase() === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; } // <-- ADDED FOCUS TOGGLE
         if (key === 'Escape') {
             event.preventDefault();
-            this._resetHintState(); // Reset hints on escape
+            this._resetHintState(); // Reset hint always on Escape
             if (this.currentState.mode === Modes.FOCUS) {
                 this._setMode(Modes.NORMAL); // Exit focus mode first
             } else if (this.currentState.mode === Modes.MARKING) {
                 this._setMode(Modes.NORMAL); // Exit marking mode
+            } else if (this.currentState.selectedRow !== null) {
+                this._setSelectedCell(null, null); // Deselect cell if in normal mode
             }
-            this._setSelectedCell(null, null); // Deselect cell
+            return;
+        }
+        // No Pause shortcut needed
+
+        // --- Persistent Focus Mode Keyboard Input (Adapted from game.js) ---
+        if (this.currentState.mode === Modes.FOCUS) {
+            // Pass focus key presses to _handleCellInput logic
+            if (key >= '1' && key <= '9') {
+                this._handleCellInput(parseInt(key, 10));
+                return; // Consume key press
+            } else if (key === 'Backspace' || key === 'Delete') {
+                this._handleCellInput(0); // 0 signals clear focus
+                return; // Consume key press
+            }
+            // Allow arrow keys for navigation even in focus mode
+            if (key.startsWith('Arrow')) {
+                // Arrow key navigation logic extracted for reuse
+                this._handleArrowNavigation(key);
+                return; // Consume arrow key
+            }
+            // Ignore other keys while in focus mode? Or let them pass? Let's ignore for now.
+            console.log("[Training] Key ignored in Focus Mode:", key);
             return;
         }
 
-        // --- Persistent Focus Mode Input (Digits 1-9, Backspace/Delete) ---
-        if (this.currentState.mode === Modes.FOCUS) {
-            if (key >= '1' && key <= '9') {
-                const digit = parseInt(key, 10);
-                // Toggle digit in the set
-                if (this.currentState.focusedDigits.has(digit)) {
-                    this.currentState.focusedDigits.delete(digit);
-                } else {
-                    this.currentState.focusedDigits.add(digit);
-                }
-                console.log("[Training] Focused digits:", this.currentState.focusedDigits);
-                // Update UI immediately
-                this.ui.applyFocusHighlight(this.currentState.focusedDigits);
-                return; // Consume key press, don't treat as cell input
-            } else if (key === 'Backspace' || key === 'Delete') {
-                this.currentState.focusedDigits.clear(); // Clear all focused digits
-                console.log("[Training] Cleared focused digits");
-                this.ui.clearFocusHighlight(); // Update UI
-                return; // Consume key press
-            }
-            // Allow arrow keys to pass through even in focus mode for navigation
-            if (key.startsWith('Arrow')) {
-                // Arrow key navigation logic (same as below, extracted for clarity)
-                event.preventDefault();
-                const { selectedRow, selectedCol } = this.currentState;
-                let nextRow = selectedRow !== null ? selectedRow : 0;
-                let nextCol = selectedCol !== null ? selectedCol : 0;
-                if (key === 'ArrowUp' && nextRow > 0) nextRow--;
-                else if (key === 'ArrowDown' && nextRow < BOARD_SIZE - 1) nextRow++;
-                else if (key === 'ArrowLeft' && nextCol > 0) nextCol--;
-                else if (key === 'ArrowRight' && nextCol < BOARD_SIZE - 1) nextCol++;
+        // --- Cell Input / Navigation (Requires cell selection, NOT in Focus Mode) ---
+        const { selectedRow, selectedCol } = this.currentState;
 
-                if (selectedRow === null || selectedCol === null || nextRow !== selectedRow || nextCol !== selectedCol) {
-                    this._setSelectedCell(nextRow, nextCol); // Allow selection change
-                }
-                return; // Consume arrow key after handling navigation
+        // Handle Arrow Key Navigation (if cell is selected)
+        if (key.startsWith('Arrow')) {
+            if (selectedRow !== null) {
+                this._handleArrowNavigation(key);
+            } else { // If no cell selected, select 0,0 on first arrow press
+                this._setSelectedCell(0, 0);
             }
-            // Ignore other keys in Focus mode? Or let them pass? For now, let others pass.
+            return; // Navigation handled
         }
 
+        // If no cell selected after checking arrows, ignore remaining input keys
+        if (selectedRow === null || selectedCol === null) return;
 
-        // --- Cell Input / Navigation (Requires selected cell, NOT in Focus Mode ideally) ---
-        const { selectedRow, selectedCol } = this.currentState;
-        if (selectedRow === null || selectedCol === null) return; // Ignore input if no cell selected
-
-        // Number Input (Normal/Marking mode)
+        // Handle Number/Delete Input (Cell selected, NOT in Focus Mode)
         if (key >= '1' && key <= '9') {
             this._handleCellInput(parseInt(key, 10));
         }
-        // Erase Input (Normal/Marking mode)
         else if (key === 'Backspace' || key === 'Delete' || key === '0') {
-            this._handleCellInput(0);
-        }
-        // Arrow Key Navigation (Normal/Marking mode - also handled above for Focus consistency)
-        else if (key.startsWith('Arrow')) {
-            event.preventDefault(); // Already handled above if in focus mode, but prevent default anyway
-            let nextRow = selectedRow;
-            let nextCol = selectedCol;
-            if (key === 'ArrowUp' && selectedRow > 0) nextRow--;
-            else if (key === 'ArrowDown' && selectedRow < BOARD_SIZE - 1) nextRow++;
-            else if (key === 'ArrowLeft' && selectedCol > 0) nextCol--;
-            else if (key === 'ArrowRight' && selectedCol < BOARD_SIZE - 1) nextCol++;
-
-            if (nextRow !== selectedRow || nextCol !== selectedCol) {
-                this._setSelectedCell(nextRow, nextCol);
-            }
+            this._handleCellInput(0); // 0 signals erase in Normal/Marking
         }
     }
 
+    // Helper for arrow key navigation
+    _handleArrowNavigation(key) {
+        const { selectedRow, selectedCol } = this.currentState;
+        // If nothing selected, start at 0,0 (handled in _handleKeydown)
+        let nextRow = selectedRow !== null ? selectedRow : 0;
+        let nextCol = selectedCol !== null ? selectedCol : 0;
+
+        if (key === 'ArrowUp' && nextRow > 0) nextRow--;
+        else if (key === 'ArrowDown' && nextRow < BOARD_SIZE - 1) nextRow++;
+        else if (key === 'ArrowLeft' && nextCol > 0) nextCol--;
+        else if (key === 'ArrowRight' && nextCol < BOARD_SIZE - 1) nextCol++;
+
+        // Only update selection if it actually changed
+        if (nextRow !== selectedRow || nextCol !== selectedCol) {
+            this._setSelectedCell(nextRow, nextCol);
+        }
+    }
+
+    // --- HINT SYSTEM LOGIC (Adapted for Training) ---
     _resetHintState() {
+        // Only reset the stage and clear board visuals
+        // Keep the technique name displayed if provided by UI separately
         if (this.currentState.hintStage !== 0) {
-            console.log("[Training] Resetting hint state.");
+            console.log("[Training] Resetting hint visuals.");
             this.currentState.hintStage = 0;
-            this.ui.clearHintHighlight(false); // Clear board highlights BUT NOT the technique text
+            // currentHintStep is not used in the same way, maybe clear it too
+            this.currentState.currentHintStep = null;
+            this.ui.clearHintHighlight(false); // false = don't clear technique text display
         }
     }
 
-    /**
-      * Calls _resetHintState only if a hint is currently active (stage > 0).
-      */
     _resetHintStateIfNeeded() {
+        // Reset if currently showing hints (stage > 0) and an action occurs
         if (this.currentState.hintStage > 0) {
-            console.log("[Training] Resetting hint state due to new action.");
+            console.log("[Training] Resetting hint visuals due to new action.");
             this._resetHintState();
         }
     }
@@ -591,7 +811,7 @@ export class SudokuTrainingGame {
 
         console.log(`[Training] Hint requested. Current stage: ${this.currentState.hintStage}`);
         const targetStep = this.currentState.targetStep;
-        const highlights = targetStep.highlights;
+        const highlights = targetStep.highlights; // Assumes highlights are always present in targetStep
         const currentStage = this.currentState.hintStage;
 
         // --- Progression Logic (Starts from Stage 0 -> 2) ---
@@ -600,30 +820,128 @@ export class SudokuTrainingGame {
             if (!highlights || highlights.length === 0) {
                 console.warn("[Training] Hint error: Target step has no highlights defined.");
                 this._resetHintState();
+                this.ui.displayHintTechnique("Hint unavailable"); // Show error
                 return;
             }
             console.log("[Training] Hint Stage 0 -> 2: Highlighting cells...");
             this.ui.applyHintHighlight(highlights, false); // false = cells only
             this.currentState.hintStage = 2;
-            // Main technique name remains displayed
+            // Technique name (from targetStep.technique) should ideally be shown by UI
 
         } else if (currentStage === 2) {
-            // --- Stage 2 -> 3: Show Candidates ---
-            if (!highlights || highlights.length === 0) { // Safety check
+            // --- Stage 2 -> 3: Show Candidates/Value ---
+            if (!highlights || highlights.length === 0) {
                 console.warn("[Training] Hint error at stage 2: Target step has no highlights defined.");
-                this._resetHintState();
-                return;
+                this._resetHintState(); return;
             }
-            console.log("[Training] Hint Stage 2 -> 3: Highlighting candidates...");
-            this.ui.applyHintHighlight(highlights, true); // true = cells and candidates
+            console.log("[Training] Hint Stage 2 -> 3: Highlighting candidates/value...");
+            // Pass the full targetStep to applyHintHighlight so it can check .value for placement hints
+            this.ui.applyHintHighlight(highlights, true, targetStep); // true = show candidates/value
             this.currentState.hintStage = 3;
-            // Main technique name remains displayed
 
         } else if (currentStage === 3) {
             // --- Stage 3 -> 0: Reset ---
             console.log("[Training] Hint Stage 3 -> 0: Resetting hint visuals.");
             this._resetHintState(); // Clicking again resets visuals
         }
+    }
+
+    _addUndoState() {
+        // Only save state if training is active and a target step exists
+        if (!this.currentState.isTrainingActive || !this.currentState.targetStep) {
+            return;
+        }
+        // Create a deep copy of the grid and pencil marks
+        const state = {
+            grid: deepCopy2DArray(this.board.getGrid()),
+            pencilMarks: this.board.getAllPencilMarks().map(row => row.map(cellMarks => [...cellMarks])),
+            // We don't need to save hint/focus state for simple board undo in training
+        };
+        this.undoStack.push(state);
+        if (this.undoStack.length > MAX_UNDO_STEPS) {
+            this.undoStack.shift(); // Remove the oldest state
+        }
+        // No redo stack clear needed unless implementing redo
+        // Update UI button state (e.g., enable undo button)
+        this.ui.updateUndoRedoButtons(this.undoStack.length > 0, false); 
+        console.log("[Training] Undo state added. Stack size:", this.undoStack.length);
+    }
+
+    _undo() {
+        if (!this.currentState.isTrainingActive || this.undoStack.length === 0) {
+            console.log("[Training] Undo ignored: Training inactive or stack empty.");
+            return; // Cannot undo if training isn't active or stack is empty
+        }
+
+        const previousState = this.undoStack.pop();
+
+        // Restore the board state
+        this.board.setGrid(previousState.grid); // Assumes setGrid uses the provided array directly
+        this.board.setAllPencilMarks(previousState.pencilMarks); // Assumes setAllPencilMarks uses the provided array
+
+        console.log("[Training] Undo performed. Stack size:", this.undoStack.length);
+
+        // Update everything: board display, highlights (will be cleared/reapplied), numpad
+        this._updateUI();
+
+        // Update UI button state
+        this.ui.updateUndoRedoButtons(this.undoStack.length > 0, false);
+    }
+
+    // --- Reset Board Logic ---
+    _resetTrainingBoard() {
+        // Check if there's actually a state to reset to
+        if (!this.currentState.initialBoardState || !this.currentState.initialPencilMarks) {
+            console.warn("[Training] Cannot reset: Initial state not available.");
+            return;
+        }
+
+        // Check if the board is already in the initial state to avoid unnecessary resets/confirmations
+        const currentGrid = this.board.getGrid();
+        const currentMarks = this.board.getAllPencilMarks();
+        let isChanged = false;
+        if (JSON.stringify(currentGrid) !== JSON.stringify(this.currentState.initialBoardState) ||
+            JSON.stringify(currentMarks) !== JSON.stringify(this.currentState.initialPencilMarks)) {
+            isChanged = true;
+        }
+
+        if (!isChanged) {
+            console.log("[Training] Board is already in initial state. Reset skipped.");
+            // Optionally show a brief message?
+            return;
+        }
+
+
+        // Show confirmation dialog
+        this.ui.showConfirm("Reset this step to the beginning?", () => {
+            console.log("[Training] Resetting board to initial step state.");
+
+            // Restore the initial grid and pencil marks
+            this.board.setGrid(this.currentState.initialBoardState); // Use initial state
+            this.board.setAllPencilMarks(this.currentState.initialPencilMarks); // Use initial marks
+
+            // Clear undo stack for this puzzle attempt
+            this.undoStack = [];
+            // this.redoStack = []; // Clear redo if implemented
+
+            // Reset UI states
+            this._setSelectedCell(null, null); // Deselect cell
+            this.currentState.focusedDigits.clear(); // Clear focus highlights
+            this._resetHintState(); // Reset hint progression
+            this.currentState.isTrainingActive = true; // Ensure training is marked active after reset
+
+            // Update UI to show the reset board
+            this._updateUI();
+
+            // Update undo/redo button states (disabled)
+            this.ui.updateUndoRedoButtons(false, false);
+
+            // Re-enable interaction if it was disabled upon completion
+            this._enableInteraction();
+
+        }, () => {
+            console.log("[Training] Reset cancelled.");
+        });
     }
 
     _detectPlatform() { // Reused from game.js
