@@ -33,6 +33,7 @@
     <link rel="stylesheet" href="/css/root.css">
     <link rel="stylesheet" href="/css/materialize.css">
     <link rel="stylesheet" href="/css/sudoku.css">
+    <link rel="stylesheet" href="/css/sudoku_training.css">
 
 
     <!-- <link rel="stylesheet" href="/css/root.css"> -->
@@ -62,7 +63,7 @@
     <!-- !PAGE CONTENT! -->
     <div class="w3-content" style="max-width:1500px ">
         <header class="w3-panel w3-center w3-opacity" style="">
-            <h1 class="w3-xlarge">sudokuuu</h1>
+            <h1 class="w3-xlarge">sudoku trainer</h1>
         </header>
     </div>
     <div class="header-button-container">
@@ -70,15 +71,14 @@
             <!-- <button class="" onclick="window.location.href='/';"> -->
             <i class="fa fa-home"></i>
         </button>
-        <button class="" onclick="training()">
+        <button class="" onclick="sudoku()">
             <!-- <button class="" onclick="window.location.href='/';"> -->
             <i class="fa fa-home"></i>
         </button>
-        
         <button class="" onclick="openSettingsPanel()">
             <i class="fa fa-cog"></i>
         </button>
-        
+
         <!-- settings -->
         <div class="floatingBox" id="settingsPanel">
             <div class="row">
@@ -177,7 +177,7 @@
                     </button>
                 </div>
                 <div class="col l4 s5">
-                    
+
                     <button class="floating-button" onclick="closeLoad()">
                         <i class="fa fa-close"></i>
                     </button>
@@ -189,13 +189,13 @@
 
     <div class="game">
         <div class="row first-row">
-            <div class="col l2 offset-l4 s5 offset-s1">
+            <!-- <div class="col l2 offset-l4 s5 offset-s1">
                 <div class="timer">
                     <i class="fa fa-clock-o"></i><i class="timer-text"></i>
                     <button class="play-pause" onclick="togglepause()"><i class="fa fa-pause"></i></button>
                 </div>
-            </div>
-            <div class="col l1 s2 offset-s1">
+            </div> -->
+            <div class="col l1 offset-l6 s2 offset-s7">
 
                 <button class="sudoku-button undo" id="undo" onclick="undo()">
                     <i class="fa fa-undo"></i>
@@ -208,14 +208,20 @@
                 </button>
             </div>
         </div>
-        <div class="row second-row">
-            <div class="col l2 offset-l4 s6 offset-s1">
-                <div class = "hint-display"  id="hint-display"></div>
-            </div>
 
+        <div class="row second-row">
+
+            <div class="col l2 offset-l4 s6 offset-s1">
+                <!-- <label for="technique-select">Choose Technique:</label> -->
+                <select id="technique-select" class="technique-select">
+                    <option id="technique-option" value="" disabled selected>Full House</option>
+                </select>
+
+                <!-- <div class="technique-display" id="training-technique-display">Technique: None Selected</div> -->
+            </div>
             <div class="col l1 s2">
                 <button class="sudoku-button" id="hintButton" onclick="hintBoard(false)">
-                    <i class="fa fa-search"></i> 
+                    <i class="fa fa-search"></i>
                 </button>
             </div>
             <div class="col l1 s2">
@@ -378,34 +384,35 @@
                 </button>
             </div>
             <div class="col bottom">
-                <button class="sudoku-button num-button" data-num="0"  onclick="press(0)">
+                <button class="sudoku-button num-button" data-num="0" onclick="press(0)">
                     <i class="fa fa-eraser"></i>
                 </button>
             </div>
         </div>
         <!-- <div class="divider"></div> -->
         <div class="section row buttons">
-            <div class="col l1 offset-l4 offset-s2 s2">
+            <div class="col l2 offset-l3 offset-s3 s2">
                 <button class="sudoku-button mode-button" id="pencil_button" onclick="toggleMarkingMode()">
                     <i class="fa fa-pencil" id="fa-pencil_mark"></i>
                 </button>
             </div>
-            <div class="col l1 s2">
+            <div class="col l2 s2">
 
                 <button class="sudoku-button mode-button" id="focus_button" onclick="toggleFocusMode()">
                     <i class="fa fa-eye" id="fa-focus"></i>
                 </button>
             </div>
-            <div class="col l1 s2">
+            <!-- <div class="col l1 s2">
                 <button class="sudoku-button" id="automark" onclick="autoMarkAllTogglePressed()">
                     <i class="fa fa-bullseye fa-flip-horizontal"></i>
                 </button>
-            </div>
-            <div class="col l1 s2">
-                <button class="sudoku-button" onclick="randomboard()">
-                    <i class="fa fa-random"></i>
+            </div> -->
+
+            <div class="col l2 s2"> 
+                <button class="sudoku-button" id="next-training-puzzle">
+                    <i class="fa fa-refresh"></i> <!-- Or fa-forward -->
+                    <span></span> 
                 </button>
-                <button class="sudoku-button" id="difficultyButton" onclick="toggleDifficulty()">Medium</button>
             </div>
 
         </div>
@@ -451,7 +458,7 @@
     </div>
 
     <style>
-        
+
     </style>
 
     <!-- Footer -->
@@ -468,15 +475,16 @@
     <script src="js/index.js" type="module"></script> -->
     <script src="/js/services.js" type="text/javascript"></script>
     <script src="/js/materialize.js" type="text/javascript"></script>
-    
+
 
     <!-- Add canvas-confetti library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
     <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js" integrity="sha512-g2TeAWw5GPnX7z0Kn8nFbYfeHcvAu/tx6d63CMdQjpCRGo4LzuPUlAZ7EoPZNaxenAleYYAwLD/9it7EWA+Sfg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
 
-    <script src="/js/sudoku/main.js" type="module"></script>
+    <script src="/js/sudoku/training_main.js" type="module"></script>
     <!-- <script src="/js/sudoku.js" type="text/javascript"></script> -->
     </script>
 

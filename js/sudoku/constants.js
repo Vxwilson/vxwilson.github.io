@@ -27,8 +27,6 @@ export const DifficultyLevel = Object.freeze({
     UNKNOWN: 'Unknown'
 });
 
-// --- SE Scores (Multiplied by 10 for Integer Handling) ---
-// Based on the provided list and common SE ratings. Add more as needed.
 const SE_SCORES = {
     // Singles
     'Full House': 10,                  // Approx SE 1.0
@@ -73,7 +71,7 @@ const SE_SCORES = {
     'Empty Rectangle': 45,             // SE 4.5
 };
 
-// --- Difficulty Thresholds (Based on MAX score for the level) ---
+
 export const DIFFICULTY_THRESHOLDS = {
     // Corresponds to the *highest* SE score allowed IN that level
     // That one CANNOT EXCEED

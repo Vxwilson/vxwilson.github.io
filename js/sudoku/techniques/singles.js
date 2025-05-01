@@ -2,7 +2,7 @@ import { BOARD_SIZE, BOX_SIZE } from '../constants.js';
 import { allUnits, keyToCoords, coordsToKey } from '../utils.js';
 
 
-export function findFullHouse(board, candidatesMap) {
+export function findFullHouse(candidatesMap, board) {
     // Use imported allUnits
     for (const unit of allUnits) {
         let emptyCellsInUnit = [];

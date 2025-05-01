@@ -1,7 +1,7 @@
 // js/sudoku/ui.js
 import { BOARD_SIZE, Modes, DifficultyLevel } from './constants.js';
 
-export class SudokuUI {
+export class TrainingUI {
     constructor(callbacks) {
         this.callbacks = callbacks;
 
@@ -162,23 +162,6 @@ export class SudokuUI {
         }
     }
 
-    // updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
-    //     this.numButtons.forEach(button => {
-    //         const num = parseInt(button.dataset.num, 10);
-    //         let isDisabled = true; // Default to disabled
-
-    //         if (isPrefilled && !isMarkingMode) { // Can't change prefilled in normal mode
-    //             isDisabled = true;
-    //         } else if (num === 0) { // Erase button
-    //             isDisabled = !canErase;
-    //         } else if (isMarkingMode) { // Marking mode
-    //             isDisabled = false; // Always allow marking toggles 1-9
-    //         } else { // Normal mode, non-prefilled cell
-    //             isDisabled = !validInputs.includes(num);
-    //         }
-    //         button.disabled = isDisabled;
-    //     });
-    // }
     updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
         this.numButtons.forEach(button => {
             const num = parseInt(button.dataset.num, 10);
@@ -200,38 +183,6 @@ export class SudokuUI {
         });
     }
 
-    // // Highlight cells with a specific number or pencil mark
-    // applyFocus(value) {
-    //     this.clearFocus(); // Clear previous focus first
-
-    //     if (value < 1 || value > 9) return; // Only focus 1-9
-
-    //     this.cells.flat().forEach(cell => {
-    //         const cellText = cell.querySelector('.cell-text');
-    //         const cellValue = parseInt(cellText.textContent, 10);
-
-    //         if (cellValue === value) {
-    //             cell.classList.add('focused');
-    //         } else {
-    //             // Check pencil marks if cell is empty
-    //             const pencilMark = cell.querySelector(`.pencil-mark[data-num="${value}"].marked`);
-    //             if (pencilMark) {
-    //                 pencilMark.classList.add('focused'); // Focus the specific mark
-    //                 // Optionally highlight the cell containing the focused mark
-    //                 // cell.classList.add('focused-pencil');
-    //             }
-    //         }
-    //     });
-    // }
-
-    // clearFocus() {
-    //     this.cells.flat().forEach(cell => {
-    //         cell.classList.remove('focused');
-    //         // cell.classList.remove('focused-pencil');
-    //         cell.querySelectorAll('.pencil-mark.focused').forEach(mark => {
-    //             mark.classList.remove('focused');
-    //         });
-    //     });
     // }
 
 
@@ -518,8 +469,14 @@ export class SudokuUI {
 
         // --- Top Buttons ---
         document.querySelector('.header-button-container button[onclick*="home"]').onclick = () => window.location.href = '/';
+        var sudoku = document.querySelector('.header-button-container button[onclick*="sudoku"]')
+        if (sudoku) {
+            sudoku.onclick = () => window.location.href = '/sudoku/index.html';
+        } else {
+            console.warn("Sudoku button not found in header.");
+        }
+        
         document.querySelector('.header-button-container button[onclick*="openSettingsPanel"]').onclick = () => this.callbacks.onSettingsOpen();
-        document.querySelector('.header-button-container button[onclick*="training"]').onclick = () => window.location.href = '/sudoku/training.html';
         document.querySelector('.header-button-container button[onclick*="tryExport"]').onclick = () => this.callbacks.onExportRequest();
         document.querySelector('.header-button-container button[onclick*="tryLoad"]').onclick = () => this.callbacks.onLoadRequest();
 
@@ -528,15 +485,10 @@ export class SudokuUI {
         this.focusModeButton.onclick = () => this.callbacks.onModeToggleRequest(Modes.FOCUS);
         document.querySelector('button[onclick*="trySolveBoard"]').onclick = () => this.callbacks.onSolveRequest(false); // false = not visual
         document.querySelector('button[onclick*="hintBoard"]').onclick = () => this.callbacks.onHintRequest(); // false = not visual
-        // this.hintButton.onclick = () => this.callbacks.onHintRequest(); // Added Hint button listener
 
         // --- Bottom Buttons ---
         this.undoButton.onclick = () => this.callbacks.onUndoRequest();
-        // Add redo if implemented: this.redoButton.onclick = () => this.callbacks.onRedoRequest();
-        document.getElementById('automark').onclick = () => this.callbacks.onAutoMarkRequest();
         document.querySelector('button[onclick*="resetboard"]').onclick = () => this.callbacks.onResetRequest();
-        document.querySelector('button[onclick*="randomboard"]').onclick = () => this.callbacks.onNewGameRequest();
-        this.difficultyButton.onclick = () => this.callbacks.onDifficultyCycle();
 
         // --- Floating Box Buttons ---
         // Settings
@@ -554,7 +506,7 @@ export class SudokuUI {
         this.showHintAlertToggle.onchange = (e) => this.callbacks.onSettingChange('showHintAlert', e.target.checked);
 
         // --- Timer Pause/Play ---
-        document.querySelector('.play-pause').onclick = () => this.callbacks.onPauseToggle();
+        // document.querySelector('.play-pause').onclick = () => this.callbacks.onPauseToggle();
 
         // Window Resize
         window.addEventListener('resize', () => {

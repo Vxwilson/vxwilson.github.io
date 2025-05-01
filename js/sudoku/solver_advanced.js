@@ -10,6 +10,49 @@ import { findXWing, findSkyscraper, find2StringKite, findSwordfish } from './tec
 import { findYWing, findWWing } from './techniques/wings.js';
 import { findEmptyRectangle } from './techniques/rectangles.js';
 
+export const techniqueFinders = {
+    "Full House": findFullHouse,
+    "Naked Single": findNakedSinglesMap,
+    "Hidden Single": findHiddenSinglesMap,
+    "Locked Candidates": findLockedCandidates,
+    "Naked Pair": findNakedPairs,
+    "Hidden Pair": findHiddenPairs,
+    "Naked Triplet": findNakedTriples,
+    "Hidden Triplet": findHiddenTriples,
+    "X-Wing": findXWing,
+    "Swordfish": findSwordfish,
+    "Skyscraper": findSkyscraper,
+    "2-String Kite": find2StringKite,
+    "Y-Wing": findYWing,
+    "W-Wing": findWWing,
+    "Empty Rectangle": findEmptyRectangle
+};
+
+// Modify below to change the order of techniques used in FindNextLogicalStep()
+export const techniqueCheckOrder = [
+    'Full House',                     // Score: 10
+    'Hidden Single',                  // * variable score
+    'Naked Single',                   // Score: 23
+    'Locked Candidates',              // * variable score
+    'Naked Pair',                     // Score: 29
+    'Hidden Pair',                    // Score: 31
+    'X-Wing',                         // Score: 32
+    'Naked Triplet',                  // Score: 36
+    'Swordfish',                      // Score: 38
+    'Hidden Triplet',                 // Score: 40
+    'Skyscraper',                     // Score: 40
+    '2-String Kite',                  // Score: 41
+    'Y-Wing',                         // Score: 41
+    // 'Crane',                          // Score: 42
+    // 'Hidden Quad',                    // Score: 43
+    'W-Wing',                         // Score: 45
+    'Empty Rectangle',                // Score: 45
+    // 'Naked Quad',                     // Score: 50
+];
+
+
+
+
 /**
  * @typedef {'found_step' | 'stuck' | 'solved' | 'error'} SolverStatus
  */
@@ -32,9 +75,9 @@ import { findEmptyRectangle } from './techniques/rectangles.js';
 /**
  * @typedef {Object} SolverResult
  * @property {SolverStatus} status
- * @property {Step[]} steps - Contains exactly one step if status is 'found_step'.
- * @property {string} [message] - Error or status message.
- * @property {number[][]} [board] - Final board state (only relevant for full solve).
+ * @property {Step[]} steps 
+ * @property {string} [message] 
+ * @property {number[][]} [board]
  */
 
 
@@ -109,9 +152,9 @@ export function applyEliminations(candidatesMap, eliminations) { // <-- EXPORT f
 }
 
 /// --- Solver Logic ---
-export function findNextLogicalStep(board, currentCandidatesMap) {
+export function findNextLogicalStep(board, currentCandidatesMap, prioritizedTechnique = null) {
 
-    if (!findNextEmptyCell(board)) { // Use util
+    if (!findNextEmptyCell(board)) {
         return { status: 'solved', steps: [], message: 'Board is already solved.' };
     }
 
@@ -124,7 +167,7 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
         }
     } else {
         console.log("Solver initializing candidates map from board.");
-        candidatesMap = initializeCandidatesMap(board); // Use exported function
+        candidatesMap = initializeCandidatesMap(board); 
         if (!candidatesMap) {
             return { status: 'error', steps: [], message: 'Board has an immediate contradiction or is invalid.' };
         }
@@ -134,7 +177,7 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
     let hasAnyCandidates = false;
     for (let r = 0; r < BOARD_SIZE; r++) {
         for (let c = 0; c < BOARD_SIZE; c++) {
-            if (board[r][c] === 0 && candidatesMap.has(coordsToKey(r, c))) { // Use util
+            if (board[r][c] === 0 && candidatesMap.has(coordsToKey(r, c))) {
                 hasAnyCandidates = true;
                 break;
             }
@@ -146,169 +189,77 @@ export function findNextLogicalStep(board, currentCandidatesMap) {
         return { status: 'stuck', steps: [], message: 'No candidates available to analyze.' };
     }
 
+    // --- Determine Technique Check Order ---
+    let finalCheckOrder = [...techniqueCheckOrder]; // Start with a copy of the default
+    if (prioritizedTechnique && techniqueFinders[prioritizedTechnique]) {
+        finalCheckOrder = finalCheckOrder.filter(t => t !== prioritizedTechnique);
+        // Add it to the front
+        finalCheckOrder.unshift(prioritizedTechnique);
+        console.log(`[Solver] Prioritizing ${prioritizedTechnique}.`);
+    } else if (prioritizedTechnique) {
+        console.warn(`[Solver] Prioritized technique '${prioritizedTechnique}' not found or invalid. Using default order.`);
+    }
+    // console.log("[Solver] Effective check order:", finalCheckOrder); // Optional debug log
+
+
+    // --- Technique Check Loop ---
     try {
-        // place technique here to easily test it in development
+        for (const techniqueName of finalCheckOrder) {
+            const finderFunction = techniqueFinders[techniqueName];
 
-        // --- Technique Order ---
-        const fullHouseStep = findFullHouse(board, candidatesMap);
-        if (fullHouseStep) return { status: 'found_step', steps: [fullHouseStep] };
+            // console.log(`[Solver] Checking for: ${techniqueName}`); // Optional debug log
+            const result = finderFunction(candidatesMap, board);
 
-        const hiddenSingleStep = findHiddenSinglesMap(candidatesMap, board);
-        if (hiddenSingleStep) return { status: 'found_step', steps: [hiddenSingleStep] };
+            let effectiveStep = null;
 
-        const nakedSingleStep = findNakedSinglesMap(candidatesMap);
-        if (nakedSingleStep) return { status: 'found_step', steps: [nakedSingleStep] };
+            // Check for Placement Techniques (Singles, Full House)
+            if (result && result.technique && result.cell && result.value !== undefined) {
+                effectiveStep = result; 
+            }
+            // Check for Elimination Techniques
+            else if (result && result.stepInfo && result.eliminations && result.eliminations.length > 0) {
+                let checkMap = new Map();
+                const mapToCheckAgainst = candidatesMap;
+                // const mapToCheckAgainst = currentCandidatesMapInput || candidatesMap;
+                for (const [key, valueSet] of mapToCheckAgainst.entries()) {
+                    checkMap.set(key, new Set(valueSet));
+                }
 
-        const lockedResult = findLockedCandidates(candidatesMap);
-        if (lockedResult.stepInfo) {
-            //  // Test if the step *would* cause eliminations on a fresh copy of the map
-            //  let tempMap = new Map(JSON.parse(JSON.stringify(Array.from(candidatesMap)))); 
-            //  tempMap.forEach((val, key) => tempMap.set(key, new Set(val)));
-            //  if (applyEliminations(tempMap, lockedResult.eliminations)) { 
-            //      let checkMap = new Map(); 
-            //      for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            //      if (applyEliminations(checkMap, lockedResult.eliminations)) {
-            //         // The step IS effective. Return it.
-            //         console.log(`Found ${lockedResult.stepInfo.technique}`);
-            //         return { status: 'found_step', steps: [lockedResult.stepInfo] };
-            //      }
-            //  }
+                // Check if applying the eliminations IS effective on the current state
+                if (applyEliminations(checkMap, result.eliminations)) {
+                    effectiveStep = result.stepInfo; 
+                }
+                // else { console.log(`[Solver] Found potential ${techniqueName}, but no eliminations possible in current state.`); }
+            }
 
-            if (applyEliminations(candidatesMap, lockedResult.eliminations)) {
-                console.log(`Found ${lockedResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [lockedResult.stepInfo] };
+            if (effectiveStep) {
+                console.log(`[Solver] Found Step: ${effectiveStep.technique}`);
+                return { status: 'found_step', steps: [effectiveStep] };
             }
         }
-
-        const nakedPairResult = findNakedPairs(candidatesMap);
-        if (nakedPairResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, nakedPairResult.eliminations)) {
-                console.log(`Found ${nakedPairResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [nakedPairResult.stepInfo] };
-            }
-        }
-
-        const hiddenPairResult = findHiddenPairs(candidatesMap, board);
-        if (hiddenPairResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, hiddenPairResult.eliminations)) {
-                console.log(`Found ${hiddenPairResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [hiddenPairResult.stepInfo] };
-            }
-        }
-
-        const xWingResult = findXWing(candidatesMap);
-        if (xWingResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, xWingResult.eliminations)) {
-                console.log(`Found ${xWingResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [xWingResult.stepInfo] };
-            }
-        }
-
-        const nakedTripleResult = findNakedTriples(candidatesMap);
-        if (nakedTripleResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, nakedTripleResult.eliminations)) {
-                console.log(`Found ${nakedTripleResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [nakedTripleResult.stepInfo] };
-            }
-        }
-
-        // 3.8
-        const swordfishResult = findSwordfish(candidatesMap);
-        if (swordfishResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            // Use the same checkMap logic to ensure effectiveness against the *current* state
-            if (applyEliminations(checkMap, swordfishResult.eliminations)) {
-                console.log(`Found ${swordfishResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [swordfishResult.stepInfo] };
-            }
-            // else { console.log("Found potential Swordfish, but it caused no eliminations in current state."); }
-        }
-
-
-        // 4.0
-        const hiddenTripleResult = findHiddenTriples(candidatesMap, board);
-        if (hiddenTripleResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, hiddenTripleResult.eliminations)) {
-                console.log(`Found ${hiddenTripleResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [hiddenTripleResult.stepInfo] };
-            }
-        }
-
-        const skyscraperResult = findSkyscraper(candidatesMap);
-        if (skyscraperResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, skyscraperResult.eliminations)) {
-                console.log(`Found ${skyscraperResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [skyscraperResult.stepInfo] };
-            }
-        }
-
-
-        // 4.1
-        const kiteResult = find2StringKite(candidatesMap);
-        if (kiteResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, kiteResult.eliminations)) {
-                console.log(`Found ${kiteResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [kiteResult.stepInfo] };
-            }
-        }
-
-        const yWingResult = findYWing(candidatesMap);
-        if (yWingResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, yWingResult.eliminations)) {
-                console.log(`Found ${yWingResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [yWingResult.stepInfo] };
-            }
-        }
-
-
-        const wWingResult = findWWing(candidatesMap);
-        if (wWingResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, wWingResult.eliminations)) {
-                console.log(`Found ${wWingResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [wWingResult.stepInfo] };
-            }
-        }
-
-        const emptyRectResult = findEmptyRectangle(candidatesMap);
-        if (emptyRectResult.stepInfo) {
-            let checkMap = new Map(); for (const [key, valueSet] of currentCandidatesMap.entries()) { checkMap.set(key, new Set(valueSet)); }
-            if (applyEliminations(checkMap, emptyRectResult.eliminations)) {
-                console.log(`Found ${emptyRectResult.stepInfo.technique}`);
-                return { status: 'found_step', steps: [emptyRectResult.stepInfo] };
-            }
-        }
-        // other techniques...
 
     } catch (error) {
-        console.error("Solver caught contradiction:", error);
+        console.error("[Solver] Caught contradiction during solving:", error);
         if (error instanceof Error && error.stack) {
             console.error(error.stack);
         }
         return { status: 'error', steps: [], message: error.message || 'Contradiction found during solving.' };
     }
 
-    // --- If no step was found ---
     console.log("Solver stuck: No placement or effective elimination found.");
     return { status: 'stuck', steps: [], message: 'No further progress possible with implemented techniques.' };
 }
+
+
 /**
  * Public function to get a single hint step. Uses the provided candidate map.
  * @param {number[][]} board - The current board state.
  * @param {Map<string, Set<number>> | null} candidatesMap - The current candidate map from game state, or null to trigger initialization.
  * @returns {SolverResult} The result of the search.
  */
-export function solveSingleStep(board, candidatesMap) {
+export function solveSingleStep(board, candidatesMap, prioritizedTechnique = null) {
     // The `findNextLogicalStep` function now correctly uses a copy internally
     // and checks for effectiveness before returning elimination steps.
-    return findNextLogicalStep(board, candidatesMap);
+    return findNextLogicalStep(board, candidatesMap, prioritizedTechnique);
 }
 
