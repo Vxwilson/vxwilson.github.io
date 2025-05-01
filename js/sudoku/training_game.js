@@ -16,6 +16,7 @@ export class SudokuTrainingGame {
             platform: Platform.Desktop,
             selectedRow: null,
             selectedCol: null,
+            focusedDigits: new Set(),
             hintStage: 0, // 0: inactive, 2: cells shown, 3: candidates shown
             isTrainingActive: false,
             selectedTechnique: null,
@@ -24,7 +25,6 @@ export class SudokuTrainingGame {
             initialPencilMarks: null, // Store the marks received from worker
             settings: { // Load default/saved settings if needed
                 autoPencilMarks: false, // Probably disable auto-marks for training eliminations
-                // other settings...
             },
         };
 
@@ -119,7 +119,7 @@ export class SudokuTrainingGame {
         this.currentState.selectedTechnique = technique;
         this.currentState.isTrainingActive = false; // Reset active state
         this.currentState.targetStep = null;
-        this.ui.clearHintHighlight(); 
+        this.ui.clearHintHighlight();
         this._resetHintState();
 
         // Update technique display
@@ -140,12 +140,12 @@ export class SudokuTrainingGame {
         }
 
         console.log(`[Training] Requesting new puzzle for ${this.currentState.selectedTechnique}`);
-        this.ui.showLoading("Generating..."); 
+        this.ui.showLoading("Generating...");
         const nextButton = document.getElementById('next-training-puzzle');
-        if (nextButton) nextButton.disabled = true; 
-        this.ui.clearHintHighlight(); 
+        if (nextButton) nextButton.disabled = true;
+        this.ui.clearHintHighlight();
 
-        this._resetHintState();      
+        this._resetHintState();
 
         // Send message to worker
         this.generationWorker.postMessage({
@@ -155,21 +155,62 @@ export class SudokuTrainingGame {
         });
     }
 
+    // _updateUI() {
+    //     // Similar to game.js, but might hide/show different things
+    //     this.ui.displayBoard({
+    //         grid: this.board.getGrid(),
+    //         initialGrid: this.board.getInitialGrid(),
+    //         // initialGrid: this.currentState.initialBoardState || [], // Example: Style initial clues
+    //         pencilMarks: this.board.getAllPencilMarks()
+    //     });
+    //     this.ui.updateModeButtons(this.currentState.mode);
+    //     // Hide/disable irrelevant buttons in training UI update if needed
+    //     this.ui.selectCell(this.currentState.selectedRow, this.currentState.selectedCol, null, null);
+    //     this._updateNumPadVisibility(); // Reuse numpad logic
+
+    //     // Clear hint highlights if not showing specific areas initially
+    //     // this.ui.clearHintHighlight(); // Or apply highlights based on targetStep
+    //     this.ui.clearFocusHighlight(); // No focus mode needed here?
+    // }
+
+    // In training_game.js
     _updateUI() {
-        // Similar to game.js, but might hide/show different things
         this.ui.displayBoard({
             grid: this.board.getGrid(),
-            initialGrid: this.board.getInitialGrid(),
+            // Use initialBoardState for prefilled styling IF you want that distinction visually
+            // Otherwise, keep initialGrid empty or use the board's default initialGrid
+            initialGrid: this.currentState.initialBoardState || [], // Example: Style initial clues
             pencilMarks: this.board.getAllPencilMarks()
         });
         this.ui.updateModeButtons(this.currentState.mode);
-        // Hide/disable irrelevant buttons in training UI update if needed
         this.ui.selectCell(this.currentState.selectedRow, this.currentState.selectedCol, null, null);
-        this._updateNumPadVisibility(); // Reuse numpad logic
+        this._updateNumPadVisibility();
 
-        // Clear hint highlights if not showing specific areas initially
-        // this.ui.clearHintHighlight(); // Or apply highlights based on targetStep
-        this.ui.clearFocusHighlight(); // No focus mode needed here?
+        // --- Handle Highlights ---
+        // Only clear hint highlights if the hint state is inactive
+        if (this.currentState.hintStage === 0) {
+            // Don't clear hint highlights just because UI updated if a hint is active
+            // Highlighting handled by _handleHintRequest or _checkTrainingStepCompletion
+        }
+
+        // Apply Focus Highlights based on mode
+        if (this.currentState.mode === Modes.FOCUS) {
+            this.ui.applyFocusHighlight(this.currentState.focusedDigits); // Apply persistent focus highlights
+        } else {
+            // Apply auto-focus based on selected cell in Normal/Marking mode
+            // (Optional for training, but keeps consistency)
+            const { selectedRow, selectedCol } = this.currentState;
+            if (selectedRow !== null && selectedCol !== null) {
+                const value = this.board.getValue(selectedRow, selectedCol);
+                if (value > 0) {
+                    this.ui.applyFocusHighlight(value); // Highlight selected number
+                } else {
+                    this.ui.clearFocusHighlight(); // Clear if empty cell selected
+                }
+            } else {
+                this.ui.clearFocusHighlight(); // Clear if no cell selected
+            }
+        }
     }
 
     _setSelectedCell(row, col) {
@@ -180,6 +221,16 @@ export class SudokuTrainingGame {
         this.currentState.selectedCol = col;
         this.ui.selectCell(row, col, prevRow, prevCol);
         this._updateNumPadVisibility(); // Update numpad based on selection
+
+                // Update auto-focus highlights only if not in persistent Focus mode
+                if (this.currentState.mode !== Modes.FOCUS) {
+                    const value = (row !== null && col !== null) ? this.board.getValue(row, col) : 0;
+                    if (value > 0) {
+                        this.ui.applyFocusHighlight(value);
+                    } else {
+                        this.ui.clearFocusHighlight();
+                    }
+                }
     }
 
     _updateNumPadVisibility() {
@@ -197,13 +248,47 @@ export class SudokuTrainingGame {
         }
     }
 
+    // _setMode(newMode) {
+    //     // Allow switching between Normal and Marking
+    //     if (this.currentState.mode === newMode) {
+    //         this.currentState.mode = Modes.NORMAL; // Toggle off
+    //     } else {
+    //         this.currentState.mode = newMode;
+    //     }
+    //     this._updateUI();
+    // }
+    // In training_game.js
     _setMode(newMode) {
-        // Allow switching between Normal and Marking
-        if (this.currentState.mode === newMode) {
-            this.currentState.mode = Modes.NORMAL; // Toggle off
+        this._resetHintStateIfNeeded(); // Reset hint on mode change
+
+        const oldMode = this.currentState.mode;
+        if (oldMode === newMode) {
+            // Clicking the same mode button again toggles it off (back to NORMAL)
+            if (newMode !== Modes.NORMAL) {
+                this.currentState.mode = Modes.NORMAL;
+            }
         } else {
             this.currentState.mode = newMode;
         }
+        const currentMode = this.currentState.mode;
+
+        console.log("[Training] Mode changed from", oldMode, "to:", currentMode);
+
+        // --- Handle Focus Mode State ---
+        if (oldMode === Modes.FOCUS && currentMode !== Modes.FOCUS) {
+            console.log("[Training] Exiting Focus Mode: Clearing focused digits and highlights.");
+            this.currentState.focusedDigits.clear();
+            this.ui.clearFocusHighlight(); // Clear persistent highlights explicitly
+        } else if (currentMode === Modes.FOCUS) {
+            console.log("[Training] Entering Focus Mode: Clearing potential auto-focus.");
+            this.ui.clearFocusHighlight(); // Clear auto-highlights based on selection
+            // Re-apply persistent highlights if any exist from previous focus session
+            this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+        }
+
+        // --- General UI Update ---
+        // Update button styles and potentially other UI elements affected by mode
+        // _updateUI will handle applying the correct focus highlights based on the new mode
         this._updateUI();
     }
 
@@ -292,16 +377,16 @@ export class SudokuTrainingGame {
         // --- Handle Completion ---
         if (isComplete) {
             console.log(`[Training] Technique ${targetStep.technique} completed!`);
-            this.currentState.isTrainingActive = false; // Stop further input until 'Next'
-            triggerMiniConfetti(); // Simple confetti feedback
+            this.currentState.isTrainingActive = false;
+            triggerMiniConfetti();
 
             // Highlight the completed step clearly
-            this.ui.applyHintHighlight(targetStep.highlights, true); // Show cells and candidates involved
+            // this.ui.applyHintHighlight(targetStep.highlights, true); // Show cells and candidates involved
 
             // Consider adding a visual confirmation message
             // Maybe automatically request next puzzle after a short delay? Or wait for button press.
-            // const nextButton = document.getElementById('next-training-puzzle');
-            // if(nextButton) nextButton.focus(); // Focus the next button
+            const nextButton = document.getElementById('next-training-puzzle');
+            if (nextButton) nextButton.focus(); // Focus the next button
         }
     }
 
@@ -328,51 +413,153 @@ export class SudokuTrainingGame {
         };
     }
 
+    // _handleKeydown(event) {
+    //     // Reuse keydown logic from game.js, but simplify/adapt
+    //     const key = event.key;
+
+    //     // Define keys that *shouldn't* reset the hint state during progression
+    //     const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
+    //     const isCtrl = event.ctrlKey || event.metaKey;
+    //     const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase()));
+
+    //     if (shouldResetHint) {
+    //         //    this._resetHintStateIfNeeded(); // <-- ADD THIS LINE (conditionally)
+    //     }
+
+
+    //     const { selectedRow, selectedCol } = this.currentState;
+
+    //     // Basic Navigation
+    //     if (key.startsWith('Arrow')) {
+    //         event.preventDefault();
+    //         let nextRow = selectedRow !== null ? selectedRow : 0; // Default to top-left if none selected
+    //         let nextCol = selectedCol !== null ? selectedCol : 0;
+    //         // ... (arrow key logic from game.js) ...
+    //         if (selectedRow === null || selectedCol === null) { // if nothing was selected, start at 0,0
+    //             this._setSelectedCell(0, 0);
+    //         } else if (nextRow !== selectedRow || nextCol !== selectedCol) {
+    //             this._setSelectedCell(nextRow, nextCol);
+    //         }
+    //         return;
+    //     }
+
+    //     if (selectedRow === null || selectedCol === null) return; // Need selection for input
+
+    //     // Input / Erase
+    //     if (key >= '0' && key <= '9') {
+    //         this._handleCellInput(parseInt(key, 10));
+    //     } else if (key === 'Backspace' || key === 'Delete') {
+    //         this._handleCellInput(0); // Erase
+    //     }
+
+    //     // Mode Toggle
+    //     if (key.toLowerCase() === 'm') {
+    //         this._setMode(Modes.MARKING);
+    //     }
+    //     if (key === 'Escape') {
+    //         this._setSelectedCell(null, null); // Deselect
+    //     }
+    // }
+
+    // In training_game.js
     _handleKeydown(event) {
-        // Reuse keydown logic from game.js, but simplify/adapt
         const key = event.key;
+        const isCtrl = event.ctrlKey || event.metaKey; // Keep ctrl check if needed
 
         // Define keys that *shouldn't* reset the hint state during progression
         const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
-        const isCtrl = event.ctrlKey || event.metaKey;
         const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase()));
 
         if (shouldResetHint) {
-            //    this._resetHintStateIfNeeded(); // <-- ADD THIS LINE (conditionally)
+            this._resetHintStateIfNeeded(); // Reset hint if needed
         }
 
+        // --- Global Shortcuts (Keep simple ones if desired) ---
+        // if (isCtrl && key.toLowerCase() === 'z') { /* Add undo if implemented */ return; }
 
-        const { selectedRow, selectedCol } = this.currentState;
+        // --- Mode Toggles ---
+        if (key === 'm' && !isCtrl) { this._setMode(Modes.MARKING); return; }
+        if (key === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; } // <-- ADD FOCUS TOGGLE
 
-        // Basic Navigation
-        if (key.startsWith('Arrow')) {
+        // --- Escape Key ---
+        if (key === 'Escape') {
             event.preventDefault();
-            let nextRow = selectedRow !== null ? selectedRow : 0; // Default to top-left if none selected
-            let nextCol = selectedCol !== null ? selectedCol : 0;
-            // ... (arrow key logic from game.js) ...
-            if (selectedRow === null || selectedCol === null) { // if nothing was selected, start at 0,0
-                this._setSelectedCell(0, 0);
-            } else if (nextRow !== selectedRow || nextCol !== selectedCol) {
-                this._setSelectedCell(nextRow, nextCol);
+            this._resetHintState(); // Reset hints on escape
+            if (this.currentState.mode === Modes.FOCUS) {
+                this._setMode(Modes.NORMAL); // Exit focus mode first
+            } else if (this.currentState.mode === Modes.MARKING) {
+                this._setMode(Modes.NORMAL); // Exit marking mode
             }
+            this._setSelectedCell(null, null); // Deselect cell
             return;
         }
 
-        if (selectedRow === null || selectedCol === null) return; // Need selection for input
+        // --- Persistent Focus Mode Input (Digits 1-9, Backspace/Delete) ---
+        if (this.currentState.mode === Modes.FOCUS) {
+            if (key >= '1' && key <= '9') {
+                const digit = parseInt(key, 10);
+                // Toggle digit in the set
+                if (this.currentState.focusedDigits.has(digit)) {
+                    this.currentState.focusedDigits.delete(digit);
+                } else {
+                    this.currentState.focusedDigits.add(digit);
+                }
+                console.log("[Training] Focused digits:", this.currentState.focusedDigits);
+                // Update UI immediately
+                this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+                return; // Consume key press, don't treat as cell input
+            } else if (key === 'Backspace' || key === 'Delete') {
+                this.currentState.focusedDigits.clear(); // Clear all focused digits
+                console.log("[Training] Cleared focused digits");
+                this.ui.clearFocusHighlight(); // Update UI
+                return; // Consume key press
+            }
+            // Allow arrow keys to pass through even in focus mode for navigation
+            if (key.startsWith('Arrow')) {
+                // Arrow key navigation logic (same as below, extracted for clarity)
+                event.preventDefault();
+                const { selectedRow, selectedCol } = this.currentState;
+                let nextRow = selectedRow !== null ? selectedRow : 0;
+                let nextCol = selectedCol !== null ? selectedCol : 0;
+                if (key === 'ArrowUp' && nextRow > 0) nextRow--;
+                else if (key === 'ArrowDown' && nextRow < BOARD_SIZE - 1) nextRow++;
+                else if (key === 'ArrowLeft' && nextCol > 0) nextCol--;
+                else if (key === 'ArrowRight' && nextCol < BOARD_SIZE - 1) nextCol++;
 
-        // Input / Erase
-        if (key >= '0' && key <= '9') {
+                if (selectedRow === null || selectedCol === null || nextRow !== selectedRow || nextCol !== selectedCol) {
+                    this._setSelectedCell(nextRow, nextCol); // Allow selection change
+                }
+                return; // Consume arrow key after handling navigation
+            }
+            // Ignore other keys in Focus mode? Or let them pass? For now, let others pass.
+        }
+
+
+        // --- Cell Input / Navigation (Requires selected cell, NOT in Focus Mode ideally) ---
+        const { selectedRow, selectedCol } = this.currentState;
+        if (selectedRow === null || selectedCol === null) return; // Ignore input if no cell selected
+
+        // Number Input (Normal/Marking mode)
+        if (key >= '1' && key <= '9') {
             this._handleCellInput(parseInt(key, 10));
-        } else if (key === 'Backspace' || key === 'Delete') {
-            this._handleCellInput(0); // Erase
         }
+        // Erase Input (Normal/Marking mode)
+        else if (key === 'Backspace' || key === 'Delete' || key === '0') {
+            this._handleCellInput(0);
+        }
+        // Arrow Key Navigation (Normal/Marking mode - also handled above for Focus consistency)
+        else if (key.startsWith('Arrow')) {
+            event.preventDefault(); // Already handled above if in focus mode, but prevent default anyway
+            let nextRow = selectedRow;
+            let nextCol = selectedCol;
+            if (key === 'ArrowUp' && selectedRow > 0) nextRow--;
+            else if (key === 'ArrowDown' && selectedRow < BOARD_SIZE - 1) nextRow++;
+            else if (key === 'ArrowLeft' && selectedCol > 0) nextCol--;
+            else if (key === 'ArrowRight' && selectedCol < BOARD_SIZE - 1) nextCol++;
 
-        // Mode Toggle
-        if (key.toLowerCase() === 'm') {
-            this._setMode(Modes.MARKING);
-        }
-        if (key === 'Escape') {
-            this._setSelectedCell(null, null); // Deselect
+            if (nextRow !== selectedRow || nextCol !== selectedCol) {
+                this._setSelectedCell(nextRow, nextCol);
+            }
         }
     }
 
