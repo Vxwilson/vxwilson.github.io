@@ -279,11 +279,12 @@ export class SudokuGame {
 
         // --- Handle Highlights ---
         // this.ui.clearHintHighlight(); // Clear hint highlights on general UI update
-
         // new: only clear hint highlights if the hint state is inactive
         if (this.currentState.hintStage === 0) {
             this.ui.clearHintHighlight(); // Clear visual board highlights
             this.ui.clearHintTechnique(); // Clear text display
+        } else {
+            this._reapplyHintVisuals();
         }
 
         if (this.currentState.mode === Modes.FOCUS) {
@@ -302,9 +303,14 @@ export class SudokuGame {
                 this.ui.clearFocusHighlight();
             }
         }
+
+        this._updateNumPadVisibility(); // Update numpad visibility based on current state
     }
 
     _setSelectedCell(row, col) {
+        // Reset hint if a hint was active and user clicks *somewhere else*
+        // (Don't reset if they click *on* a highlighted hint cell, perhaps?)
+        // Simple approach: reset on any new cell selection.
         // this._resetHintStateIfNeeded(); // Reset if a hint was active
 
         const prevRow = this.currentState.selectedRow;
@@ -316,77 +322,100 @@ export class SudokuGame {
 
         // Update UI for cell selection itself (e.g., background color)
         this.ui.selectCell(row, col, prevRow, prevCol);
-
-        // Update numpad based on new selection
-        this._updateNumPadVisibility();
-
-        // Update auto-focus highlights only if not in persistent Focus mode
-        if (this.currentState.mode !== Modes.FOCUS) {
-            const value = (row !== null && col !== null) ? this.board.getValue(row, col) : 0;
-            if (value > 0) {
-                this.ui.applyFocusHighlight(value);
-            } else {
-                this.ui.clearFocusHighlight();
-            }
-        }
-        // In Focus mode, highlights are managed by key presses or mode changes, not selection.
+        this._updateUI(); // Call full UI update to handle highlights and numpad correctly
     }
 
-    _updateNumPadVisibility() {
-        const { selectedRow, selectedCol, mode, platform } = this.currentState;
-
-        // Simplified: Numpad visibility managed by CSS based on platform, just manage button states
-        if (selectedRow !== null && selectedCol !== null) {
+        _updateNumPadVisibility() {
+            const { selectedRow, selectedCol, mode } = this.currentState;
+    
+            // --- Handle FOCUS mode separately - Always enable focus toggling ---
+            if (mode === Modes.FOCUS) {
+                const validInputs = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                const canErase = true; // Erase button clears focus
+                // Pass mode, but tell UI numpad it doesn't matter if cell is selected/prefilled for enabling buttons
+                this.ui.updateNumPad(validInputs, canErase, false, false, mode);
+                return; // Focus mode numpad handled
+            }
+    
+            // --- For NORMAL and MARKING modes, visibility depends on selection ---
+            if (selectedRow === null || selectedCol === null) {
+                // No cell selected AND not in Focus mode: Disable numpad
+                this.ui.updateNumPad([], false, false, false, mode); // Pass current mode (Normal/Marking)
+                return;
+            }
+    
+            // --- Cell IS selected, handle Normal/Marking modes ---
             const isPrefilled = this.board.isPrefilled(selectedRow, selectedCol);
             let validInputs = [];
-            let canErase = this.board.getValue(selectedRow, selectedCol) !== 0 && !isPrefilled;
-
-            if (!isPrefilled && mode !== Modes.MARKING) {
-                const currentGrid = this.board.getGrid();
-                for (let num = 1; num <= BOARD_SIZE; num++) {
-                    if (checkInputValid(currentGrid, selectedRow, selectedCol, num)) {
-                        validInputs.push(num);
-                    }
+            let canErase = false;
+    
+            if (mode === Modes.MARKING) {
+                // Marking Mode: Enable 1-9 and Erase if not prefilled
+                if (!isPrefilled) {
+                    validInputs = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    canErase = this.board.getPencilMarksForCell(selectedRow, selectedCol).some(mark => mark); // Only enable erase if marks exist? Or always? Let's say if marks exist.
+                    // Or always allow erase? canErase = true;
+                } else {
+                    // Prefilled cell: Can't mark/erase marks
+                    validInputs = [];
+                    canErase = false;
                 }
+                this.ui.updateNumPad(validInputs, canErase, true, isPrefilled, mode);
+    
+            } else { // NORMAL Mode
+                // Normal Mode: Enable valid numbers and Erase if not prefilled
+                if (!isPrefilled) {
+                    const currentGrid = this.board.getGrid();
+                    for (let num = 1; num <= BOARD_SIZE; num++) {
+                        // Consider just enabling all 1-9 and let input handler show error?
+                        // Or enable only valid ones:
+                        // if (checkInputValid(currentGrid, selectedRow, selectedCol, num)) {
+                        //     validInputs.push(num);
+                        // }
+                        // Let's enable all 1-9 for faster input, error shown on invalid press
+                        validInputs = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    }
+                    canErase = this.board.getValue(selectedRow, selectedCol) !== 0;
+                } else {
+                    // Prefilled cell: Can't input/erase
+                    validInputs = [];
+                    canErase = false;
+                }
+                this.ui.updateNumPad(validInputs, canErase, false, isPrefilled, mode);
             }
-
-            this.ui.updateNumPad(validInputs, canErase, mode === Modes.MARKING, isPrefilled);
-        } else {
-            this.ui.updateNumPad([], false, false, false); // No cell selected, disable all
         }
-    }
 
     _setMode(newMode) {
         this._resetHintStateIfNeeded(); // Reset hint on mode change
 
         const oldMode = this.currentState.mode;
-        if (oldMode === newMode) {
+        let targetMode = newMode;
+
+        if (oldMode === newMode && newMode !== Modes.NORMAL) {
             // Clicking the same mode button again toggles it off (back to NORMAL)
-            if (newMode !== Modes.NORMAL) {
-                this.currentState.mode = Modes.NORMAL;
-            }
-        } else {
-            this.currentState.mode = newMode;
+            targetMode = Modes.NORMAL;
         }
+        // Allow switching directly between MARKING and FOCUS? Yes.
+        this.currentState.mode = targetMode;
         const currentMode = this.currentState.mode;
 
         console.log("Mode changed from", oldMode, "to:", currentMode);
 
-        // --- Handle Focus Mode State ---
+        // --- Handle Focus Mode State Transitions ---
         if (oldMode === Modes.FOCUS && currentMode !== Modes.FOCUS) {
-            console.log("Exiting Focus Mode: Clearing focused digits and highlights.");
-            this.currentState.focusedDigits.clear();
-            this.ui.clearFocusHighlight(); // Clear persistent highlights explicitly
-        } else if (currentMode === Modes.FOCUS) {
-            console.log("Entering Focus Mode: Clearing potential auto-focus.");
-            this.ui.clearFocusHighlight(); // Clear auto-highlights
-            // Re-apply persistent highlights if any exist
-            this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+            console.log("Exiting Focus Mode: Clearing focused digits and persistent highlights.");
+            // Don't clear the set here if we want it to persist when temporarily switching
+            // Let's *keep* the focusedDigits set, but clear the *visual* highlights.
+            // The highlights will be reapplied if Focus Mode is re-entered.
+            // this.currentState.focusedDigits.clear(); // Keep the set populated
+            this.ui.clearFocusHighlight(); // Clear visual highlights only
         }
+        // No special action needed *entering* focus mode here, _updateUI handles it.
 
         // --- General UI Update ---
-        this._updateUI(); // Updates button styles, re-evaluates auto-focus if now in Normal mode
+        this._updateUI(); // Updates button styles, highlights, and numpad
     }
+
 
     _cycleDifficulty() {
         // Make sure this cycles through DifficultyLevel values/keys
@@ -405,31 +434,72 @@ export class SudokuGame {
     }
 
     _handleCellInput(value) {
-        const { selectedRow, selectedCol, mode } = this.currentState;
-        if (selectedRow === null || selectedCol === null) return;
+        const { mode } = this.currentState; // Get mode first
 
-        // --- Clear Hint Highlights on any input ---
-        // this.ui.clearHintHighlight();
-        // --- Reset Hint State on ANY valid input action ---
+        // --- FOCUS Mode Input (Overrides regular input, works even without cell selection) ---
+        if (mode === Modes.FOCUS) {
+            // Reset hint state if focus is changed
+            this._resetHintStateIfNeeded();
+
+            if (value >= 1 && value <= BOARD_SIZE) {
+                // Toggle focus for the digit
+                const digit = value;
+                if (this.currentState.focusedDigits.has(digit)) {
+                    this.currentState.focusedDigits.delete(digit);
+                } else {
+                    this.currentState.focusedDigits.add(digit);
+                }
+                console.log("Toggled focus digit:", digit, " | Current focus:", Array.from(this.currentState.focusedDigits));
+                // Update visual highlights immediately
+                this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+            } else if (value === 0) { // Erase button (or Backspace/Delete) in focus mode
+                // Clear *all* focused digits
+                if (this.currentState.focusedDigits.size > 0) {
+                    console.log("Clearing all focused digits.");
+                    this.currentState.focusedDigits.clear();
+                    this.ui.clearFocusHighlight(); // Update UI
+                }
+            }
+            // Update the numpad state after focus change
+            this._updateNumPadVisibility();
+            return; // Important: Focus mode input handled, stop here.
+        }
+
+        // --- For Normal/Marking modes, require a selected cell ---
+        const { selectedRow, selectedCol } = this.currentState; // Get selection state now
+        if (selectedRow === null || selectedCol === null) {
+            console.log("Input ignored: No cell selected (and not in Focus Mode).");
+            return; // No cell selected, and not in focus mode, do nothing.
+        }
+
+        // Reset hint state on *any* input action that modifies the board
         this._resetHintStateIfNeeded();
 
         const isPrefilled = this.board.isPrefilled(selectedRow, selectedCol);
 
-        // Handle Marking Mode
+        // --- MARKING Mode Input ---
         if (mode === Modes.MARKING) {
-            if (value === 0) {
-                this._addUndoState();
-                this.board.clearPencilMarksForCell(selectedRow, selectedCol);
-                this._updateUI(); // Redraw needed to show cleared marks
-            } else if (value >= 1 && value <= BOARD_SIZE) {
+            if (isPrefilled) {
+                console.log("Cannot place pencil marks in prefilled cell.");
+                this.ui.showBoardError(selectedRow, selectedCol);
+                return;
+            }
+            if (value === 0) { // Erase in marking mode clears marks for the cell
+                if (this.board.getPencilMarksForCell(selectedRow, selectedCol).some(mark => mark)) {
+                    this._addUndoState();
+                    this.board.clearPencilMarksForCell(selectedRow, selectedCol);
+                    this._updateUI();
+                }
+            } else if (value >= 1 && value <= BOARD_SIZE) { // Toggle mark
                 this._addUndoState();
                 this.board.togglePencilMark(selectedRow, selectedCol, value);
-                this._updateUI(); // Redraw needed to show toggled mark
+                this._updateUI();
             }
-            return;
+            return; // Stop processing after marking input
         }
 
-        // Handle Normal Mode (or Focus mode - input acts normally)
+        // --- NORMAL Mode Input ---
+        // (isPrefilled check remains relevant)
         if (isPrefilled) {
             console.log("Cannot change prefilled cell.");
             this.ui.showBoardError(selectedRow, selectedCol);
@@ -438,11 +508,11 @@ export class SudokuGame {
 
         const currentValue = this.board.getValue(selectedRow, selectedCol);
 
-        if (value === 0) { // Erasing
+        if (value === 0) { // Erasing number
             if (currentValue !== 0) {
                 this._addUndoState();
                 this.board.setValue(selectedRow, selectedCol, 0);
-                this._updateUI(); // Update board display and auto-focus
+                this._updateUI();
             }
         } else if (value >= 1 && value <= BOARD_SIZE) { // Placing number
             if (currentValue === value) return; // No change
@@ -455,7 +525,7 @@ export class SudokuGame {
                     this._updateAffectedPencilMarks(selectedRow, selectedCol, value);
                 }
 
-                this._updateUI(); // Update board display and auto-focus
+                this._updateUI();
 
                 if (isNumberSetComplete(this.board.getGrid(), value)) {
                     triggerMiniConfetti();
@@ -476,9 +546,9 @@ export class SudokuGame {
         this.timer.pause();
         this.currentState.isPaused = true; // Reflect pause state
         this._setSelectedCell(null, null); // Deselect
-        this.ui.updatePauseButton(true);
-        this.ui.clearFocusHighlight(); // Clear any focus
-        this.ui.clearHintHighlight(); // Clear any hints
+        // this.ui.updatePauseButton(true);
+        // this.ui.clearFocusHighlight(); // Clear any focus
+        // this.ui.clearHintHighlight(); // Clear any hints
         celebrate();
     }
 
@@ -501,26 +571,27 @@ export class SudokuGame {
 
         for (let r = 0; r < BOARD_SIZE; r++) {
             for (let c = 0; c < BOARD_SIZE; c++) {
-                if (currentGrid[r][c] === 0) {
+                const currentCellValue = currentGrid[r][c];
+                if (currentCellValue === 0) {
                     const currentMarksInCell = this.board.getPencilMarksForCell(r, c);
                     const newMarks = new Array(BOARD_SIZE).fill(false);
+                    let cellChanged = false;
                     for (let num = 1; num <= BOARD_SIZE; num++) {
                         if (checkInputValid(currentGrid, r, c, num)) {
                             newMarks[num - 1] = true;
                         }
                     }
-                    // Check if marks actually changed before setting
-                    if (currentMarksInCell.some((mark, i) => mark !== newMarks[i])) {
-                        // Set all marks for the cell at once might be slightly cleaner
-                        // if board class had a setPencilMarksForCell method.
-                        // Otherwise, set individually:
-                        for (let num = 1; num <= BOARD_SIZE; num++) {
-                            this.board.setPencilMark(r, c, num, newMarks[num - 1]);
+                    // Compare new marks with existing ones
+                    for (let i = 0; i < BOARD_SIZE; i++) {
+                        if (currentMarksInCell[i] !== newMarks[i]) {
+                            this.board.setPencilMark(r, c, i + 1, newMarks[i]);
+                            cellChanged = true;
                         }
-                        changed = true;
                     }
+                    if (cellChanged) changed = true;
+
                 } else {
-                    // Clear marks from filled cells
+                    // Clear marks from filled cells if they have any
                     if (this.board.getPencilMarksForCell(r, c).some(mark => mark)) {
                         this.board.clearPencilMarksForCell(r, c);
                         changed = true;
@@ -535,6 +606,7 @@ export class SudokuGame {
             this.undoStack.pop(); // No change, remove undo state
         }
     }
+
 
     _clearAllPencilMarks() {
         this._resetHintStateIfNeeded();
@@ -787,82 +859,79 @@ export class SudokuGame {
         const key = event.key;
         const isCtrl = event.ctrlKey || event.metaKey;
 
-        // --- Clear Hint Highlights on most key presses ---
-        // (Except maybe arrow keys or modifier keys alone)
-        const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12'];
-        const shouldResetHint = !keysToIgnoreForReset.includes(key) && !(isCtrl && ['c', 'v', 'x'].includes(key.toLowerCase())); // Don't reset on copy/paste etc.
+        // Keys that generally shouldn't reset hints immediately
+        const keysToIgnoreForReset = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Shift', 'Control', 'Alt', 'Meta', 'F5', 'F12', 'Tab'];
+        const isModifierOnly = ['Shift', 'Control', 'Alt', 'Meta'].includes(key);
+        // Don't reset on copy/paste/undo/redo shortcuts
+        const isKnownShortcut = isCtrl && ['c', 'v', 'x', 'z', 'y', 'r', 'n', 'm', 'f'].includes(key.toLowerCase());
+
+        const shouldResetHint = !isModifierOnly && !keysToIgnoreForReset.includes(key) && !isKnownShortcut;
 
         if (shouldResetHint) {
             this._resetHintStateIfNeeded();
         }
 
-        // Prevent browser shortcuts
-        if (isCtrl && ['z', 'y', 'r', 'n', 'm', 'f'].includes(key.toLowerCase())) { // Added 'f' for focus toggle maybe
+        // Prevent browser shortcuts / default actions
+        if (isCtrl && ['z', 'y', 'r', 'n', 'm', 'f'].includes(key.toLowerCase())) {
             event.preventDefault();
         }
+        if (key === ' ' && !(event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)) { // Prevent space scroll only if not in input field
+            event.preventDefault();
+        }
+        if (key.startsWith('Arrow') && this.currentState.selectedRow !== null) { // Prevent arrow scroll if cell selected
+            event.preventDefault();
+        }
+        if ((key === 'Backspace' || key === 'Delete') && this.currentState.selectedRow !== null) { // Prevent backspace navigation if cell selected
+            event.preventDefault();
+        }
+
 
         // --- Global Shortcuts ---
         if (isCtrl && key.toLowerCase() === 'z') { this._undo(); return; }
-        // if (isCtrl && key.toLowerCase() === 'y') { this._redo(); return; } // If implemented
-        if (isCtrl && key.toLowerCase() === 'm') { this._clearAllPencilMarks(); return; }
+        if (isCtrl && key.toLowerCase() === 'y') { this._redo(); return; }
+        if (isCtrl && key.toLowerCase() === 'm') { this._clearAllPencilMarks(); return; } // Consider if this should be toggle auto-fill
 
-        if (key === 'm' && !isCtrl) { this._setMode(Modes.MARKING); return; }
-        if (key === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; } // Toggle focus mode
-        if (key === 'Escape') { // Escape key exits modes, clears selection/highlights
+        if (key.toLowerCase() === 'n' && !isCtrl) { this._setMode(Modes.NORMAL); return; } // Explicit normal mode key?
+        if (key.toLowerCase() === 'm' && !isCtrl) { this._setMode(Modes.MARKING); return; }
+        if (key.toLowerCase() === 'f' && !isCtrl) { this._setMode(Modes.FOCUS); return; }
+        if (key === 'Escape') {
             event.preventDefault();
-            this._resetHintState();
-            // this.ui.clearHintHighlight();
-            if (this.currentState.mode === Modes.FOCUS) {
-                this._setMode(Modes.NORMAL); // Exit focus mode
-            } else if (this.currentState.mode === Modes.MARKING) {
-                this._setMode(Modes.NORMAL); // Exit marking mode
+            this._resetHintState(); // Clear hint always on Escape
+            if (this.currentState.mode !== Modes.NORMAL) {
+                this._setMode(Modes.NORMAL); // Exit current mode
+            } else if (this.currentState.selectedRow !== null) {
+                this._setSelectedCell(null, null); // Deselect cell if in normal mode
             }
-            this._setSelectedCell(null, null); // Deselect cell
             return;
         }
-        if (key === ' ') {
-            event.preventDefault();
-            this.callbacks.onPauseToggle(); // Use the stored callbacks reference
+        if (key === ' ' && !isCtrl) {
+            // Use the callback reference from _getUICallbacks storage
+            this.ui.callbacks.onPauseToggle();
             return;
         }
 
-        // --- Persistent Focus Mode Input (Digits 1-9, Backspace/Delete) ---
+
+        // --- Persistent Focus Mode Keyboard Input ---
         if (this.currentState.mode === Modes.FOCUS) {
+            // Pass focus key presses to _handleCellInput logic
             if (key >= '1' && key <= '9') {
-                const digit = parseInt(key, 10);
-                // Toggle digit in the set
-                if (this.currentState.focusedDigits.has(digit)) {
-                    this.currentState.focusedDigits.delete(digit);
-                } else {
-                    this.currentState.focusedDigits.add(digit);
-                }
-                console.log("Focused digits:", this.currentState.focusedDigits);
-                // Update UI immediately
-                this.ui.applyFocusHighlight(this.currentState.focusedDigits);
+                this._handleCellInput(parseInt(key, 10));
                 return; // Consume key press
             } else if (key === 'Backspace' || key === 'Delete') {
-                this.currentState.focusedDigits.clear(); // Clear all focused digits
-                console.log("Cleared focused digits");
-                this.ui.clearFocusHighlight(); // Update UI
+                this._handleCellInput(0); // 0 signals clear focus in focus mode
                 return; // Consume key press
             }
-            // Allow arrow keys etc. to pass through in focus mode if needed for selection?
-            // Currently, selection doesn't affect focus highlights in FOCUS mode.
+            // Allow arrow keys etc. to pass through for selection if desired,
+            // but handle them *after* the focus-specific keys.
         }
 
 
         // --- Cell Input / Navigation (Requires selected cell) ---
         const { selectedRow, selectedCol } = this.currentState;
-        if (selectedRow === null || selectedCol === null) return; // Ignore input if no cell selected
 
-        if (key >= '1' && key <= '9') {
-            this._handleCellInput(parseInt(key, 10));
-        }
-        else if (key === 'Backspace' || key === 'Delete' || key === '0') { // '0' also erases
-            this._handleCellInput(0);
-        }
-        else if (key.startsWith('Arrow')) {
-            event.preventDefault();
+        // Handle Arrow Key Navigation (if cell is selected)
+        if (key.startsWith('Arrow') && selectedRow !== null) {
+            // event.preventDefault(); // Already done above
             let nextRow = selectedRow;
             let nextCol = selectedCol;
             if (key === 'ArrowUp' && selectedRow > 0) nextRow--;
@@ -872,6 +941,22 @@ export class SudokuGame {
 
             if (nextRow !== selectedRow || nextCol !== selectedCol) {
                 this._setSelectedCell(nextRow, nextCol); // This updates UI and highlights
+            }
+            return; // Navigation handled
+        }
+
+        // If no cell selected after checking arrows, ignore remaining input keys
+        if (selectedRow === null || selectedCol === null) return;
+
+        // Handle Number/Delete Input (if cell selected and NOT in Focus Mode)
+        // Focus mode input is handled above now via _handleCellInput call
+        if (this.currentState.mode !== Modes.FOCUS) {
+            if (key >= '1' && key <= '9') {
+                this._handleCellInput(parseInt(key, 10));
+            }
+            else if (key === 'Backspace' || key === 'Delete' || key === '0') {
+                // event.preventDefault(); // Already done above
+                this._handleCellInput(0); // 0 signals erase
             }
         }
     }
@@ -952,6 +1037,32 @@ export class SudokuGame {
     /**
      * Resets the hint state and clears UI indicators.
      */
+    _reapplyHintVisuals() {
+        // Called by _updateUI to ensure hint highlights/text are correct
+        if (!this.currentState.currentHintStep || this.currentState.hintStage === 0) {
+            // This case is handled by _updateUI clearing hints
+            return;
+        }
+
+        const step = this.currentState.currentHintStep.steps[0];
+        const highlights = step.highlights;
+        const baseTechnique = step.technique.split(' (')[0];
+
+        // Always display technique name if stage > 0
+        this.ui.displayHintTechnique(baseTechnique);
+
+        if (this.currentState.hintStage === 1) {
+            // Stage 1: Only technique name is shown, no board highlights yet
+            this.ui.clearHintHighlight(); // Ensure board is clear
+        } else if (this.currentState.hintStage === 2) {
+            // Stage 2: Show cells
+            this.ui.applyHintHighlight(highlights, false); // false = cells only
+        } else if (this.currentState.hintStage === 3) {
+            // Stage 3: Show cells and candidates
+            this.ui.applyHintHighlight(highlights, true); // true = cells and candidates
+        }
+    }
+
     _resetHintState() {
         if (this.currentState.hintStage !== 0 || this.currentState.currentHintStep !== null) {
             console.log("Resetting hint state.");
@@ -989,7 +1100,7 @@ export class SudokuGame {
         // --- Clear persistent focus highlights if focus mode is active ---
         if (this.currentState.mode === Modes.FOCUS) {
             this.currentState.focusedDigits.clear();
-            this.ui.clearFocusHighlight();
+            // this.ui.clearFocusHighlight();
             // Maybe switch back to normal mode? Optional.
             // this._setMode(Modes.NORMAL);
         }
@@ -1002,8 +1113,8 @@ export class SudokuGame {
         if (currentStage === 0) {
             // --- Stage 0 -> 1: Find Hint & Show Technique Name ---
             console.log("Hint Stage 0 -> 1: Finding step...");
-            this.ui.clearHintHighlight(); // Clear any previous board highlights
-            this.ui.clearHintTechnique(); // Clear previous text
+            // this.ui.clearHintHighlight(); // Clear any previous board highlights
+            // this.ui.clearHintTechnique(); // Clear previous text
 
             const currentCandidatesMap = this._getCurrentCandidatesMap(); // Use map based on board state, ignoring invalid user marks now
 
@@ -1025,7 +1136,7 @@ export class SudokuGame {
 
                 const baseTechnique = step.technique.split(' (')[0];
                 // USE BASE TECHNIQUE NAME to hide specifics, only show the name of the technique
-                this.ui.displayHintTechnique(baseTechnique); 
+                this.ui.displayHintTechnique(baseTechnique);
                 // this.ui.displayHintTechnique(step.technique); 
                 console.log(`Hint found: ${step.technique}. Stage set to 1.`);
             } else {

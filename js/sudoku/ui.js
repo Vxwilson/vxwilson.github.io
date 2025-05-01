@@ -165,75 +165,75 @@ export class SudokuUI {
     // updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
     //     this.numButtons.forEach(button => {
     //         const num = parseInt(button.dataset.num, 10);
-    //         let isDisabled = true; // Default to disabled
+    //         let isDisabled = true;
 
-    //         if (isPrefilled && !isMarkingMode) { // Can't change prefilled in normal mode
-    //             isDisabled = true;
-    //         } else if (num === 0) { // Erase button
-    //             isDisabled = !canErase;
+    //         if (num === 0) { // Erase button
+    //             isDisabled = !canErase || isPrefilled; // Cannot erase prefilled
     //         } else if (isMarkingMode) { // Marking mode
-    //             isDisabled = false; // Always allow marking toggles 1-9
-    //         } else { // Normal mode, non-prefilled cell
-    //             isDisabled = !validInputs.includes(num);
+    //             isDisabled = isPrefilled; // Cannot add pencil marks to prefilled cells
+    //         } else { // Normal input mode
+    //             isDisabled = isPrefilled; // Cannot change prefilled cell value
+    //             // If not prefilled, enable if input is valid OR always enable (let game logic handle validation feedback)
+    //             // Let's enable all 1-9, Game logic shows error if invalid
+    //             if (!isPrefilled) isDisabled = false;
+    //             // OR if you want to pre-disable based on validity:
+    //             // isDisabled = isPrefilled || !validInputs.includes(num);
     //         }
     //         button.disabled = isDisabled;
     //     });
     // }
-    updateNumPad(validInputs, canErase, isMarkingMode, isPrefilled) {
-        this.numButtons.forEach(button => {
-            const num = parseInt(button.dataset.num, 10);
-            let isDisabled = true;
 
-            if (num === 0) { // Erase button
-                isDisabled = !canErase || isPrefilled; // Cannot erase prefilled
-            } else if (isMarkingMode) { // Marking mode
-                isDisabled = isPrefilled; // Cannot add pencil marks to prefilled cells
-            } else { // Normal input mode
-                isDisabled = isPrefilled; // Cannot change prefilled cell value
-                // If not prefilled, enable if input is valid OR always enable (let game logic handle validation feedback)
-                // Let's enable all 1-9, Game logic shows error if invalid
-                if (!isPrefilled) isDisabled = false;
-                // OR if you want to pre-disable based on validity:
-                // isDisabled = isPrefilled || !validInputs.includes(num);
+    updateNumPad(validInputs, canErase, isMarking, isPrefilled, mode) {
+        // Get references to your numpad buttons (e.g., by data attribute)
+        const numpadButtons = this.numButtons; 
+        // const eraseButton = this.numpadContainer.querySelector('[data-value="0"]'); // Assuming 0 is erase
+    
+        numpadButtons.forEach(button => {
+            const value = parseInt(button.dataset.num, 10);
+            let isDisabled = true; // Default to disabled
+    
+            if (value === 0) {
+                // Handle Erase button
+                isDisabled = !canErase;
+                // --- NEW: Change erase button appearance in Focus mode ---
+                if (mode === Modes.FOCUS) {
+                    //  button.textContent = 'Clear Focus'; // Or set an icon/class
+                     // Ensure it's visually distinct if needed
+                     button.classList.add('numpad-button--focus-clear');
+                } else {
+                    //  button.textContent = 'Erase'; // Or set default icon/class
+                     button.classList.remove('numpad-button--focus-clear');
+                }
+                 // --- End New ---
+            } else if (value >= 1 && value <= 9) {
+                // Handle Number buttons
+                if (mode === Modes.FOCUS) {
+                    // Always enabled in focus mode
+                     isDisabled = false;
+                } else if (isMarking) {
+                    // Enabled if not prefilled (validInputs check might be redundant here if always 1-9)
+                     isDisabled = isPrefilled || !validInputs.includes(value);
+                } else { // Normal Mode
+                     // Disabled if prefilled OR not a valid input number
+                     isDisabled = isPrefilled || !validInputs.includes(value);
+                }
             }
+    
             button.disabled = isDisabled;
+            // Optional: Add/remove classes for styling disabled/active states
+            button.classList.toggle('numpad-button--disabled', isDisabled);
+            button.classList.toggle('numpad-button--active', !isDisabled); // Example active class
+            // Optional: Add specific styling for prefilled cells affecting numpad
+            // Handled by isDisabled logic now, but you could add a class:
+            // button.classList.toggle('numpad-button--prefilled-target', isPrefilled && value !== 0);
+    
         });
+    
+         // Example: Add a class to the container based on mode
+        //  this.numpadContainer.classList.toggle('focus-mode', mode === Modes.FOCUS);
+        //  this.numpadContainer.classList.toggle('marking-mode', mode === Modes.MARKING);
+        //  this.numpadContainer.classList.toggle('normal-mode', mode === Modes.NORMAL);
     }
-
-    // // Highlight cells with a specific number or pencil mark
-    // applyFocus(value) {
-    //     this.clearFocus(); // Clear previous focus first
-
-    //     if (value < 1 || value > 9) return; // Only focus 1-9
-
-    //     this.cells.flat().forEach(cell => {
-    //         const cellText = cell.querySelector('.cell-text');
-    //         const cellValue = parseInt(cellText.textContent, 10);
-
-    //         if (cellValue === value) {
-    //             cell.classList.add('focused');
-    //         } else {
-    //             // Check pencil marks if cell is empty
-    //             const pencilMark = cell.querySelector(`.pencil-mark[data-num="${value}"].marked`);
-    //             if (pencilMark) {
-    //                 pencilMark.classList.add('focused'); // Focus the specific mark
-    //                 // Optionally highlight the cell containing the focused mark
-    //                 // cell.classList.add('focused-pencil');
-    //             }
-    //         }
-    //     });
-    // }
-
-    // clearFocus() {
-    //     this.cells.flat().forEach(cell => {
-    //         cell.classList.remove('focused');
-    //         // cell.classList.remove('focused-pencil');
-    //         cell.querySelectorAll('.pencil-mark.focused').forEach(mark => {
-    //             mark.classList.remove('focused');
-    //         });
-    //     });
-    // }
-
 
     showBoardError(row, col) {
         const cell = this.getCellElement(row, col);
@@ -467,17 +467,6 @@ export class SudokuUI {
                 this.callbacks.onCellClick(row, col);
             }
         });
-
-        // // Click outside grid to deselect
-        // document.addEventListener('click', (event) => {
-        //     if (!event.target.closest('.sudoku') && // Clicked outside grid
-        //         !event.target.closest('.num-button') && // Not on numpad
-        //         !event.target.closest('.mode-button') && // Not on mode buttons
-        //         !event.target.closest('.floatingBox') && // Not inside floating boxes
-        //         this.callbacks.onClickOutside) {
-        //         this.callbacks.onClickOutside();
-        //     }
-        // });
 
         // Click outside grid to deselect
         document.addEventListener('click', (event) => {
