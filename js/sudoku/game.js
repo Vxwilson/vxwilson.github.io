@@ -253,7 +253,7 @@ export class SudokuGame {
         console.log(`[Main] Requesting new board from worker: ${difficultyValue}`);
 
         // Show Loading Indicator 
-        const maxAttempts = 65;
+        const maxAttempts = 100;
         this.ui.showLoading(`1 of ${maxAttempts}`);
 
         // Send message to worker to start generation

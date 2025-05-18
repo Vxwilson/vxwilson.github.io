@@ -1,14 +1,14 @@
 import { BOARD_SIZE, BOX_SIZE, DifficultyLevel, DIFFICULTY_THRESHOLDS } from './constants.js';
 import { deepCopy2DArray, checkInputValid, findNextEmptyCell, coordsToKey, getPeers, keyToCoords} from './utils.js';
 import * as SolverBasic from './solver_basic.js';
+import {SudokuCspSolver} from './solver_csp.js';
 import { ratePuzzleDifficulty } from './solver_rating.js';
-import { /* ... other imports ... */ findNextLogicalStep, initializeCandidatesMap, applyEliminations } from './solver_advanced.js'; // 
+import { findNextLogicalStep, initializeCandidatesMap, applyEliminations } from './solver_advanced.js'; // 
 
 
 
 
 console.log('[Worker] Initializing Sudoku Generator Worker...');
-// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // --- Generation Algorithm ---
 async function generatePuzzleAdvanced(
     desiredLevel,
@@ -68,10 +68,10 @@ async function generatePuzzleAdvanced(
             const tempValue = potentialPuzzle[r][c];
             potentialPuzzle[r][c] = 0;
 
-            // Check uniqueness using Basic Solver's countSolutions
-            const boardCheckCopy = deepCopy2DArray(potentialPuzzle);
-            if (SolverBasic.countSolutions(boardCheckCopy) !== 1) {
-                potentialPuzzle[r][c] = tempValue; // Put back if it breaks uniqueness
+            // Check uniqueness
+            const cspChecker = new SudokuCspSolver(potentialPuzzle);
+            if (cspChecker.countSolutions(2) !== 1) { 
+                potentialPuzzle[r][c] = tempValue; 
             } else {
                 removedCount++;
                 currentClueCount = totalCells - removedCount;
@@ -137,8 +137,8 @@ async function generatePuzzleAdvanced(
             currentHardeningPuzzle[r][c] = 0;
 
             // Check uniqueness
-            const boardCheckCopy = deepCopy2DArray(currentHardeningPuzzle);
-            if (SolverBasic.countSolutions(boardCheckCopy) !== 1) {
+            const cspHardeningChecker = new SudokuCspSolver(currentHardeningPuzzle);
+            if (cspHardeningChecker.countSolutions(2) !== 1) {
                 currentHardeningPuzzle[r][c] = tempValue; // Put back
             } else {
                 // Successfully removed a clue during hardening
@@ -211,7 +211,8 @@ async function generateTrainingPuzzle(targetTechnique, maxAttempts = 50, onProgr
             const temp = puzzle[r][c];
             puzzle[r][c] = 0;
 
-            if (SolverBasic.countSolutions(deepCopy2DArray(puzzle)) !== 1) {
+            const cspChecker = new SudokuCspSolver(deepCopy2DArray(puzzle));
+            if (cspChecker.countSolutions(2) !== 1) { 
                 puzzle[r][c] = temp; // Put back if multiple solutions
             } else {
                 clues--;
