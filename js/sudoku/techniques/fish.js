@@ -107,12 +107,127 @@ export function findXWing(candidatesMap) {
    return { eliminations: [], stepInfo: null };
 }
 
+// this is wrong; roof must be on the same side from the base
+// export function findSkyscraper_OLD(candidatesMap) {
+//     // Use imported utils: getCandidateLocations, groupLocationsByUnit, getCombinations, keyToCoords, coordsToKey, getCommonPeers
+//     for (let n = 1; n <= BOARD_SIZE; n++) {
+//         const locations = getCandidateLocations(candidatesMap, n); // Use util
+//         if (locations.size < 4) continue;
+//         const { rows, cols } = groupLocationsByUnit(locations); // Use util
+
+//         // Row-based Skyscraper
+//         const candidateRows = new Map();
+//         for (const [r, rowLocations] of rows.entries()) {
+//             if (rowLocations.size === 2) candidateRows.set(r, Array.from(rowLocations));
+//         }
+//         if (candidateRows.size >= 2) {
+//             const rowIndices = Array.from(candidateRows.keys());
+//             const rowCombinations = getCombinations(rowIndices, 2); // Use util
+//             for (const [r1, r2] of rowCombinations) {
+//                 const [key1a, key1b] = candidateRows.get(r1);
+//                 const [key2a, key2b] = candidateRows.get(r2);
+//                 const [, c1a] = keyToCoords(key1a); const [, c1b] = keyToCoords(key1b); // Use util
+//                 const [, c2a] = keyToCoords(key2a); const [, c2b] = keyToCoords(key2b); // Use util
+//                 let baseCol = -1; let roofKey1 = null; let roofKey2 = null;
+//                 if (c1a === c2a && c1b !== c2b) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2b; }
+//                 else if (c1a === c2b && c1b !== c2a) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2a; }
+//                 else if (c1b === c2a && c1a !== c2b) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2b; }
+//                 else if (c1b === c2b && c1a !== c2a) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2a; }
+
+//                 if (baseCol !== -1) {
+//                     const [roof_r1, roof_c1] = keyToCoords(roofKey1); // Use util
+//                     const [roof_r2, roof_c2] = keyToCoords(roofKey2); // Use util
+//                     const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2); // Use util
+//                     const skyscraperElims = [];
+//                     for (const peerKey of commonPeersKeys) {
+//                         if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+//                             if (candidatesMap.get(peerKey)?.has(n)) {
+//                                 skyscraperElims.push({ cellKey: peerKey, values: [n] });
+//                             }
+//                         }
+//                     }
+//                     if (skyscraperElims.length > 0) {
+//                         const baseKey1 = coordsToKey(r1, baseCol); const baseKey2 = coordsToKey(r2, baseCol); // Use util
+//                         const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)]; // Use util
+//                         const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)]; // Use util
+//                         const stepInfo = {
+//                             technique: `Skyscraper (Rows, Digit ${n})`,
+//                             description: `Digit ${n} in Rows ${r1 + 1} and ${r2 + 1} forms a Skyscraper with base in Col ${baseCol + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
+//                             eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })), // Use util
+//                             highlights: [
+//                                 ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+//                                 ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+//                                 ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' })) // Use util
+//                             ]
+//                         };
+//                         // console.log(`  >> Found Row Skyscraper (Digit ${n}, Base Col ${baseCol + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
+//                         return { eliminations: skyscraperElims, stepInfo: stepInfo };
+//                     }
+//                 }
+//             }
+//         }
+
+//         // Column-based Skyscraper (similar logic using utils)
+//         const candidateCols = new Map();
+//         for (const [c, colLocations] of cols.entries()) {
+//             if (colLocations.size === 2) candidateCols.set(c, Array.from(colLocations));
+//         }
+//         if (candidateCols.size >= 2) {
+//             const colIndices = Array.from(candidateCols.keys());
+//             const colCombinations = getCombinations(colIndices, 2); // Use util
+//             for (const [c1, c2] of colCombinations) {
+//                 const [key1a, key1b] = candidateCols.get(c1);
+//                 const [key2a, key2b] = candidateCols.get(c2);
+//                 const [r1a,] = keyToCoords(key1a); const [r1b,] = keyToCoords(key1b); // Use util
+//                 const [r2a,] = keyToCoords(key2a); const [r2b,] = keyToCoords(key2b); // Use util
+//                 let baseRow = -1; let roofKey1 = null; let roofKey2 = null;
+//                 if (r1a === r2a && r1b !== r2b) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2b; }
+//                 else if (r1a === r2b && r1b !== r2a) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2a; }
+//                 else if (r1b === r2a && r1a !== r2b) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2b; }
+//                 else if (r1b === r2b && r1a !== r2a) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2a; }
+
+//                 if (baseRow !== -1) {
+//                     const [roof_r1, roof_c1] = keyToCoords(roofKey1); // Use util
+//                     const [roof_r2, roof_c2] = keyToCoords(roofKey2); // Use util
+//                     const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2); // Use util
+//                     const skyscraperElims = [];
+//                     for (const peerKey of commonPeersKeys) {
+//                         if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+//                             if (candidatesMap.get(peerKey)?.has(n)) {
+//                                 skyscraperElims.push({ cellKey: peerKey, values: [n] });
+//                             }
+//                         }
+//                     }
+//                     if (skyscraperElims.length > 0) {
+//                         const baseKey1 = coordsToKey(baseRow, c1); const baseKey2 = coordsToKey(baseRow, c2); // Use util
+//                         const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)]; // Use util
+//                         const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)]; // Use util
+//                         const stepInfo = {
+//                             technique: `Skyscraper (Cols, Digit ${n})`,
+//                             description: `Digit ${n} in Cols ${c1 + 1} and ${c2 + 1} forms a Skyscraper with base in Row ${baseRow + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
+//                             eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })), // Use util
+//                             highlights: [
+//                                 ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+//                                 ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+//                                 ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' })) // Use util
+//                             ]
+//                         };
+//                         // console.log(`  >> Found Col Skyscraper (Digit ${n}, Base Row ${baseRow + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
+//                         return { eliminations: skyscraperElims, stepInfo: stepInfo };
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//     return { eliminations: [], stepInfo: null };
+// }
+
 export function findSkyscraper(candidatesMap) {
     // Use imported utils: getCandidateLocations, groupLocationsByUnit, getCombinations, keyToCoords, coordsToKey, getCommonPeers
     for (let n = 1; n <= BOARD_SIZE; n++) {
-        const locations = getCandidateLocations(candidatesMap, n); // Use util
+        const locations = getCandidateLocations(candidatesMap, n);
         if (locations.size < 4) continue;
-        const { rows, cols } = groupLocationsByUnit(locations); // Use util
+        const { rows, cols } = groupLocationsByUnit(locations);
 
         // Row-based Skyscraper
         const candidateRows = new Map();
@@ -121,99 +236,131 @@ export function findSkyscraper(candidatesMap) {
         }
         if (candidateRows.size >= 2) {
             const rowIndices = Array.from(candidateRows.keys());
-            const rowCombinations = getCombinations(rowIndices, 2); // Use util
+            const rowCombinations = getCombinations(rowIndices, 2);
             for (const [r1, r2] of rowCombinations) {
-                const [key1a, key1b] = candidateRows.get(r1);
-                const [key2a, key2b] = candidateRows.get(r2);
-                const [, c1a] = keyToCoords(key1a); const [, c1b] = keyToCoords(key1b); // Use util
-                const [, c2a] = keyToCoords(key2a); const [, c2b] = keyToCoords(key2b); // Use util
+                const [key1a, key1b] = candidateRows.get(r1); // e.g., key for (r1, c1a) and (r1, c1b)
+                const [key2a, key2b] = candidateRows.get(r2); // e.g., key for (r2, c2a) and (r2, c2b)
+                const [, c1a] = keyToCoords(key1a); const [, c1b] = keyToCoords(key1b);
+                const [, c2a] = keyToCoords(key2a); const [, c2b] = keyToCoords(key2b);
                 let baseCol = -1; let roofKey1 = null; let roofKey2 = null;
+
                 if (c1a === c2a && c1b !== c2b) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2b; }
                 else if (c1a === c2b && c1b !== c2a) { baseCol = c1a; roofKey1 = key1b; roofKey2 = key2a; }
                 else if (c1b === c2a && c1a !== c2b) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2b; }
                 else if (c1b === c2b && c1a !== c2a) { baseCol = c1b; roofKey1 = key1a; roofKey2 = key2a; }
 
                 if (baseCol !== -1) {
-                    const [roof_r1, roof_c1] = keyToCoords(roofKey1); // Use util
-                    const [roof_r2, roof_c2] = keyToCoords(roofKey2); // Use util
-                    const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2); // Use util
-                    const skyscraperElims = [];
-                    for (const peerKey of commonPeersKeys) {
-                        if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
-                            if (candidatesMap.get(peerKey)?.has(n)) {
-                                skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                    const [, current_roof_c1] = keyToCoords(roofKey1);
+                    const [, current_roof_c2] = keyToCoords(roofKey2);
+
+                    // --- MODIFICATION START: Apply "same direction" constraint ---
+                    const dir1_sign = Math.sign(current_roof_c1 - baseCol);
+                    const dir2_sign = Math.sign(current_roof_c2 - baseCol);
+
+                    // Roofs must be on the same side of the base.
+                    // dir_sign will be -1 (left/top), 0 (on base line), or 1 (right/bottom).
+                    // We need dir_sign to be non-zero (roof not on base line) and same for both.
+                    // Since key1a/key1b are distinct in a row, current_roof_c1 will not be baseCol if baseCol was c1a.
+                    // So dir1_sign and dir2_sign will not be 0 here.
+                    if (dir1_sign === dir2_sign) { // Both -1 or both 1
+                        // --- MODIFICATION END ---
+
+                        const [roof_r1_coord, roof_c1_coord] = keyToCoords(roofKey1);
+                        const [roof_r2_coord, roof_c2_coord] = keyToCoords(roofKey2);
+                        const commonPeersKeys = getCommonPeers(roof_r1_coord, roof_c1_coord, roof_r2_coord, roof_c2_coord);
+                        const skyscraperElims = [];
+
+                        for (const peerKey of commonPeersKeys) {
+                            // Ensure the peer is not one of the 4 cells forming the Skyscraper
+                            if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+                                if (candidatesMap.get(peerKey)?.has(n)) {
+                                    skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                                }
                             }
                         }
-                    }
-                    if (skyscraperElims.length > 0) {
-                        const baseKey1 = coordsToKey(r1, baseCol); const baseKey2 = coordsToKey(r2, baseCol); // Use util
-                        const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)]; // Use util
-                        const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)]; // Use util
-                        const stepInfo = {
-                            technique: `Skyscraper (Rows, Digit ${n})`,
-                            description: `Digit ${n} in Rows ${r1 + 1} and ${r2 + 1} forms a Skyscraper with base in Col ${baseCol + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
-                            eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })), // Use util
-                            highlights: [
-                                ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
-                                ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
-                                ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' })) // Use util
-                            ]
-                        };
-                        // console.log(`  >> Found Row Skyscraper (Digit ${n}, Base Col ${baseCol + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
-                        return { eliminations: skyscraperElims, stepInfo: stepInfo };
-                    }
+
+                        if (skyscraperElims.length > 0) {
+                            const finalBaseKey1 = coordsToKey(r1, baseCol);
+                            const finalBaseKey2 = coordsToKey(r2, baseCol);
+                            const baseCoords = [keyToCoords(finalBaseKey1), keyToCoords(finalBaseKey2)];
+                            const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)];
+                            const stepInfo = {
+                                technique: `Skyscraper (Rows, Digit ${n})`,
+                                description: `Digit ${n} in Rows ${r1 + 1} and ${r2 + 1} forms a Skyscraper with base in Col ${baseCol + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1_coord + 1}C${roof_c1_coord + 1} and R${roof_r2_coord + 1}C${roof_c2_coord + 1}.`,
+                                eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                                highlights: [
+                                    ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                    ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                    ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' }))
+                                ]
+                            };
+                            return { eliminations: skyscraperElims, stepInfo: stepInfo };
+                        }
+                    } // End "same direction" check
                 }
             }
         }
 
-        // Column-based Skyscraper (similar logic using utils)
+        // Column-based Skyscraper
         const candidateCols = new Map();
         for (const [c, colLocations] of cols.entries()) {
             if (colLocations.size === 2) candidateCols.set(c, Array.from(colLocations));
         }
         if (candidateCols.size >= 2) {
             const colIndices = Array.from(candidateCols.keys());
-            const colCombinations = getCombinations(colIndices, 2); // Use util
+            const colCombinations = getCombinations(colIndices, 2);
             for (const [c1, c2] of colCombinations) {
                 const [key1a, key1b] = candidateCols.get(c1);
                 const [key2a, key2b] = candidateCols.get(c2);
-                const [r1a,] = keyToCoords(key1a); const [r1b,] = keyToCoords(key1b); // Use util
-                const [r2a,] = keyToCoords(key2a); const [r2b,] = keyToCoords(key2b); // Use util
+                const [r1a,] = keyToCoords(key1a); const [r1b,] = keyToCoords(key1b);
+                const [r2a,] = keyToCoords(key2a); const [r2b,] = keyToCoords(key2b);
                 let baseRow = -1; let roofKey1 = null; let roofKey2 = null;
+
                 if (r1a === r2a && r1b !== r2b) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2b; }
                 else if (r1a === r2b && r1b !== r2a) { baseRow = r1a; roofKey1 = key1b; roofKey2 = key2a; }
                 else if (r1b === r2a && r1a !== r2b) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2b; }
                 else if (r1b === r2b && r1a !== r2a) { baseRow = r1b; roofKey1 = key1a; roofKey2 = key2a; }
 
                 if (baseRow !== -1) {
-                    const [roof_r1, roof_c1] = keyToCoords(roofKey1); // Use util
-                    const [roof_r2, roof_c2] = keyToCoords(roofKey2); // Use util
-                    const commonPeersKeys = getCommonPeers(roof_r1, roof_c1, roof_r2, roof_c2); // Use util
-                    const skyscraperElims = [];
-                    for (const peerKey of commonPeersKeys) {
-                        if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
-                            if (candidatesMap.get(peerKey)?.has(n)) {
-                                skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                    const [current_roof_r1,] = keyToCoords(roofKey1);
+                    const [current_roof_r2,] = keyToCoords(roofKey2);
+
+                    // --- MODIFICATION START: Apply "same direction" constraint ---
+                    const dir1_sign = Math.sign(current_roof_r1 - baseRow);
+                    const dir2_sign = Math.sign(current_roof_r2 - baseRow);
+                    
+                    if (dir1_sign === dir2_sign) { // Both -1 or both 1
+                    // --- MODIFICATION END ---
+
+                        const [roof_r1_coord, roof_c1_coord] = keyToCoords(roofKey1);
+                        const [roof_r2_coord, roof_c2_coord] = keyToCoords(roofKey2);
+                        const commonPeersKeys = getCommonPeers(roof_r1_coord, roof_c1_coord, roof_r2_coord, roof_c2_coord);
+                        const skyscraperElims = [];
+                        for (const peerKey of commonPeersKeys) {
+                            if (peerKey !== key1a && peerKey !== key1b && peerKey !== key2a && peerKey !== key2b) {
+                                if (candidatesMap.get(peerKey)?.has(n)) {
+                                    skyscraperElims.push({ cellKey: peerKey, values: [n] });
+                                }
                             }
                         }
-                    }
-                    if (skyscraperElims.length > 0) {
-                        const baseKey1 = coordsToKey(baseRow, c1); const baseKey2 = coordsToKey(baseRow, c2); // Use util
-                        const baseCoords = [keyToCoords(baseKey1), keyToCoords(baseKey2)]; // Use util
-                        const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)]; // Use util
-                        const stepInfo = {
-                            technique: `Skyscraper (Cols, Digit ${n})`,
-                            description: `Digit ${n} in Cols ${c1 + 1} and ${c2 + 1} forms a Skyscraper with base in Row ${baseRow + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1 + 1}C${roof_c1 + 1} and R${roof_r2 + 1}C${roof_c2 + 1}.`,
-                            eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })), // Use util
-                            highlights: [
-                                ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
-                                ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
-                                ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' })) // Use util
-                            ]
-                        };
-                        // console.log(`  >> Found Col Skyscraper (Digit ${n}, Base Row ${baseRow + 1}, Roof ${roofKey1}/${roofKey2}). Eliminations:`, skyscraperElims.map(e => e.cellKey));
-                        return { eliminations: skyscraperElims, stepInfo: stepInfo };
-                    }
+                        if (skyscraperElims.length > 0) {
+                            const finalBaseKey1 = coordsToKey(baseRow, c1);
+                            const finalBaseKey2 = coordsToKey(baseRow, c2);
+                            const baseCoords = [keyToCoords(finalBaseKey1), keyToCoords(finalBaseKey2)];
+                            const roofCoords = [keyToCoords(roofKey1), keyToCoords(roofKey2)];
+                            const stepInfo = {
+                                technique: `Skyscraper (Cols, Digit ${n})`,
+                                description: `Digit ${n} in Cols ${c1 + 1} and ${c2 + 1} forms a Skyscraper with base in Row ${baseRow + 1}. Candidate ${n} removed from cells seeing both roof cells R${roof_r1_coord + 1}C${roof_c1_coord + 1} and R${roof_r2_coord + 1}C${roof_c2_coord + 1}.`,
+                                eliminations: skyscraperElims.map(elim => ({ cell: keyToCoords(elim.cellKey), values: elim.values })),
+                                highlights: [
+                                    ...baseCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                    ...roofCoords.map(([hr, hc]) => ({ row: hr, col: hc, candidates: [n], type: 'defining' })),
+                                    ...skyscraperElims.map(elim => ({ row: keyToCoords(elim.cellKey)[0], col: keyToCoords(elim.cellKey)[1], candidates: [n], type: 'eliminated' }))
+                                ]
+                            };
+                            return { eliminations: skyscraperElims, stepInfo: stepInfo };
+                        }
+                    } // End "same direction" check
                 }
             }
         }
